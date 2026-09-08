@@ -14,48 +14,109 @@
   body {
     background: var(--paper); color: var(--ink);
     font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: "tnum";
     -webkit-font-smoothing: antialiased;
     display: grid; place-items: center;
     padding: 2rem 1.5rem;
   }
-  main { width: min(100%, 44rem); display: grid; gap: 2.5rem; text-align: center; }
-  h1 { font-weight: 700; font-size: 2.5rem; line-height: 1.1; }
+  main { width: min(100%, 60rem); display: grid; gap: 1.5rem; }
+  h1 { font-weight: 700; font-size: 2rem; line-height: 1.1; }
   h1 + p { font-weight: 300; margin-top: .25rem; }
-  .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  h2 { font-weight: 300; font-size: .875rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .75rem; }
-  ul { list-style: none; display: grid; gap: .4rem; }
-  a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9375rem; line-height: 1.3; }
+  th { font-weight: 300; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; text-align: left; padding: 0 .75rem .5rem 0; border-bottom: 1px solid var(--ink); }
+  td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid rgba(22,22,21,.15); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  .n { width: 2rem; font-weight: 300; }
+  .topic strong { display: block; }
+  .topic span { font-weight: 300; font-size: .875rem; }
+  ul { list-style: none; }
+  a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 2px; padding: 0 .15em; }
   a:hover, a:focus-visible { background: var(--ink); color: var(--paper); text-decoration: none; outline: none; }
-  a { padding: 0 .2em; }
-  li span { display: block; font-weight: 300; font-size: .875rem; }
-  .empty { font-weight: 300; opacity: .4; }
-  @media (max-width: 36rem) { .sections { grid-template-columns: 1fr; } }
+  .soon { font-weight: 300; opacity: .35; }
+  @media (max-width: 40rem) { html, body { height: auto; } .topic span { display: none; } }
 </style>
 </head>
 <body>
 <main>
   <header>
     <h1>Digital Foundations</h1>
-    <p>Tools and self-checks for the course.</p>
+    <p>Tools and self-checks, week by week.</p>
   </header>
 
-  <div class="sections">
-  <section>
-    <h2>Tools</h2>
-    <ul>
-      <li><a href="tools/abacus/">Abacus</a><span>count and calculate with beads</span></li>
-      <li><a href="tools/binary-counter/">Binary Counter</a><span>decimal next to binary, one step at a time</span></li>
-      <li><a href="tools/binary-animation/">Binary Animation</a><span>watch bits flip as numbers grow</span></li>
-      <li><a href="tools/binary-bingo/">Binary Bingo</a><span>practise reading binary in class</span></li>
-      <li><a href="tools/running-a-program/">Running a Program</a><span>step through a CPU executing instructions</span></li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>Self-check quizzes</h2>
-    <p class="empty">Coming soon.</p>
-  </section>
-  </div>
+  <table>
+    <thead>
+      <tr><th></th><th>Topic</th><th>Tools</th><th>Self-check</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="n">1</td>
+        <td class="topic"><strong>From counting to computing</strong><span>What actually is a computer?</span></td>
+        <td><ul>
+          <li><a href="tools/abacus/">Abacus</a></li>
+          <li><a href="tools/binary-counter/">Binary Counter</a></li>
+          <li><a href="tools/binary-animation/">Binary Animation</a></li>
+          <li><a href="tools/binary-bingo/">Binary Bingo</a></li>
+        </ul></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">2</td>
+        <td class="topic"><strong>Personal computer</strong><span>How did computers become so common?</span></td>
+        <td><ul>
+          <li><a href="tools/running-a-program/">Running a Program</a></li>
+        </ul></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">3</td>
+        <td class="topic"><strong>Representing the world</strong><span>How do we translate text, image and sound into the digital world?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">4</td>
+        <td class="topic"><strong>The internet</strong><span>How is everyone in the world connected to each other?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">5</td>
+        <td class="topic"><strong>The web</strong><span>How does the web work?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">6</td>
+        <td class="topic"><strong>Code &amp; development</strong><span>How is software made?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">7</td>
+        <td class="topic"><strong>Algorithms</strong><span>Who or what decides which information we get to see?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">8</td>
+        <td class="topic"><strong>All about data</strong><span>What is data? How do we structure it?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">9</td>
+        <td class="topic"><strong>Security &amp; privacy</strong><span>What can go wrong?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+      <tr>
+        <td class="n">10</td>
+        <td class="topic"><strong>AI &amp; machine learning</strong><span>What is all of that, actually?</span></td>
+        <td><span class="soon">soon</span></td>
+        <td><span class="soon">soon</span></td>
+      </tr>
+    </tbody>
+  </table>
 </main>
 </body>
 </html>

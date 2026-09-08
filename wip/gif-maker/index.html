@@ -140,6 +140,12 @@
   }
   .settings input:focus { outline: none; border-bottom: 2px solid var(--ink); background: #fff; }
   .settings .unit { font-weight: 300; font-size: .8rem; color: var(--ink-soft); margin-left: .4rem; }
+  .settings input[type="color"] {
+    width: 2.6rem; height: 2.05rem; padding: 0;
+    border: 1px solid var(--ink); border-radius: 0; background: transparent; cursor: pointer;
+  }
+  .settings input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
+  .settings input[type="color"]::-webkit-color-swatch { border: none; }
 
   /* ---- preview ---- */
   #preview-wrap {
@@ -208,6 +214,10 @@
         <span class="lbl">Output width</span>
         <input id="width" type="number" min="16" max="2048" step="1" value="800"><span class="unit">px</span>
       </label>
+      <label>
+        <span class="lbl">Subtitle band</span>
+        <input id="band" type="color" value="#f7f5f0"><span class="unit">solid, so the text stays smooth</span>
+      </label>
     </div>
 
     <div id="preview-wrap">
@@ -223,11 +233,12 @@
 </main>
 
 <footer>
-  Subtitles are set below the picture in Space Grotesk, the devine.be typeface. A GIF is a
-  fixed grid of pixels: on a Retina / HiDPI screen an 800&nbsp;px GIF shown at 800&nbsp;px is
-  stretched 2×, so export at twice the size you will display it at. GIF transparency is
-  1-bit (a pixel is either fully visible or fully invisible), so soft edges, shadows and the
-  anti-aliased rim of the subtitle get a hard cutoff — images with crisp edges work best.
+  Subtitles are set below the picture in Space Grotesk, the devine.be typeface, on a solid
+  band: GIF transparency is 1-bit (a pixel is either fully visible or fully invisible), so
+  text drawn straight onto transparency would lose its smooth edges. The picture itself keeps
+  its transparency, which also means soft edges and shadows get a hard cutoff — images with
+  crisp edges work best. A GIF is a fixed grid of pixels: on a Retina / HiDPI screen an
+  800&nbsp;px GIF shown at 800&nbsp;px is stretched 2×, so export at twice the display size.
 </footer>
 
 <script type="module">
@@ -235,7 +246,7 @@ import { GIFEncoder, quantize } from 'https://cdn.jsdelivr.net/npm/gifenc@1.0.3/
 
 const $ = (s) => document.querySelector(s);
 const dropEl = $('#drop'), fileEl = $('#file'), framesEl = $('#frames'),
-      emptyHint = $('#empty-hint'), durationEl = $('#duration'), widthEl = $('#width'),
+      emptyHint = $('#empty-hint'), durationEl = $('#duration'), widthEl = $('#width'), bandEl = $('#band'),
       previewEl = $('#preview'), placeholderEl = $('.placeholder'),
       downloadEl = $('#download'), statusEl = $('#status');
 
@@ -332,12 +343,17 @@ function composeFrame(ctx, frame, size) {
   const dw = Math.round(frame.img.width * scale), dh = Math.round(frame.img.height * scale);
   ctx.drawImage(frame.img, Math.round((w - dw) / 2), Math.round((imgH - dh) / 2), dw, dh);
 
+  if (!band) return;
+  // The caption sits on a solid band: GIF transparency is 1-bit, so text drawn
+  // straight onto transparency loses its anti-aliasing and looks jagged.
+  ctx.fillStyle = bandEl.value;
+  ctx.fillRect(0, imgH, w, band);
   const text = frame.subtitle.trim();
-  if (!text || !band) return;
+  if (!text) return;
   ctx.font = `500 ${fontPx}px "Space Grotesk", sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = '#17150e';
+  ctx.fillStyle = luminance(bandEl.value) > 0.45 ? '#17150e' : '#f7f5f0';
   const m = ctx.measureText(text);
   const x = Math.round((w - m.width) / 2);
   // centre the glyph box (ascent..descent) in the band, on an integer baseline
@@ -392,12 +408,19 @@ async function restartPreview() {
   }, ms);
 }
 
+function luminance(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map(c => c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function durationMs() {
   return Math.max(50, Math.round((+durationEl.value || 0.5) * 1000));
 }
 
 durationEl.addEventListener('change', restartPreview);
 widthEl.addEventListener('change', restartPreview);
+bandEl.addEventListener('input', drawPreviewFrame);
 
 // ---------- encoding ----------
 downloadEl.addEventListener('click', async () => {
@@ -434,7 +457,14 @@ downloadEl.addEventListener('click', async () => {
         }
       }
       const hasAlpha = n < data.length;
-      const palette = quantize(n ? opaque.subarray(0, n) : data, hasAlpha ? 255 : 256, { format: 'rgb565' });
+      // The caption band gets its own slice of the palette. Its anti-aliased greys
+      // are a tiny share of the pixels and would otherwise be merged away, which
+      // makes the dither speckle around each letter.
+      const bandPixels = size.band ? data.subarray(w * size.imgH * 4) : null;
+      const bandColors = bandPixels ? 48 : 0;
+      const picColors = 256 - (hasAlpha ? 1 : 0) - bandColors;
+      const palette = quantize(n ? opaque.subarray(0, n) : data, picColors, { format: 'rgb565' });
+      if (bandPixels) palette.push(...quantize(bandPixels, bandColors, { format: 'rgb565' }));
       let transparentIndex = 0;
       if (hasAlpha) {
         transparentIndex = palette.length;
