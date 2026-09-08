@@ -10,28 +10,26 @@
 <style>
   :root { --ink: #161615; --paper: #f8f8f8; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { min-height: 100%; }
+  html, body { height: 100%; }
   body {
     background: var(--paper); color: var(--ink);
     font-family: 'Space Grotesk', sans-serif;
     -webkit-font-smoothing: antialiased;
     display: grid; place-items: center;
-    padding: clamp(2rem, 8vw, 6rem) 1.5rem;
+    padding: 2rem 1.5rem;
   }
-  main { width: min(100%, 32rem); display: grid; gap: 3rem; text-align: center; }
+  main { width: min(100%, 44rem); display: grid; gap: 2.5rem; text-align: center; }
   h1 { font-weight: 700; font-size: 2.5rem; line-height: 1.1; }
-  h1 + p { font-weight: 300; margin-top: .5rem; }
-  h2 { font-weight: 300; font-size: .875rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 1rem; }
-  ul { list-style: none; display: grid; gap: .75rem; }
-  a {
-    display: block; padding: 1rem 1.25rem;
-    border: 2px solid var(--ink); color: var(--ink); text-decoration: none;
-  }
-  a strong { display: block; font-weight: 700; font-size: 1.125rem; }
-  a span { display: block; font-weight: 300; font-size: .875rem; margin-top: .125rem; }
-  a:hover, a:focus-visible { background: var(--ink); color: var(--paper); outline: none; }
-  a:focus-visible { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  h1 + p { font-weight: 300; margin-top: .25rem; }
+  .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  h2 { font-weight: 300; font-size: .875rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .75rem; }
+  ul { list-style: none; display: grid; gap: .4rem; }
+  a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 2px; }
+  a:hover, a:focus-visible { background: var(--ink); color: var(--paper); text-decoration: none; outline: none; }
+  a { padding: 0 .2em; }
+  li span { display: block; font-weight: 300; font-size: .875rem; }
   .empty { font-weight: 300; opacity: .4; }
+  @media (max-width: 36rem) { .sections { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -41,14 +39,15 @@
     <p>Tools and self-checks for the course.</p>
   </header>
 
+  <div class="sections">
   <section>
     <h2>Tools</h2>
     <ul>
-      <li><a href="tools/abacus/"><strong>Abacus</strong><span>count and calculate with beads</span></a></li>
-      <li><a href="tools/binary-counter/"><strong>Binary Counter</strong><span>decimal next to binary, one step at a time</span></a></li>
-      <li><a href="tools/binary-animation/"><strong>Binary Animation</strong><span>watch bits flip as numbers grow</span></a></li>
-      <li><a href="tools/binary-bingo/"><strong>Binary Bingo</strong><span>practise reading binary in class</span></a></li>
-      <li><a href="tools/running-a-program/"><strong>Running a Program</strong><span>step through a CPU executing instructions</span></a></li>
+      <li><a href="tools/abacus/">Abacus</a><span>count and calculate with beads</span></li>
+      <li><a href="tools/binary-counter/">Binary Counter</a><span>decimal next to binary, one step at a time</span></li>
+      <li><a href="tools/binary-animation/">Binary Animation</a><span>watch bits flip as numbers grow</span></li>
+      <li><a href="tools/binary-bingo/">Binary Bingo</a><span>practise reading binary in class</span></li>
+      <li><a href="tools/running-a-program/">Running a Program</a><span>step through a CPU executing instructions</span></li>
     </ul>
   </section>
 
@@ -56,6 +55,7 @@
     <h2>Self-check quizzes</h2>
     <p class="empty">Coming soon.</p>
   </section>
+  </div>
 </main>
 </body>
 </html>
