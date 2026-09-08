@@ -163,7 +163,7 @@
   const RBAR = { x: 86, w: 220 - 98 };   // the render progress bar, to the right of its label
   const CPU = { cx: 640, cy: 215, w: 110 };
   const RAM = { x: 790, y: 58, w: 170, h: 152, cx: 875 };
-  const STO = { x: 790, y: 242, w: 170, h: 150, cx: 875, top: 268, rowH: 13 };
+  const STO = { x: 790, y: 238, w: 170, h: 156, cx: 875, top: 262, rowH: 14 };
   const IN  = { x0: 460, y0: 335, x1: CPU.cx, y1: CPU.cy + CPU.w / 2 };
   const OUT = { x0: CPU.cx, y0: CPU.cy - CPU.w / 2, y1: 95, x1: 440 };
   const G = 10;   // breathing room between a wire and the box it points at
@@ -274,9 +274,9 @@
 
     txt(STO.x, STO.y - 8, 'storage', 't up');
     el('rect', { x: STO.x, y: STO.y, width: STO.w, height: STO.h, class: 'ln fillp' });
-    const by = STO.y + 6;
+    const by = STO.y + 4;
     el('rect', { x: STO.x + 10, y: by, width: STO.w - 20, height: 8, class: 'ln thin' });
-    line(STO.x, by + 12, STO.x + STO.w, by + 12, 'thin');
+    line(STO.x, by + 11, STO.x + STO.w, by + 11, 'thin');
   }
 
   /* ---------- state ---------- */
@@ -305,7 +305,7 @@
     gStorage.innerHTML = '';
     const used = DISK_USED + (rendered ? RENDER.gb : 0);
     txt(STO.x + STO.w, STO.y - 8, `${used} / ${DISK_GB} GB`, 't small right', gStorage);
-    el('rect', { x: STO.x + 10, y: STO.y + 6, width: (STO.w - 20) * used / DISK_GB, height: 8, class: 'filli' }, gStorage);
+    el('rect', { x: STO.x + 10, y: STO.y + 4, width: (STO.w - 20) * used / DISK_GB, height: 8, class: 'filli' }, gStorage);
     const rows = [SYSTEM, ...APPS, ...FILES];
     if (savedNote !== null) rows.push({ name: 'note.txt', disk: `${savedNote.length} B`, fresh: true });
     if (rendered) rows.push({ name: RENDER.name, disk: RENDER.disk, fresh: true });
