@@ -160,6 +160,7 @@
   const SCR = { x: 55, y: 62, w: 370, h: 244 };
   const BAR = 22;
   const WIN = { w: 220, h: 84 };
+  const RBAR = { x: 86, w: 220 - 98 };   // the render progress bar, to the right of its label
   const CPU = { cx: 640, cy: 215, w: 110 };
   const RAM = { x: 790, y: 58, w: 170, h: 152, cx: 875 };
   const STO = { x: 790, y: 242, w: 170, h: 150, cx: 875, top: 268, rowH: 13 };
@@ -380,8 +381,8 @@
         line(52, 47, 52, 61, 'thin', g);
         if (rendering) {
           txt(10, 74, 'rendering…', 't small', g);
-          el('rect', { x: 72, y: 68, width: WIN.w - 84, height: 6, class: 'ln thin' }, g);
-          renderBar = el('rect', { x: 72, y: 68, width: (WIN.w - 84) * rendering.p, height: 6, class: 'filli' }, g);
+          el('rect', { x: RBAR.x, y: 68, width: RBAR.w, height: 6, class: 'ln thin' }, g);
+          renderBar = el('rect', { x: RBAR.x, y: 68, width: RBAR.w * rendering.p, height: 6, class: 'filli' }, g);
         } else {
           txt(10, 74, rendered ? `${RENDER.name} · ${RENDER.disk}` : 'ready to render', 't small dim', g);
           button(g, WIN.w - 70, 30, 60, 'render', renderVideo);
@@ -584,7 +585,7 @@
     setCpu(); cpuShow('rendering…', 0);
     say('the cpu is at 100%: rendering takes all its time, nothing else responds until it is done');
     renderScreen();
-    tween(RENDER.ms, p => { rendering && (rendering.p = p); renderBar && renderBar.setAttribute('width', (WIN.w - 84) * p); }, () => {
+    tween(RENDER.ms, p => { rendering && (rendering.p = p); renderBar && renderBar.setAttribute('width', RBAR.w * p); }, () => {
       if (!rendering) return;
       rendering = null; rendered = true;
       cpuShow(null, 0); setCpu(); renderStorage(); renderScreen();
