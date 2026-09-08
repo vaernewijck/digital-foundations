@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gif—maker</title>
+<title>GIF maker - Digital Foundations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f7f5f0;
-    --ink: #17150e;
-    --ink-soft: #55503f;
-    --line: #17150e;
+    --paper: #f8f8f8;
+    --ink: #161615;
+    --ink-soft: #5c5c5a;
+    --line: #161615;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { color-scheme: light; }
@@ -187,8 +187,8 @@
 <body>
 
 <header>
-  <h1>gif—maker</h1>
-  <p>devine · digital foundations · runs entirely in your browser</p>
+  <h1>GIF maker</h1>
+  <p>Digital Foundations · teacher tools · runs entirely in your browser</p>
 </header>
 
 <main>
@@ -208,7 +208,7 @@
     <div class="settings">
       <label>
         <span class="lbl">Time per picture</span>
-        <input id="duration" type="number" min="0.05" step="0.05" value="0.5"><span class="unit">sec</span>
+        <input id="duration" type="number" min="0.05" step="0.05" value="1.2"><span class="unit">sec</span>
       </label>
       <label>
         <span class="lbl">Output width</span>
@@ -216,7 +216,7 @@
       </label>
       <label>
         <span class="lbl">Subtitle band</span>
-        <input id="band" type="color" value="#f7f5f0"><span class="unit">solid, so the text stays smooth</span>
+        <input id="band" type="color" value="#f8f8f8"><span class="unit">solid, so the text stays smooth</span>
       </label>
     </div>
 
@@ -353,7 +353,7 @@ function composeFrame(ctx, frame, size) {
   ctx.font = `500 ${fontPx}px "Space Grotesk", sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = luminance(bandEl.value) > 0.45 ? '#17150e' : '#f7f5f0';
+  ctx.fillStyle = luminance(bandEl.value) > 0.45 ? '#161615' : '#f8f8f8';
   const m = ctx.measureText(text);
   const x = Math.round((w - m.width) / 2);
   // centre the glyph box (ascent..descent) in the band, on an integer baseline
@@ -415,7 +415,7 @@ function luminance(hex) {
 }
 
 function durationMs() {
-  return Math.max(50, Math.round((+durationEl.value || 0.5) * 1000));
+  return Math.max(50, Math.round((+durationEl.value || 1.2) * 1000));
 }
 
 durationEl.addEventListener('change', restartPreview);
