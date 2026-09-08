@@ -470,7 +470,7 @@ downloadEl.addEventListener('click', async () => {
         transparentIndex = palette.length;
         palette.push([0, 0, 0]);
       }
-      const index = ditherToPalette(data, w, h, palette, transparentIndex, hasAlpha);
+      const index = ditherToPalette(data, w, h, palette, transparentIndex, hasAlpha, size.band ? size.imgH : h);
       gif.writeFrame(index, w, h, {
         palette,
         delay,
@@ -500,7 +500,9 @@ function setStatus(msg) { statusEl.textContent = msg; }
 
 // Floyd–Steinberg dithering: maps pixels to the palette while diffusing the
 // rounding error to neighbors, so gradients stay smooth instead of banding.
-function ditherToPalette(data, w, h, palette, transparentIndex, hasAlpha) {
+// Error is not diffused across `bandY`, so the picture's rounding noise never
+// leaks into the flat caption band.
+function ditherToPalette(data, w, h, palette, transparentIndex, hasAlpha, bandY) {
   const index = new Uint8Array(w * h);
   const buf = new Float32Array(w * h * 3);
   for (let p = 0, q = 0; p < data.length; p += 4, q += 3) {
@@ -532,7 +534,7 @@ function ditherToPalette(data, w, h, palette, transparentIndex, hasAlpha) {
       if (x + 1 < w) {
         buf[q + 3] += er * 7 / 16; buf[q + 4] += eg * 7 / 16; buf[q + 5] += eb * 7 / 16;
       }
-      if (y + 1 < h) {
+      if (y + 1 < h && y + 1 !== bandY) {
         const row = q + w * 3;
         if (x > 0) { buf[row - 3] += er * 3 / 16; buf[row - 2] += eg * 3 / 16; buf[row - 1] += eb * 3 / 16; }
         buf[row] += er * 5 / 16; buf[row + 1] += eg * 5 / 16; buf[row + 2] += eb * 5 / 16;
