@@ -1,336 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abacus - Digital Foundations</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abacus - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --s1: .62667rem;
+    --s2: .94rem;
+    --s3: 1.41rem;
+    --bead: 32px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+  }
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #f5f5f5;
-            font-family: system-ui, -apple-system, sans-serif;
-            padding: 24px;
-            gap: 24px;
-        }
+  /* ---- shell ---- */
+  .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: var(--s3); padding: var(--s2) var(--s3) var(--s3); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); }
+  .brand { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+  h1 { font-size: 1.5rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+  .sub { font-weight: 300; max-width: 46ch; }
+  .nav { display: flex; align-items: center; gap: var(--s1); flex-wrap: wrap; }
 
-        h1 {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: #333;
-        }
+  button {
+    font: inherit; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .35rem var(--s3); cursor: pointer; white-space: nowrap;
+  }
+  button:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
+  button:active:not([disabled]) { background: transparent; color: var(--ink); }
+  button[disabled] { opacity: .35; cursor: default; }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
 
-        .abacus {
-            background: #c9a66b;
-            padding: 20px 32px;
-            border-radius: 8px;
-            border: 10px solid #a67c52;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+  /* ---- stage ---- */
+  .stage { display: grid; place-items: center; align-content: center; gap: var(--s3); }
+  .abacus { width: min(100%, 40rem); border: 2px solid var(--ink); padding: var(--s2) var(--s3); display: grid; }
+  .row { display: grid; grid-template-columns: 5rem 1fr; align-items: center; gap: var(--s3); height: calc(var(--bead) + var(--s2)); }
+  .label { text-align: right; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .track { position: relative; height: 100%; }
+  .rod { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: var(--ink); }
+  .bead {
+    position: absolute; top: 50%; width: var(--bead); height: var(--bead); margin-top: calc(var(--bead) / -2);
+    padding: 0; border: 2px solid var(--ink); border-radius: 50%;
+    background: var(--paper); color: var(--ink);
+    transition: left .3s ease, background-color .15s ease;
+  }
+  .bead:hover:not([disabled]) { background: var(--paper); box-shadow: 0 0 0 2px var(--ink); }
+  .bead.on, .bead.on:hover:not([disabled]) { background: var(--ink); }
 
-        .row {
-            display: flex;
-            align-items: center;
-            height: 48px;
-            margin: 8px 0;
-            gap: 16px;
-        }
+  .result { display: flex; flex-direction: column; align-items: center; gap: var(--s1); }
+  .result-label { font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+  .result-value { font-size: 3rem; font-weight: 500; line-height: 1; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .result-sum { font-weight: 300; font-variant-numeric: tabular-nums; min-height: 1.4em; }
+  .hint { font-size: .75rem; font-weight: 300; opacity: .75; text-align: center; }
 
-        .label {
-            width: 56px;
-            text-align: right;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #5a4a3a;
-        }
-
-        .track {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 520px;
-            height: 100%;
-        }
-
-        .rod {
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 5px;
-            background: #8b7355;
-            border-radius: 3px;
-            z-index: 0;
-        }
-
-        .beads {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        .bead {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            top: 50%;
-            margin-top: -16px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid rgba(0,0,0,0.15);
-            box-shadow:
-                inset -2px -2px 4px rgba(0,0,0,0.2),
-                inset 2px 2px 4px rgba(255,255,255,0.3);
-            transition: left 0.3s ease;
-        }
-
-        .bead:hover {
-            filter: brightness(1.1);
-        }
-
-        /* Row colors by place value */
-        .row[data-value="1"] .bead { background: #dc4545; }
-        .row[data-value="10"] .bead { background: #45a845; }
-        .row[data-value="100"] .bead { background: #e8c840; }
-        .row[data-value="1000"] .bead { background: #4590dc; }
-        .row[data-value="10000"] .bead { background: #9b59b6; }
-        .row[data-value="100000"] .bead { background: #e67e22; }
-        .row[data-value="1000000"] .bead { background: #1abc9c; }
-
-        .result {
-            text-align: center;
-        }
-
-        .result-label {
-            font-size: 0.75rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .result-value {
-            font-size: 2rem;
-            font-weight: 600;
-            font-family: 'SF Mono', Monaco, monospace;
-            color: #333;
-        }
-
-        .btn {
-            padding: 10px 24px;
-            font-size: 0.875rem;
-            background: #fff;
-            color: #333;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background: #f0f0f0;
-        }
-
-        .instructions {
-            font-size: 0.875rem;
-            color: #666;
-        }
-    </style>
+  @media (max-width: 480px) {
+    :root { --bead: 24px; }
+    .row { grid-template-columns: 3.5rem 1fr; gap: var(--s2); }
+    .abacus { padding: var(--s1) var(--s2); }
+    .result-value { font-size: 2.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .bead { transition: none; } }
+</style>
 </head>
 <body>
-    <h1>Decimal Abacus</h1>
-
-    <div class="abacus">
-        <div class="row" data-value="1000">
-            <span class="label">1000</span>
-            <div class="track">
-                <div class="rod"></div>
-                <div class="beads"></div>
-            </div>
-        </div>
-        <div class="row" data-value="100">
-            <span class="label">100</span>
-            <div class="track">
-                <div class="rod"></div>
-                <div class="beads"></div>
-            </div>
-        </div>
-        <div class="row" data-value="10">
-            <span class="label">10</span>
-            <div class="track">
-                <div class="rod"></div>
-                <div class="beads"></div>
-            </div>
-        </div>
-        <div class="row" data-value="1">
-            <span class="label">1</span>
-            <div class="track">
-                <div class="rod"></div>
-                <div class="beads"></div>
-            </div>
-        </div>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Abacus</h1>
+      <p class="sub">Ten beads per rod. Slide beads to the right to count, back to the left to clear.</p>
     </div>
+    <nav class="nav">
+      <button id="add-row" type="button">Add rod (10000)</button>
+      <button id="reset" type="button">Reset</button>
+    </nav>
+  </header>
 
-    <div class="result">
-        <div class="result-label">Total</div>
-        <div class="result-value">0</div>
+  <main class="stage">
+    <div class="abacus" id="abacus" aria-label="Decimal abacus"></div>
+
+    <div class="result" aria-live="polite">
+      <div class="result-label">Total</div>
+      <div class="result-value" id="total">0</div>
+      <div class="result-sum" id="sum"></div>
     </div>
+    <p class="hint">Click a bead: it moves together with every bead between it and the middle.</p>
+  </main>
+</div>
 
-    <div style="display: flex; gap: 12px;">
-        <button class="btn" id="reset">Reset</button>
-        <button class="btn" id="add-row">Add Row (10000)</button>
-    </div>
+<script>
+(() => {
+  const BEADS_PER_ROW = 10;
+  const BEAD_GAP = 2;
+  const MAX_EXTRA_ROWS = 3;
+  const abacus = document.getElementById('abacus');
+  const totalEl = document.getElementById('total');
+  const sumEl = document.getElementById('sum');
+  const addBtn = document.getElementById('add-row');
 
-    <p class="instructions">Click beads to slide them right (count) or left (reset)</p>
+  let placeValues = [1000, 100, 10, 1];   // top rod first
+  let extraRowsAdded = 0;
+  const state = { 1: 0, 10: 0, 100: 0, 1000: 0 };   // beads on the right (counted) per rod
 
-    <script>
-        const BEADS_PER_ROW = 10;
-        const BEAD_SIZE = 32;
-        const BEAD_GAP = 2;
-        const TRACK_WIDTH = 520;
-        const MAX_EXTRA_ROWS = 3;
-        let placeValues = [1000, 100, 10, 1];
-        let extraRowsAdded = 0;
+  const beadSize = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bead'));
 
-        // State: how many beads on right (counted) per row
-        const state = { 1: 0, 10: 0, 100: 0, 1000: 0 };
+  function buildRow(placeValue) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.dataset.value = placeValue;
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = placeValue;
+    const track = document.createElement('div');
+    track.className = 'track';
+    const rod = document.createElement('div');
+    rod.className = 'rod';
+    track.appendChild(rod);
+    for (let i = 0; i < BEADS_PER_ROW; i++) {
+      const bead = document.createElement('button');
+      bead.type = 'button';
+      bead.className = 'bead';
+      bead.dataset.index = i;
+      bead.setAttribute('aria-label', `Bead ${i + 1} on the ${placeValue} rod`);
+      bead.addEventListener('click', () => clickBead(placeValue, i));
+      track.appendChild(bead);
+    }
+    row.append(label, track);
+    return row;
+  }
 
-        function formatNumber(n) {
-            return n.toString();
-        }
+  function updatePositions() {
+    const size = beadSize();
+    abacus.querySelectorAll('.row').forEach(row => {
+      const placeValue = parseInt(row.dataset.value);
+      const trackWidth = row.querySelector('.track').clientWidth;
+      const rightCount = state[placeValue];
+      const leftCount = BEADS_PER_ROW - rightCount;
+      row.querySelectorAll('.bead').forEach((bead, i) => {
+        const counted = i >= leftCount;
+        const x = counted
+          ? trackWidth - (rightCount - (i - leftCount)) * (size + BEAD_GAP)
+          : i * (size + BEAD_GAP);
+        bead.style.left = x + 'px';
+        bead.classList.toggle('on', counted);
+        bead.setAttribute('aria-pressed', counted);
+      });
+    });
+  }
 
-        function init() {
-            document.querySelectorAll('.row').forEach(row => {
-                const placeValue = parseInt(row.dataset.value);
-                const beadsContainer = row.querySelector('.beads');
-                beadsContainer.innerHTML = '';
+  function clickBead(placeValue, beadIndex) {
+    const leftCount = BEADS_PER_ROW - state[placeValue];
+    state[placeValue] = beadIndex < leftCount
+      ? BEADS_PER_ROW - beadIndex          // left bead: it and everything to its right go right
+      : BEADS_PER_ROW - beadIndex - 1;     // right bead: it and everything to its left go back
+    updatePositions();
+    updateTotal();
+  }
 
-                for (let i = 0; i < BEADS_PER_ROW; i++) {
-                    const bead = document.createElement('div');
-                    bead.className = 'bead';
-                    bead.dataset.index = i;
-                    bead.addEventListener('click', () => clickBead(placeValue, i));
-                    beadsContainer.appendChild(bead);
-                }
-            });
+  function updateTotal() {
+    const total = placeValues.reduce((sum, pv) => sum + state[pv] * pv, 0);
+    totalEl.textContent = total;
+    const parts = placeValues.filter(pv => state[pv] > 0).map(pv => `${state[pv]} × ${pv}`);
+    sumEl.textContent = parts.length > 1 ? parts.join(' + ') : '';
+  }
 
-            updatePositions();
-            updateTotal();
-        }
+  function reset() {
+    placeValues.forEach(pv => state[pv] = 0);
+    updatePositions();
+    updateTotal();
+  }
 
-        function updatePositions() {
-            document.querySelectorAll('.row').forEach(row => {
-                const placeValue = parseInt(row.dataset.value);
-                const beads = row.querySelectorAll('.bead');
-                const rightCount = state[placeValue];
-                const leftCount = BEADS_PER_ROW - rightCount;
+  function addRow() {
+    if (extraRowsAdded >= MAX_EXTRA_ROWS) return;
+    const newValue = Math.max(...placeValues) * 10;
+    state[newValue] = 0;
+    placeValues.unshift(newValue);
+    extraRowsAdded++;
+    abacus.prepend(buildRow(newValue));
+    updatePositions();
+    updateTotal();
+    if (extraRowsAdded >= MAX_EXTRA_ROWS) addBtn.disabled = true;
+    else addBtn.textContent = `Add rod (${newValue * 10})`;
+  }
 
-                beads.forEach((bead, i) => {
-                    let x;
-                    if (i < leftCount) {
-                        // Left side (uncounted)
-                        x = i * (BEAD_SIZE + BEAD_GAP);
-                    } else {
-                        // Right side (counted)
-                        const rightIndex = i - leftCount;
-                        x = TRACK_WIDTH - (rightCount - rightIndex) * (BEAD_SIZE + BEAD_GAP);
-                    }
-                    bead.style.left = x + 'px';
-                });
-            });
-        }
-
-        function clickBead(placeValue, beadIndex) {
-            const rightCount = state[placeValue];
-            const leftCount = BEADS_PER_ROW - rightCount;
-
-            if (beadIndex < leftCount) {
-                // Clicked left bead - move it and all to its right to right side
-                state[placeValue] = BEADS_PER_ROW - beadIndex;
-            } else {
-                // Clicked right bead - move it and all to its left back to left
-                state[placeValue] = BEADS_PER_ROW - beadIndex - 1;
-            }
-
-            updatePositions();
-            updateTotal();
-        }
-
-        function updateTotal() {
-            const total = placeValues.reduce((sum, pv) => sum + state[pv] * pv, 0);
-            document.querySelector('.result-value').textContent = formatNumber(total);
-        }
-
-        function reset() {
-            placeValues.forEach(pv => state[pv] = 0);
-            updatePositions();
-            updateTotal();
-        }
-
-        function addRow() {
-            if (extraRowsAdded >= MAX_EXTRA_ROWS) return;
-
-            const maxValue = Math.max(...placeValues);
-            const newValue = maxValue * 10;
-
-            // Add to state and placeValues
-            state[newValue] = 0;
-            placeValues.unshift(newValue);
-            extraRowsAdded++;
-
-            // Create new row element
-            const row = document.createElement('div');
-            row.className = 'row';
-            row.dataset.value = newValue;
-            row.innerHTML = `
-                <span class="label">${formatNumber(newValue)}</span>
-                <div class="track">
-                    <div class="rod"></div>
-                    <div class="beads"></div>
-                </div>
-            `;
-
-            // Insert at top of abacus
-            const abacus = document.querySelector('.abacus');
-            abacus.insertBefore(row, abacus.firstChild);
-
-            // Create beads for new row
-            const beadsContainer = row.querySelector('.beads');
-            for (let i = 0; i < BEADS_PER_ROW; i++) {
-                const bead = document.createElement('div');
-                bead.className = 'bead';
-                bead.dataset.index = i;
-                bead.addEventListener('click', () => clickBead(newValue, i));
-                beadsContainer.appendChild(bead);
-            }
-
-            updatePositions();
-            updateTotal();
-
-            // Update or hide button
-            const btn = document.getElementById('add-row');
-            if (extraRowsAdded >= MAX_EXTRA_ROWS) {
-                btn.style.display = 'none';
-            } else {
-                btn.textContent = `Add Row (${formatNumber(newValue * 10)})`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            init();
-            document.getElementById('reset').addEventListener('click', reset);
-            document.getElementById('add-row').addEventListener('click', addRow);
-        });
-    </script>
+  placeValues.forEach(pv => abacus.appendChild(buildRow(pv)));
+  updatePositions();
+  updateTotal();
+  document.getElementById('reset').addEventListener('click', reset);
+  addBtn.addEventListener('click', addRow);
+  addEventListener('resize', updatePositions);
+  document.fonts?.ready.then(updatePositions);
+})();
+</script>
 </body>
 </html>
