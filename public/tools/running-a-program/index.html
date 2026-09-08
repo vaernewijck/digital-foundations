@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Running a Program - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --grey1: #dcdcda;   /* laptop body */
+    --grey2: #ececea;   /* desktop background */
+    --s1: .62667rem;
+    --s2: .94rem;
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ---- */
+  .app { height: 100vh; padding: var(--s3); }
+
+
+  /* ---- stage ---- */
+  .stage { height: 100%; }
+  svg { display: block; width: 100%; height: 100%; }
+  svg text { font-family: 'Space Grotesk', sans-serif; user-select: none; pointer-events: none; fill: var(--ink); }
+  .t.status { font-size: 18px; font-weight: 500; letter-spacing: .03em; }
+
+  .ln { stroke: var(--ink); stroke-width: 2; fill: none; }
+  .ln.thin { stroke-width: 1; }
+  .ln.dashed { stroke-dasharray: 6 6; }
+  .fillp { fill: var(--paper); }
+  .filli { fill: var(--ink); }
+  .fillg1 { fill: var(--grey1); }
+  .fillg2 { fill: var(--grey2); }
+  .t { font-size: 13px; font-weight: 300; letter-spacing: .04em; }
+  .t.mid { text-anchor: middle; }
+  .t.b { font-weight: 700; }
+  .t.up { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; font-weight: 600; }
+  .t.small { font-size: 11px; }
+  .t.right { text-anchor: end; }
+  .t.big { font-size: 30px; font-weight: 500; letter-spacing: .02em; }
+  .t.paper { fill: var(--paper); font-weight: 700; }
+  .t.term { fill: var(--paper); font-size: 11px; font-weight: 500; letter-spacing: .04em; }
+  .dim { opacity: .4; }
+
+  .click { cursor: pointer; }
+  .click rect.hit { fill: transparent; }
+  .click:hover .frame { stroke-width: 4; }
+  .click .ghost { opacity: 0; }
+  .click:hover .ghost { opacity: 1; stroke-width: 1; }
+  .click:hover .x { font-weight: 700; }
+  .inv .ln { stroke: var(--paper); }
+  .inv .fillp { fill: var(--ink); }
+
+  .fly rect { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+  .fly text { font-size: 12px; font-weight: 700; fill: var(--paper); text-anchor: middle; dominant-baseline: central; letter-spacing: .04em; }
+
+  .caret { animation: caret 1s steps(2, start) infinite; }
+  @keyframes caret { to { opacity: 0; } }
+  .btn rect { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .btn text { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-anchor: middle; }
+  .btn:hover rect { fill: var(--ink); }
+  .btn:hover text { fill: var(--paper); }
+  .note {
+    width: 100%; height: 100%; resize: none; border: 0; outline: 0; padding: 0; margin: 0;
+    background: transparent; color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; line-height: 1.3; letter-spacing: .02rem;
+    border-bottom: 1px solid var(--ink);
+  }
+  .note::placeholder { color: var(--ink); opacity: .4; }
+  .mobile { display: none; padding: var(--s3); font-weight: 300; line-height: 1.5; }
+  .mobile b { font-weight: 600; }
+  .shake { animation: shake .12s steps(2, start) 4; }
+  @keyframes shake { to { transform: translate(4px, 0); } }
+
+  @media (max-width: 800px) {
+    html, body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    .stage { display: none; }
+    .mobile { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="mobile"><b>Running a program</b><br>This demo needs a laptop or desktop screen and a keyboard. Open it on a bigger screen.</p>
+  <div class="stage"><svg id="svg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" aria-label="A laptop on the left; on the right the CPU with input, output, RAM and storage"></svg></div>
+</div>
+
+<script>
+(() => {
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('svg');
+
+  /* ---------- data ---------- */
+  // ram: GB the app takes while running · cpu: % load while running · disk: size on storage
+  const APPS = [
+    { name: 'Music',  ram: 2, cpu: 8,  disk: '0.4 GB' },
+    { name: 'Photos', ram: 4, cpu: 30, disk: '2.5 GB' },
+    { name: 'Web',    ram: 3, cpu: 20, disk: '0.6 GB' },
+    { name: 'Notes',  ram: 1, cpu: 4,  disk: '0.1 GB' },
+    { name: 'Video',  ram: 4, cpu: 25, disk: '2 GB' },
+  ];
+  // 1-bit pixel icons, 16 wide, in the spirit of the first Macintosh
+  const ICONS = {
+    Music: [
+      '................', '.........###....', '.........#..##..', '.........#....#.', '.........#.....#', '.........#.....#',
+      '.........#....#.', '.........#...#..', '.........#..#...', '.........#......', '......####......', '.....######.....',
+      '....#######.....', '....#######.....', '.....#####......', '................'],
+    Photos: [
+      '################', '#..............#', '#..........##..#', '#.........####.#', '#..........##..#', '#..............#',
+      '#......#.......#', '#.....###......#', '#....#####.....#', '#...#######..#.#', '#..############', '#.#############',
+      '#..............#', '################', '................', '................'],
+    Web: [
+      '.....######.....', '...##..##..##...', '..#...#..#...#..', '.#...#....#...#.', '.#..#......#..#.', '#...#......#...#',
+      '#..#........#..#', '################', '#..#........#..#', '#...#......#...#', '.#..#......#..#.', '.#...#....#...#.',
+      '..#...#..#...#..', '...##..##..##...', '.....######.....', '................'],
+    Video: [
+      '################', '#.#..........#.#', '#.#..........#.#', '###..........###', '#.#..........#.#', '#.#....##....#.#',
+      '###...####...###', '#.#...#####..#.#', '#.#...####...#.#', '###....##....###', '#.#..........#.#', '#.#..........#.#',
+      '###..........###', '#.#..........#.#', '#.#..........#.#', '################'],
+    Notes: [
+      '..##########....', '..#........##...', '..#........#.#..', '..#........####.', '..#..#####....#.', '..#...........#.',
+      '..#..#######..#.', '..#...........#.', '..#..#####....#.', '..#...........#.', '..#..#######..#.', '..#...........#.',
+      '..#..####.....#.', '..#...........#.', '..#############.', '................'],
+  };
+  const CAT = [
+    '..#..................#..', '..##................##..', '..#.#..............#.#..', '..#..##############..#..',
+    '..#..................#..', '..#..................#..', '..#..#####....#####..#..', '..#..#####.##.#####..#..',
+    '..#...###......###...#..', '..#..................#..', '..#........#.#.......#..', '..#.........#........#..',
+    '..#...#...........#..#..', '..#....##.......##...#..', '..#......#######.....#..', '..#..................#..',
+    '..####################..'];
+  const FILES = [{ name: 'cat.jpg', disk: '5 MB' }, { name: 'holiday.mp4', disk: '200 MB' }];
+  const RENDER = { src: 'holiday.mp4', name: 'holiday-final.mp4', disk: '1.2 GB', gb: 1.2, ms: 10000 };   // what the video app writes, and how long the cpu is pinned
+  const SYSTEM = { name: 'System', ram: 2, disk: '12 GB' };   // the operating system: always in ram while the laptop is on
+  const RAM_GB = 8;
+  const DISK_GB = 256, DISK_USED = 96;
+  const CPU_IDLE = 3, CPU_LOADING = 90;
+  const NOTE_MAX = 40;
+  const MS = { input: 600, load: 800, output: 600, pause: 300, key: 220 };
+
+  /* ---------- geometry ---------- */
+  const SCR = { x: 55, y: 62, w: 370, h: 244 };
+  const BAR = 22;
+  const WIN = { w: 220, h: 84 };
+  const CPU = { cx: 640, cy: 215, w: 110 };
+  const RAM = { x: 790, y: 58, w: 170, h: 152, cx: 875 };
+  const STO = { x: 790, y: 242, w: 170, h: 150, cx: 875, top: 268, rowH: 13 };
+  const IN  = { x0: 460, y0: 335, x1: CPU.cx, y1: CPU.cy + CPU.w / 2 };
+  const OUT = { x0: CPU.cx, y0: CPU.cy - CPU.w / 2, y1: 95, x1: 440 };
+  const G = 10;   // breathing room between a wire and the box it points at
+  const PX_GB = (RAM.h - 12) / RAM_GB;
+  const rowY = (i) => STO.top + i * STO.rowH;
+  const winPos = (i) => ({ x: SCR.x + 30 + i * 22, y: SCR.y + BAR + 90 + i * 14 });
+
+  /* ---------- helpers ---------- */
+  const layer = () => { const g = document.createElementNS(NS, 'g'); svg.appendChild(g); return g; };
+  const gStatic = layer(), gStorage = layer(), gScreen = layer(), gLoad = layer(), gRam = layer(), gCpu = layer(), gFly = layer();
+  const el = (tag, attrs = {}, parent = gStatic) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  };
+  const txt = (x, y, s, cls = 't', parent = gStatic) => { const t = el('text', { x, y, class: cls }, parent); t.textContent = s; return t; };
+  const line = (x1, y1, x2, y2, cls = '', parent = gStatic) => el('line', { x1, y1, x2, y2, class: 'ln ' + cls }, parent);
+  const arrow = (x, y, dx, dy) => {
+    const px = -dy, py = dx;
+    el('polyline', { points: `${x - 12 * dx + 9 * px},${y - 12 * dy + 9 * py} ${x},${y} ${x - 12 * dx - 9 * px},${y - 12 * dy - 9 * py}`, class: 'ln' });
+  };
+  const place = (g, x, y) => { g.pos = { x, y }; g.setAttribute('transform', `translate(${x} ${y})`); };
+  const fly = (label, x, y) => {
+    const w = Math.max(28, label.length * 8 + 16);
+    const g = el('g', { class: 'fly' }, gFly);
+    el('rect', { x: -w / 2, y: -14, width: w, height: 28 }, g);
+    txt(0, 0, label, '', g);
+    place(g, x, y);
+    return g;
+  };
+  const pixels = (parent, x, y, rows, size, cls = 'filli') => {
+    rows.forEach((row, r) => [...row].forEach((c, i) => { if (c === '#') el('rect', { x: x + i * size, y: y + r * size, width: size, height: size, class: cls }, parent); }));
+  };
+  const button = (parent, x, y, w, label, onClick) => {
+    const g = el('g', { class: 'click btn', transform: `translate(${x} ${y})` }, parent);
+    el('rect', { x: 0, y: 0, width: w, height: 22 }, g);
+    txt(w / 2, 15, label, '', g);
+    g.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+    return g;
+  };
+
+  /* ---------- tween ---------- */
+  let tweens = [], raf = null, fallback = null, timers = [];
+  const later = (fn, ms) => { const id = setTimeout(fn, REDUCED ? 0 : ms); timers.push(id); };
+  function tween(dur, apply, done) {
+    if (REDUCED || dur <= 0) { apply(1); done && done(); return; }
+    tweens.push({ t0: performance.now(), dur, apply, done });
+    if (!raf) schedule();
+  }
+  const moveTo = (g, x, y, dur, done) => {
+    const { x: x0, y: y0 } = g.pos;
+    tween(dur, p => place(g, x0 + (x - x0) * p, y0 + (y - y0) * p), done);
+  };
+  const travel = (chip, pts, dur, done) => {
+    if (!pts.length) { chip.remove(); done && done(); return; }
+    const [x, y] = pts[0];
+    moveTo(chip, x, y, dur, () => travel(chip, pts.slice(1), dur, done));
+  };
+  function schedule() {
+    raf = requestAnimationFrame(now => { clearTimeout(fallback); step(now); });
+    fallback = setTimeout(() => { cancelAnimationFrame(raf); step(performance.now()); }, 100);
+  }
+  function step(now) {
+    raf = fallback = null;
+    const finished = [];
+    tweens = tweens.filter(tw => { const p = Math.min(1, (now - tw.t0) / tw.dur); tw.apply(p); if (p >= 1) { finished.push(tw); return false; } return true; });
+    finished.forEach(tw => tw.done && tw.done());
+    if (tweens.length) schedule();
+  }
+  // stop every running animation, whatever state it is in
+  function cancelAll() {
+    timers.forEach(clearTimeout); timers = [];
+    tweens = [];
+    cancelAnimationFrame(raf); clearTimeout(fallback); raf = fallback = null;
+    gFly.innerHTML = ''; gLoad.innerHTML = '';
+    clearTimeout(cpuLineTimer); cpuLine = null;
+    booting = false; bootLines = [];
+    rendering = null; renderBar = null;
+    busy = false;
+  }
+
+  /* ---------- static scene ---------- */
+  let ramLabel, statusText;
+  function drawStatic() {
+    el('rect', { x: 40, y: 48, width: 400, height: 272, class: 'ln fillg1' });
+    el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, class: 'ln fillg2' });
+    el('rect', { x: 20, y: 322, width: 440, height: 26, class: 'ln fillg1' });
+    el('rect', { x: 200, y: 330, width: 80, height: 10, class: 'ln thin fillg2' });
+    line(20, 348, 460, 348, '');
+    statusText = txt(20, 382, '', 't status');
+
+    el('polyline', { points: `${IN.x0 + G},${IN.y0} ${IN.x1},${IN.y0} ${IN.x1},${IN.y1 + G}`, class: 'ln' });
+    arrow(IN.x1, IN.y1 + G, 0, -1);
+    txt((IN.x0 + IN.x1) / 2, IN.y0 + 20, 'input', 't up mid dim');
+    el('polyline', { points: `${OUT.x0},${OUT.y0 - G} ${OUT.x0},${OUT.y1} ${OUT.x1 + G},${OUT.y1}`, class: 'ln' });
+    arrow(OUT.x1 + G, OUT.y1, -1, 0);
+    txt((OUT.x0 + OUT.x1) / 2, OUT.y1 - 10, 'output', 't up mid dim');
+
+    el('rect', { x: CPU.cx - CPU.w / 2, y: CPU.cy - CPU.w / 2, width: CPU.w, height: CPU.w, class: 'ln fillp' });
+    txt(CPU.cx, CPU.cy - CPU.w / 2 + 18, 'cpu', 't up mid');
+    line(CPU.cx + CPU.w / 2 + G, 185, RAM.x - G, 185); arrow(RAM.x - G, 185, 1, 0); arrow(CPU.cx + CPU.w / 2 + G, 185, -1, 0);
+    line(RAM.x - G, 250, CPU.cx + CPU.w / 2 + G, 250); arrow(CPU.cx + CPU.w / 2 + G, 250, -1, 0); arrow(RAM.x - G, 250, 1, 0);
+
+    txt(RAM.x, RAM.y - 8, 'ram', 't up');
+    ramLabel = txt(RAM.x + RAM.w, RAM.y - 8, '', 't small right');
+    el('rect', { x: RAM.x, y: RAM.y, width: RAM.w, height: RAM.h, class: 'ln fillp' });
+
+    txt(STO.x, STO.y - 8, 'storage', 't up');
+    el('rect', { x: STO.x, y: STO.y, width: STO.w, height: STO.h, class: 'ln fillp' });
+    const by = STO.y + 6;
+    el('rect', { x: STO.x + 10, y: by, width: STO.w - 20, height: 8, class: 'ln thin' });
+    line(STO.x, by + 12, STO.x + STO.w, by + 12, 'thin');
+  }
+
+  /* ---------- state ---------- */
+  let open = [];            // app names in opening order
+  let powered = false;   // the laptop starts switched off
+  let booting = false;
+  let systemLoaded = false;   // true once the system sits in ram
+  let bootLines = [];
+  let busy = false;
+  let note = '';            // what is typed in Notes (lives in ram)
+  let savedNote = null;     // what is written to storage as note.txt
+  let noteField = null, saveBtn = null;
+  let rendering = null, rendered = false, renderBar = null;   // the video render: null or { p }
+  const refreshSaveBtn = () => { if (saveBtn) saveBtn.querySelector('text').textContent = unsaved() ? 'save' : 'saved'; };
+  const say = (s) => { statusText.textContent = s; };
+  const app = (n) => APPS.find(a => a.name === n);
+  const blocks = () => (systemLoaded ? [SYSTEM] : []).concat(open.map(app));
+  const ramUsed = () => blocks().reduce((t, b) => t + b.ram, 0);
+  const notesOpen = () => open.includes('Notes');
+  // while the cpu is pinned by the render, every other click bounces off
+  const frozen = () => { if (!rendering) return false; say('no response: the cpu is 100% busy rendering, everything else waits'); return true; };
+  const unsaved = () => notesOpen() && note !== '' && note !== savedNote;
+
+  /* ---------- storage rows (apps, files, and the note once saved) ---------- */
+  function renderStorage() {
+    gStorage.innerHTML = '';
+    const used = DISK_USED + (rendered ? RENDER.gb : 0);
+    txt(STO.x + STO.w, STO.y - 8, `${used} / ${DISK_GB} GB`, 't small right', gStorage);
+    el('rect', { x: STO.x + 10, y: STO.y + 6, width: (STO.w - 20) * used / DISK_GB, height: 8, class: 'filli' }, gStorage);
+    const rows = [SYSTEM, ...APPS, ...FILES];
+    if (savedNote !== null) rows.push({ name: 'note.txt', disk: `${savedNote.length} B`, fresh: true });
+    if (rendered) rows.push({ name: RENDER.name, disk: RENDER.disk, fresh: true });
+    rows.forEach((f, i) => {
+      const y = rowY(i);
+      if (i) line(STO.x, y - STO.rowH / 2, STO.x + STO.w, y - STO.rowH / 2, 'thin', gStorage);
+      txt(STO.x + 10, y + 4, f.name, 't small' + (f.fresh ? ' b' : ''), gStorage);
+      txt(STO.x + STO.w - 10, y + 4, f.disk, 't small right dim', gStorage);
+    });
+  }
+
+  /* ---------- screen ---------- */
+  function renderScreen() {
+    gScreen.innerHTML = '';
+    if (!powered) el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, class: 'filli' }, gScreen);
+    else if (booting) {
+      // black screen with a few lines of startup text
+      el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: SCR.h, class: 'filli' }, gScreen);
+      bootLines.forEach((l, i) => txt(SCR.x + 14, SCR.y + 26 + i * 16, l, 't term', gScreen));
+    } else {
+      el('rect', { x: SCR.x, y: SCR.y, width: SCR.w, height: BAR, class: 'fillp' }, gScreen);
+      line(SCR.x, SCR.y + BAR, SCR.x + SCR.w, SCR.y + BAR, '', gScreen);
+      const about = el('g', { class: 'click' }, gScreen);
+      txt(SCR.x + 10, SCR.y + 15, 'My laptop', 't small b', about);
+      el('rect', { x: SCR.x + 4, y: SCR.y + 2, width: 70, height: BAR - 4, class: 'hit' }, about);
+      about.addEventListener('click', () => say(`about this laptop: 1 cpu · ${RAM_GB} GB ram · ${DISK_GB} GB storage. now go check yours.`));
+      txt(SCR.x + SCR.w - 34, SCR.y + 15, '10:24', 't small right', gScreen);
+      if (rendering) txt(SCR.x + SCR.w / 2, SCR.y + 15, 'not responding…', 't small mid caret', gScreen);
+    }
+    const pw = el('g', { class: 'click' + (powered ? '' : ' inv'), transform: `translate(${SCR.x + SCR.w - 16} ${SCR.y + BAR / 2})` }, gScreen);
+    el('circle', { r: 6, class: 'ln fillp frame' }, pw);
+    el('line', { x1: 0, y1: -4, x2: 0, y2: 0, class: 'ln' }, pw);
+    el('rect', { x: -14, y: -11, width: 28, height: 22, class: 'hit' }, pw);
+    pw.addEventListener('click', togglePower);
+    if (!powered || booting) return;
+
+    APPS.forEach((a, i) => {
+      const x = SCR.x + 45 + i * 70, y = SCR.y + BAR + 32;
+      const g = el('g', { class: 'click', transform: `translate(${x} ${y})` }, gScreen);
+      pixels(g, -16, -16, ICONS[a.name], 2);
+      el('rect', { x: -20, y: -20, width: 40, height: 40, class: 'ln ghost' }, g);
+      txt(0, 34, a.name, 't small mid', g);
+      el('rect', { x: -30, y: -22, width: 60, height: 64, class: 'hit' }, g);
+      g.addEventListener('click', () => openApp(a));
+    });
+    open.forEach((n, i) => {
+      const a = app(n);
+      const { x, y } = winPos(i);
+      const g = el('g', { transform: `translate(${x} ${y})` }, gScreen);
+      el('rect', { x: 0, y: 0, width: WIN.w, height: WIN.h, class: 'ln fillp' }, g);
+      line(0, 24, WIN.w, 24, '', g);
+      txt(10, 17, a.name, 't b', g);
+      if (n === 'Notes') {
+        const fo = el('foreignObject', { x: 10, y: 32, width: WIN.w - 84, height: 40 }, g);
+        const ta = document.createElementNS('http://www.w3.org/1999/xhtml', 'textarea');
+        ta.className = 'note'; ta.rows = 2; ta.maxLength = NOTE_MAX; ta.placeholder = 'type something…';
+        ta.value = note; ta.spellcheck = false; ta.readOnly = !!rendering;
+        ta.addEventListener('input', (e) => typed(ta.value, e.data));
+        ta.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveNote(); } });
+        fo.appendChild(ta);
+        noteField = ta;
+        saveBtn = button(g, WIN.w - 62, 46, 52, unsaved() ? 'save' : 'saved', saveNote);
+      } else if (n === 'Music') {
+        txt(10, 50, '♫  Never Gonna Give You Up', 't small b', g);
+        txt(10, 68, 'Rick Astley · 0:42', 't small dim', g);
+      } else if (n === 'Photos') {
+        pixels(g, 12, 29, CAT, 3);
+        txt(98, 58, 'cat.jpg', 't small b', g);
+      } else if (n === 'Video') {
+        txt(10, 44, RENDER.src, 't small b', g);
+        // a little timeline: four clips and a playhead
+        [0, 34, 62, 104].forEach((x, i) => el('rect', { x: 10 + x, y: 50, width: [30, 24, 38, 26][i], height: 8, class: i % 2 ? 'filli dim' : 'filli' }, g));
+        line(52, 47, 52, 61, 'thin', g);
+        if (rendering) {
+          txt(10, 74, 'rendering…', 't small', g);
+          el('rect', { x: 72, y: 68, width: WIN.w - 84, height: 6, class: 'ln thin' }, g);
+          renderBar = el('rect', { x: 72, y: 68, width: (WIN.w - 84) * rendering.p, height: 6, class: 'filli' }, g);
+        } else {
+          txt(10, 74, rendered ? `${RENDER.name} · ${RENDER.disk}` : 'ready to render', 't small dim', g);
+          button(g, WIN.w - 70, 30, 60, 'render', renderVideo);
+        }
+      } else if (n === 'Web') {
+        // a placeholder page: address bar and a few empty lines
+        el('rect', { x: 10, y: 32, width: WIN.w - 20, height: 16, class: 'ln thin' }, g);
+        txt(16, 44, 'devine.be', 't small', g);
+        el('rect', { x: 10, y: 56, width: 120, height: 5, class: 'filli dim' }, g);
+        el('rect', { x: 10, y: 66, width: WIN.w - 20, height: 5, class: 'filli dim' }, g);
+      }
+      const cx = el('g', { class: 'click', transform: `translate(${WIN.w - 14} 12)` }, g);
+      txt(0, 5, '×', 't mid x', cx);
+      el('rect', { x: -12, y: -12, width: 24, height: 24, class: 'hit' }, cx);
+      cx.addEventListener('click', () => closeApp(n));
+    });
+  }
+
+  /* ---------- loading box on the screen while the cpu copies ---------- */
+  function showLoading(name, dur) {
+    gLoad.innerHTML = '';
+    const { x, y } = winPos(open.length);
+    const g = el('g', { transform: `translate(${x} ${y})` }, gLoad);
+    el('rect', { x: 0, y: 0, width: WIN.w, height: WIN.h, class: 'ln dashed fillp' }, g);
+    txt(WIN.w / 2, 38, `loading ${name.toLowerCase()}…`, 't mid', g);
+    el('rect', { x: 20, y: 52, width: WIN.w - 40, height: 8, class: 'ln thin' }, g);
+    const bar = el('rect', { x: 20, y: 52, width: 0, height: 8, class: 'filli' }, g);
+    tween(dur, p => bar.setAttribute('width', (WIN.w - 40) * p));
+  }
+
+  /* ---------- ram: a tank that fills from the bottom ---------- */
+  const blockMid = (name) => { const i = blocks().findIndex(b => b.name === name); return segTop(i) + blocks()[i].ram * PX_GB / 2; };
+  const segTop = (i) => RAM.y + RAM.h - 6 - blocks().slice(0, i + 1).reduce((t, b) => t + b.ram, 0) * PX_GB;
+  function renderRam() {
+    gRam.innerHTML = '';
+    blocks().forEach((b, i) => {
+      const h = b.ram * PX_GB;
+      el('rect', { x: RAM.x + 10, y: segTop(i) + 2, width: RAM.w - 20, height: h - 4, class: 'filli' }, gRam);
+      const label = b.name === 'Notes' && note ? `Notes · “${note.length > 14 ? note.slice(0, 13) + '…' : note}”` : `${b.name} · ${b.ram} GB`;
+      txt(RAM.cx, segTop(i) + h / 2 + 4, label, 't small mid paper', gRam);
+    });
+    ramLabel.textContent = powered ? `${ramUsed()} / ${RAM_GB} GB` : `0 / ${RAM_GB} GB`;
+  }
+
+  /* ---------- cpu: a percentage that breathes ---------- */
+  let cpuTimer = null, cpuShown = CPU_IDLE, cpuLine = null, cpuLineTimer = null;
+  let cpuSpike = false, typingLoad = 0;
+  const cpuTarget = () => !powered ? 0 : rendering ? 100 : cpuSpike ? CPU_LOADING : Math.min(100, CPU_IDLE + open.reduce((t, n) => t + app(n).cpu, 0) + typingLoad);
+  function renderCpu() {
+    gCpu.innerHTML = '';
+    txt(CPU.cx, CPU.cy + 8, powered ? `${cpuShown}%` : '—', 't big mid', gCpu);
+    const bw = CPU.w - 30;
+    el('rect', { x: CPU.cx - bw / 2, y: CPU.cy + 22, width: bw, height: 6, class: 'ln thin' }, gCpu);
+    el('rect', { x: CPU.cx - bw / 2, y: CPU.cy + 22, width: bw * (powered ? cpuShown : 0) / 100, height: 6, class: 'filli' }, gCpu);
+    // bottom line: what the cpu is working on right now, or just "process"
+    const shown = cpuLine === null ? 'process' : (cpuLine.length > 12 ? '…' + cpuLine.slice(-11) : cpuLine);
+    txt(CPU.cx, CPU.cy + CPU.w / 2 - 12, shown, 't mid' + (cpuLine === null ? ' up dim' : ' small b'), gCpu);
+  }
+  // show a line in the cpu for a while, then fall back to "process"
+  function cpuShow(text, ms = 2000) {
+    clearTimeout(cpuLineTimer);
+    cpuLine = text === null ? null : text; renderCpu();
+    if (ms) cpuLineTimer = setTimeout(() => { cpuLine = null; renderCpu(); }, ms);
+  }
+  function setCpu(spike = false) {
+    cpuSpike = spike;
+    if (!cpuTimer && !REDUCED) cpuTimer = setInterval(() => {
+      typingLoad = Math.max(0, typingLoad - 4);          // typing load fades when you stop
+      const wobble = powered ? Math.round(Math.random() * 4 - 1) : 0;
+      cpuShown = Math.max(0, Math.min(100, Math.round(cpuShown + (cpuTarget() - cpuShown) * 0.5 + wobble)));
+      renderCpu();
+    }, 400);
+    if (REDUCED) { cpuShown = cpuTarget(); renderCpu(); }
+  }
+
+  /* ---------- actions ---------- */
+  function openApp(a) {
+    if (!powered || frozen()) return;
+    const n = a.name.toLowerCase();
+    if (busy) { say('one moment, still loading…'); return; }
+    if (open.includes(a.name)) { say(`${n} is already open`); return; }
+    if (ramUsed() + a.ram > RAM_GB) {
+      say(`ram is full: ${n} needs ${a.ram} GB, only ${RAM_GB - ramUsed()} GB left`);
+      gRam.classList.remove('shake'); void gRam.getBBox(); gRam.classList.add('shake');
+      gRam.addEventListener('animationend', () => gRam.classList.remove('shake'), { once: true });
+      return;
+    }
+    busy = true;
+    // 1. input: the click travels from the laptop to the cpu
+    say(`input: you click ${n}`);
+    travel(fly('click', IN.x0, IN.y0), [[IN.x1, IN.y0], [CPU.cx, CPU.cy]], MS.input, () => later(() => {
+      // 2. the cpu copies the app from storage into ram; the laptop shows it loading
+      setCpu(true);
+      say(`the cpu copies ${n} from storage into ram`);
+      showLoading(a.name, MS.load * 2 + MS.pause);
+      const targetY = RAM.y + RAM.h - 6 - (ramUsed() + a.ram / 2) * PX_GB;
+      travel(fly(a.name, STO.cx, rowY(1 + APPS.indexOf(a))), [[CPU.cx, CPU.cy], [RAM.cx, targetY]], MS.load, () => later(() => {
+        open.push(a.name);
+        if (a.name === 'Notes') note = savedNote ?? '';
+        renderRam(); setCpu();
+        // 3. output: the cpu puts the app on the screen
+        say(`output: ${n} appears on the screen`);
+        travel(fly(a.name, CPU.cx, CPU.cy), [[OUT.x0, OUT.y1], [OUT.x1, OUT.y1]], MS.output, () => {
+          gLoad.innerHTML = '';
+          renderScreen();
+          if (a.name === 'Notes') { say(savedNote === null ? 'notes is open: type something in the note' : 'notes is open: your saved note is back from storage'); noteField && noteField.focus(); }
+          busy = false;
+        });
+      }, MS.pause));
+    }, MS.pause));
+  }
+
+  function closeApp(name) {
+    if (!powered) return;
+    if (busy) { say('one moment, still loading…'); return; }
+    if (name !== 'Video' && frozen()) return;
+    busy = true;
+    if (name === 'Video') cancelRender();
+    const lost = name === 'Notes' && unsaved();
+    const n = name.toLowerCase();
+    // 1. input: the click on × travels to the cpu
+    say(`input: you close ${n}`);
+    travel(fly('click', IN.x0, IN.y0), [[IN.x1, IN.y0], [CPU.cx, CPU.cy]], MS.input, () => later(() => {
+      // 2. the cpu clears the app out of ram; nothing goes back to storage
+      cpuShow('closing…', 0);
+      say(lost ? `the cpu clears ${n} from ram, your unsaved note goes with it` : `the cpu clears ${n} from ram: ${app(name).ram} GB free again`);
+      const chip = fly(name, RAM.cx, blockMid(name));
+      open = open.filter(x => x !== name);
+      if (name === 'Notes') note = '';
+      renderRam();
+      moveTo(chip, CPU.cx, CPU.cy, MS.load, () => {
+        // the cpu lets go of it: the chip fades out, the memory is simply free
+        tween(500, p => chip.setAttribute('opacity', 1 - p), () => {
+          chip.remove(); cpuShow(null, 0); setCpu();
+          // 3. output: the window disappears from the screen
+          say(`output: the ${n} window disappears`);
+          travel(fly('close', CPU.cx, CPU.cy), [[OUT.x0, OUT.y1], [OUT.x1, OUT.y1]], MS.output, () => {
+            renderScreen();
+            say(lost ? `${n} is closed: the note only lived in ram, so it is gone` : `${n} is closed: ram is free for something else`);
+            busy = false;
+          });
+        });
+      });
+    }, MS.pause));
+  }
+
+  function saveNote() {
+    if (!powered || !notesOpen() || frozen()) return;
+    if (busy) { say('one moment, still loading…'); return; }
+    if (!note) { say('nothing to save yet: type something first'); return; }
+    if (note === savedNote) { say('already saved'); return; }
+    busy = true;
+    const text = note;
+    say('input: you click save');
+    const fromY = blockMid('Notes');
+    travel(fly('save', IN.x0, IN.y0), [[IN.x1, IN.y0], [CPU.cx, CPU.cy]], MS.input, () => later(() => {
+      say('the cpu writes note.txt from ram to storage');
+      cpuShow('writing…', 0); setCpu(true);
+      const rowIndex = 1 + APPS.length + FILES.length;   // note.txt sits right after the files
+      travel(fly('note.txt', RAM.cx, fromY), [[CPU.cx, CPU.cy], [STO.cx, rowY(rowIndex)]], MS.load, () => later(() => {
+        savedNote = text;
+        renderStorage();
+        cpuShow(null, 0); setCpu(); refreshSaveBtn();
+        say(`saved: note.txt is on storage now (${savedNote.length} B), it survives power off`);
+        busy = false;
+      }, MS.pause));
+    }, MS.pause));
+  }
+
+  // startup: the cpu wakes up, finds empty ram, and loads the system from storage into ram
+  function boot() {
+    busy = true;
+    const term = (l) => { bootLines.push(l); renderScreen(); };
+    say('power on: the cpu loads the system from storage into ram');
+    term('> power on');
+    later(() => { term('> cpu: ok'); cpuShow('starting…', 0); setCpu(true); }, 400);
+    later(() => term(`> ram: ${RAM_GB} GB, empty`), 800);
+    later(() => term(`> storage: ${DISK_GB} GB, ${DISK_USED} GB in use`), 1200);
+    later(() => {
+      term('> loading system from storage…');
+      const targetY = RAM.y + RAM.h - 6 - (SYSTEM.ram / 2) * PX_GB;
+      travel(fly('System', STO.cx, rowY(0)), [[CPU.cx, CPU.cy], [RAM.cx, targetY]], MS.load, () => later(() => {
+        systemLoaded = true;
+        renderRam(); cpuShow(null, 0); setCpu();
+        term(`> system in ram: ${SYSTEM.ram} GB`);
+        later(() => term('> ready'), 400);
+        later(() => {
+          booting = false; busy = false; bootLines = [];
+          renderScreen();
+          say(savedNote === null ? `the system keeps ${SYSTEM.ram} GB of ram for itself` : `the system keeps ${SYSTEM.ram} GB of ram, note.txt is still on storage`);
+        }, 1000);
+      }, MS.pause));
+    }, 1600);
+  }
+
+  // render: the cpu is at 100% for a while, everything else waits, and a big new file lands on storage
+  function renderVideo() {
+    if (!powered || busy || rendering || !open.includes('Video')) return;
+    rendering = { p: 0 };
+    setCpu(); cpuShow('rendering…', 0);
+    say('the cpu is at 100%: rendering takes all its time, nothing else responds until it is done');
+    renderScreen();
+    tween(RENDER.ms, p => { rendering && (rendering.p = p); renderBar && renderBar.setAttribute('width', (WIN.w - 84) * p); }, () => {
+      if (!rendering) return;
+      rendering = null; rendered = true;
+      cpuShow(null, 0); setCpu(); renderStorage(); renderScreen();
+      say(`render done: ${RENDER.name} is written to storage (${RENDER.disk}), the cpu is free again`);
+    });
+  }
+  function cancelRender() {
+    if (!rendering) return;
+    rendering = null; renderBar = null;
+    tweens = tweens.filter(tw => tw.dur !== RENDER.ms);
+    cpuShow(null, 0); setCpu();
+  }
+
+  function togglePower() {
+    const lost = unsaved();
+    cancelAll();
+    powered = !powered;
+    open = []; note = '';
+    systemLoaded = false; bootLines = [];
+    booting = powered;
+    renderRam(); setCpu(); renderScreen();
+    if (!powered) { say(lost ? 'power off: ram is empty, your unsaved note is gone' : 'power off: ram is empty, storage is not'); return; }
+    boot();
+  }
+
+  /* ---------- typing: every key is input that travels to the cpu ---------- */
+  function typed(value, data) {
+    if (!powered || !notesOpen()) return;
+    if (rendering) { noteField && (noteField.value = note); frozen(); return; }
+    note = value;
+    refreshSaveBtn();
+    say(unsaved() ? 'your note lives in ram until you save it' : 'notes is open');
+    const label = data ?? '⌫';
+    typingLoad = Math.min(30, typingLoad + 6);   // a small bump per key, fades by itself
+    // the key goes in, the cpu handles it, and writes the result into ram
+    travel(fly(label, IN.x0, IN.y0), [[IN.x1, IN.y0], [CPU.cx, CPU.cy]], MS.key, () => {
+      cpuShow(note || '(empty)');
+      if (!notesOpen()) return;
+      travel(fly(label, CPU.cx, CPU.cy), [[RAM.cx, blockMid('Notes')]], MS.key, () => notesOpen() && renderRam());
+    });
+  }
+
+  drawStatic();
+  renderStorage();
+  renderCpu();
+  renderRam(); setCpu(); renderScreen();
+  say('press the power button to switch the laptop on');
+})();
+</script>
+</body>
+</html>

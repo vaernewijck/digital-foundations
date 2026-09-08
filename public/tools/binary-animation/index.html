@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Animation - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --s1: .62667rem;
+    --s2: .94rem;
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell: header row + main row, exactly one viewport high ---- */
+  .app { height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: var(--s2); padding: var(--s2) var(--s3) var(--s3); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); }
+  .brand { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+  h1 { font-size: 1.5rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+  .sub { font-weight: 300; max-width: 46ch; }
+  .meta { font-size: .69rem; font-weight: 300; letter-spacing: .06em; text-transform: uppercase; opacity: .7; white-space: nowrap; }
+  .keys { font-size: .69rem; font-weight: 300; letter-spacing: .06em; text-transform: uppercase; opacity: .7; white-space: nowrap; }
+  .keys b { font-weight: 700; border: 1px solid var(--ink); padding: 0 .3em; margin-right: .2em; }
+
+  main { display: grid; grid-template-columns: 1fr minmax(20rem, 27rem); gap: var(--s3); min-height: 0; }
+  .label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--s1); display: flex; gap: var(--s2); align-items: baseline; flex-wrap: wrap; }
+  .label .num { font-weight: 300; }
+  .hint { font-size: .75rem; font-weight: 300; letter-spacing: .02rem; opacity: .75; text-transform: none; }
+
+  /* controls */
+  .controls { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--s1); }
+  input[type=text] {
+    font: inherit; letter-spacing: .08em; text-transform: uppercase; font-weight: 500;
+    background: transparent; color: var(--ink);
+    border: 2px solid var(--ink); padding: .35rem var(--s2); width: 100%; max-width: 100%; outline: none;
+  }
+  input[type=text]:focus { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  input[type=text]::placeholder { color: var(--ink); opacity: .4; }
+  button {
+    font: inherit; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .35rem var(--s3); cursor: pointer; white-space: nowrap;
+  }
+  button:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
+  button:active:not([disabled]) { background: transparent; color: var(--ink); }
+  button[disabled] { opacity: .35; cursor: default; }
+  button.primary { background: var(--ink); color: var(--paper); }
+  button.primary:hover:not([disabled]) { background: transparent; color: var(--ink); }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .seg { display: inline-flex; flex-wrap: wrap; }
+  .seg button { padding: .35rem var(--s2); margin-right: -2px; }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+  .toggle { display: inline-flex; align-items: center; gap: var(--s1); cursor: pointer; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: .35rem 0; user-select: none; position: relative; }
+  .toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .toggle .box { width: 1.1rem; height: 1.1rem; border: 2px solid var(--ink); display: inline-block; position: relative; }
+  .toggle input:checked + .box::after { content: ""; position: absolute; inset: 2px; background: var(--ink); }
+  .toggle input:focus-visible + .box { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+
+  /* range slider: the house style has none, so a flat 2px line with a square ink thumb */
+  .row { display: grid; grid-template-columns: 6rem 1fr 3.4rem; gap: var(--s2); align-items: center; padding: .2rem 0; }
+  .row .name { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .row .val { font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; font-size: .8rem; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 1.1rem; background: transparent; cursor: pointer; margin: 0; }
+  input[type=range]:focus { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--ink); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 1.1rem; height: 1.1rem; background: var(--ink); border: 0; margin-top: calc(1px - .55rem); }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  input[type=range]::-moz-range-track { height: 2px; background: var(--ink); }
+  input[type=range]::-moz-range-thumb { width: 1.1rem; height: 1.1rem; background: var(--ink); border: 0; border-radius: 0; }
+  input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+
+  /* stage fills the left column */
+  .stage-wrap { display: flex; flex-direction: column; min-height: 0; }
+  .stage { flex: 1; min-height: 0; border: 1px solid var(--ink); position: relative; overflow: hidden; background: var(--paper); }
+  .stage canvas { display: block; width: 100%; height: 100%; }
+  .stage.drop::after { content: "Drop an image"; position: absolute; inset: 0; display: grid; place-items: center; background: var(--paper); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border: 2px dashed var(--ink); }
+  .stage:fullscreen { border: 0; }
+  video { display: none; }
+
+  /* sidebar */
+  aside { display: flex; flex-direction: column; gap: var(--s2); min-height: 0; border-left: 1px solid var(--ink); padding-left: var(--s3); overflow: auto; }
+  .panel { padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); }
+  .panel.grow { flex: 1; min-height: 0; display: flex; flex-direction: column; border-bottom: 0; padding-bottom: 0; }
+  .src { margin-top: var(--s2); }
+  .src[hidden] { display: none; }
+  .status { font-size: .75rem; font-weight: 300; min-height: 1.2rem; margin-top: var(--s1); }
+  .file { display: inline-flex; align-items: center; gap: var(--s2); }
+  .file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s2); }
+  .actions .between { display: flex; gap: var(--s1); }
+
+  /* narrow screens: stack and allow scrolling */
+  @media (max-width: 960px) {
+    html, body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    main { grid-template-columns: 1fr; }
+    .stage { flex: none; aspect-ratio: 4 / 3; }
+    aside { border-left: 0; padding-left: 0; overflow: visible; }
+    .keys { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Binary Animation</h1>
+      <p class="sub">Everything on a screen is just zeros and ones. Type a word, point the camera at yourself or drop an image, and watch it turn into bits.</p>
+    </div>
+    <p class="keys"><b>Space</b> play <b>F</b> fullscreen <b>S</b> snapshot</p>
+  </header>
+
+  <main>
+    <section class="stage-wrap">
+      <div class="label"><span class="num">00</span><span>Output</span><span class="hint" id="dims"></span></div>
+      <div class="stage" id="stage">
+        <canvas id="out" aria-label="Animation made of zeros and ones"></canvas>
+        <video id="cam" autoplay playsinline muted></video>
+      </div>
+    </section>
+
+    <aside>
+      <section class="panel">
+        <div class="label"><span class="num">01</span><span>Source</span></div>
+        <div class="seg" id="srcseg">
+          <button data-src="text" class="on">Text</button>
+          <button data-src="cam">Webcam</button>
+          <button data-src="image">Image</button>
+        </div>
+        <div class="src" id="src-text">
+          <input id="text" type="text" maxlength="40" value="DEVINE" placeholder="Type something" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="src" id="src-cam" hidden>
+          <div class="controls">
+            <button id="camstart" class="primary">Start camera</button>
+            <button id="camstop" disabled>Stop</button>
+          </div>
+          <p class="status" id="camstatus">Needs camera permission. Works in Chrome and Safari.</p>
+        </div>
+        <div class="src" id="src-image" hidden>
+          <label class="file"><button type="button" id="pick">Choose image</button><input id="file" type="file" accept="image/*"><span class="hint">or drop one on the output</span></label>
+          <p class="status" id="imgstatus"></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="label"><span class="num">02</span><span>Grid</span><span class="hint">every cell becomes one bit</span></div>
+        <div class="row"><span class="name">Cell size</span><input id="cell" type="range" min="6" max="40" step="1" value="14"><span class="val" id="cellv">14 px</span></div>
+        <div class="row"><span class="name">Threshold</span><input id="thr" type="range" min="0" max="255" step="1" value="128"><span class="val" id="thrv">128</span></div>
+        <label class="toggle"><input id="invert" type="checkbox"><span class="box"></span><span>Invert</span></label>
+      </section>
+
+      <section class="panel">
+        <div class="label"><span class="num">03</span><span>Digits</span></div>
+        <div class="seg" id="lookseg">
+          <button data-look="stream" class="on">Stream</button>
+          <button data-look="mask">Mask</button>
+        </div>
+        <p class="hint" id="lookhint" style="margin-top: var(--s1)">Random bits flicker through the shape.</p>
+        <div class="row" style="margin-top: var(--s1)"><span class="name">Speed</span><input id="speed" type="range" min="40" max="800" step="10" value="120"><span class="val" id="speedv">120 ms</span></div>
+      </section>
+
+      <section class="panel grow">
+        <div class="label"><span class="num">04</span><span>Dissolve</span><span class="hint">solid shape → bits</span></div>
+        <div class="row"><span class="name">Progress</span><input id="prog" type="range" min="0" max="1000" step="1" value="1000"><span class="val" id="progv">100%</span></div>
+        <div class="actions">
+          <button id="play" class="primary">Play</button>
+          <div class="between">
+            <button id="snap">Snapshot PNG</button>
+            <button id="full">Fullscreen</button>
+          </div>
+        </div>
+        <p class="meta" style="margin-top: auto; padding-top: var(--s2)">Digital Foundations — Week 01</p>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const INK = '#161615', PAPER = '#f8f8f8';
+  const FAINT = .12;            // opacity of the bits outside the shape (stream look)
+  const ROLL = .18;             // fraction of cells re-rolled every tick (stream look)
+  const DURATION = 4000;        // one way of the dissolve ping-pong, ms
+
+  /* ================= STATE ================= */
+  const S = {
+    source: 'text', text: 'DEVINE', cell: 14, threshold: 128, invert: false,
+    look: 'stream', speed: 120, progress: 1, playing: false, dir: -1,
+  };
+  let cols = 0, rows = 0, ox = 0, oy = 0, W = 0, H = 0, dpr = 1;
+  let mask, digits, order;            // per-cell: ink?, random bit, dissolve order
+  let needSample = true, needDraw = true, lastRoll = 0, lastFrame = 0;
+  let image = null, stream = null;
+
+  /* ================= CANVASES ================= */
+  const stage = $('stage'), out = $('out'), video = $('cam');
+  const ctx = out.getContext('2d');
+  const src = document.createElement('canvas');               // cols × rows, one pixel per cell
+  const sctx = src.getContext('2d', { willReadFrequently: true });
+  const textC = document.createElement('canvas');             // the word, rasterised at stage size
+  const tctx = textC.getContext('2d');
+  const sprites = {};                                         // pre-rendered cell glyphs
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    out.width = W * dpr; out.height = H * dpr;
+    buildGrid();
+    rasteriseText();
+    buildSprites();
+  }
+
+  function buildGrid() {
+    cols = Math.max(1, Math.floor(W / S.cell)); rows = Math.max(1, Math.floor(H / S.cell));
+    ox = (W - cols * S.cell) / 2; oy = (H - rows * S.cell) / 2;
+    const n = cols * rows;
+    mask = new Uint8Array(n); digits = new Uint8Array(n); order = new Float32Array(n);
+    for (let i = 0; i < n; i++) { digits[i] = Math.random() < .5 ? 0 : 1; order[i] = Math.random(); }
+    src.width = cols; src.height = rows;
+    $('dims').textContent = `${cols} × ${rows} = ${n} bits`;
+    needSample = needDraw = true;
+  }
+
+  // one sprite per glyph: '0' and '1' in ink, faint versions, and a solid block
+  function sprite(draw) {
+    const c = document.createElement('canvas');
+    const px = Math.ceil(S.cell * dpr);
+    c.width = c.height = px;
+    const g = c.getContext('2d');
+    g.scale(dpr, dpr);
+    draw(g, S.cell);
+    return c;
+  }
+  function glyph(g, c, ch, alpha) {
+    g.globalAlpha = alpha;
+    g.fillStyle = INK;
+    g.font = `500 ${c * .82}px 'Space Grotesk', sans-serif`;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(ch, c / 2, c / 2 + c * .04);
+    if (ch === '0') {                       // slashed zero, like the "zero" font feature used in the UI
+      const w = g.measureText(ch).width;
+      g.strokeStyle = INK; g.lineWidth = Math.max(1, c * .055); g.lineCap = 'butt';
+      g.beginPath(); g.moveTo(c / 2 - w * .2, c / 2 + c * .26); g.lineTo(c / 2 + w * .2, c / 2 - c * .2); g.stroke();
+    }
+  }
+  function buildSprites() {
+    sprites.z = sprite((g, c) => glyph(g, c, '0', 1));
+    sprites.o = sprite((g, c) => glyph(g, c, '1', 1));
+    sprites.zf = sprite((g, c) => glyph(g, c, '0', FAINT));
+    sprites.of = sprite((g, c) => glyph(g, c, '1', FAINT));
+    sprites.b = sprite((g, c) => { g.fillStyle = INK; g.fillRect(0, 0, c, c); });
+    needDraw = true;
+  }
+
+  /* ================= SOURCES ================= */
+  // Text: draw the word as big as fits, wrapped on spaces, at stage resolution.
+  function rasteriseText() {
+    textC.width = W; textC.height = H;
+    tctx.fillStyle = PAPER; tctx.fillRect(0, 0, W, H);
+    const words = S.text.trim().toUpperCase().split(/\s+/).filter(Boolean);
+    if (!words.length) { needSample = true; return; }
+    const maxW = W * .9, maxH = H * .88;
+    let size = Math.min(W, H), lines = [];
+    for (; size > 8; size *= .95) {
+      tctx.font = `700 ${size}px 'Space Grotesk', sans-serif`;
+      lines = [];
+      let cur = '';
+      for (const w of words) {
+        const t = cur ? cur + ' ' + w : w;
+        if (tctx.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; }
+      }
+      lines.push(cur);
+      const widest = Math.max(...lines.map(l => tctx.measureText(l).width));
+      if (widest <= maxW && lines.length * size * 1.02 <= maxH) break;
+    }
+    tctx.fillStyle = INK; tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+    const lh = size * 1.02, top = H / 2 - (lines.length - 1) * lh / 2;
+    lines.forEach((l, i) => tctx.fillText(l, W / 2, top + i * lh));
+    needSample = true;
+  }
+
+  // Webcam
+  async function startCam() {
+    stopCam();
+    $('camstatus').textContent = 'Asking for permission…';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      $('camstatus').textContent = 'Live. Adjust the threshold until your silhouette appears.';
+      $('camstart').disabled = true; $('camstop').disabled = false;
+    } catch (e) {
+      stream = null;
+      $('camstatus').textContent = e.name === 'NotAllowedError' ? 'Camera access was denied. Allow it in the address bar and try again.'
+        : e.name === 'NotFoundError' ? 'No camera found.' : 'Camera unavailable: ' + (e.message || e.name);
+    }
+    needSample = true;
+  }
+  function stopCam() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = null; video.srcObject = null;
+    $('camstart').disabled = false; $('camstop').disabled = true;
+    needSample = true;
+  }
+
+  // Image
+  function loadImage(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const img = new Image();
+    img.onload = () => { image = img; $('imgstatus').textContent = `${file.name} · ${img.naturalWidth} × ${img.naturalHeight}`; needSample = true; };
+    img.onerror = () => { $('imgstatus').textContent = 'Could not read that file.'; };
+    img.src = URL.createObjectURL(file);
+  }
+
+  /* ================= SAMPLING ================= */
+  // draw `el` (w × h) into the cols × rows source canvas, cover-fit, optionally mirrored
+  function cover(el, w, h, mirror) {
+    const s = Math.max(cols / w, rows / h);
+    const dw = w * s, dh = h * s;
+    sctx.save();
+    if (mirror) { sctx.translate(cols, 0); sctx.scale(-1, 1); }
+    sctx.drawImage(el, (cols - dw) / 2, (rows - dh) / 2, dw, dh);
+    sctx.restore();
+  }
+  function sample() {
+    sctx.fillStyle = PAPER; sctx.fillRect(0, 0, cols, rows);
+    if (S.source === 'text') cover(textC, W, H, false);
+    else if (S.source === 'cam' && stream && video.readyState >= 2) cover(video, video.videoWidth, video.videoHeight, true);
+    else if (S.source === 'image' && image) cover(image, image.naturalWidth, image.naturalHeight, false);
+    const d = sctx.getImageData(0, 0, cols, rows).data;
+    const inv = S.invert ? 1 : 0;
+    for (let i = 0, p = 0; i < mask.length; i++, p += 4) {
+      const lum = (d[p] * 299 + d[p + 1] * 587 + d[p + 2] * 114) / 1000;
+      mask[i] = (lum < S.threshold ? 1 : 0) ^ inv;
+    }
+    needSample = false; needDraw = true;
+  }
+
+  /* ================= RENDER ================= */
+  function reroll() {
+    const n = Math.floor(digits.length * ROLL);
+    for (let k = 0; k < n; k++) { const i = (Math.random() * digits.length) | 0; digits[i] ^= 1; }
+    needDraw = true;
+  }
+  function draw() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = PAPER; ctx.fillRect(0, 0, W, H);
+    const c = S.cell, p = S.progress, streamLook = S.look === 'stream';
+    for (let r = 0, i = 0; r < rows; r++) {
+      const y = oy + r * c;
+      for (let col = 0; col < cols; col++, i++) {
+        const ink = mask[i];
+        let sp = null;
+        if (order[i] >= p) { if (ink) sp = sprites.b; }                 // not yet dissolved: solid shape
+        else if (streamLook) sp = ink ? (digits[i] ? sprites.o : sprites.z) : (digits[i] ? sprites.of : sprites.zf);
+        else sp = ink ? sprites.o : sprites.z;                           // mask look: 1 inside, 0 outside
+        if (sp) ctx.drawImage(sp, ox + col * c, y, c, c);
+      }
+    }
+    needDraw = false;
+  }
+
+  function frame(t) {
+    const dt = lastFrame ? Math.min(t - lastFrame, 100) : 0;
+    lastFrame = t;
+    if (S.source === 'cam' && stream) needSample = true;
+    if (needSample) sample();
+    if (S.playing) {
+      S.progress += S.dir * dt / DURATION;
+      if (S.progress >= 1) { S.progress = 1; S.dir = -1; }
+      if (S.progress <= 0) { S.progress = 0; S.dir = 1; }
+      $('prog').value = Math.round(S.progress * 1000); $('progv').textContent = Math.round(S.progress * 100) + '%';
+      needDraw = true;
+    }
+    if (S.look === 'stream' && t - lastRoll > Math.max(S.speed, REDUCED ? 600 : 0)) { lastRoll = t; reroll(); }
+    if (needDraw) draw();
+    requestAnimationFrame(frame);
+  }
+
+  /* ================= UI ================= */
+  function setSource(s) {
+    S.source = s;
+    $('srcseg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.src === s));
+    ['text', 'cam', 'image'].forEach(k => $('src-' + k).hidden = k !== s);
+    if (s !== 'cam') stopCam();
+    needSample = true;
+  }
+  $('srcseg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSource(b.dataset.src); });
+  $('text').addEventListener('input', e => { S.text = e.target.value; rasteriseText(); });
+  $('camstart').addEventListener('click', startCam);
+  $('camstop').addEventListener('click', stopCam);
+  $('pick').addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', e => loadImage(e.target.files[0]));
+  stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drop'); });
+  stage.addEventListener('dragleave', () => stage.classList.remove('drop'));
+  stage.addEventListener('drop', e => { e.preventDefault(); stage.classList.remove('drop'); setSource('image'); loadImage(e.dataTransfer.files[0]); });
+
+  $('cell').addEventListener('input', e => { S.cell = +e.target.value; $('cellv').textContent = S.cell + ' px'; buildGrid(); buildSprites(); });
+  $('thr').addEventListener('input', e => { S.threshold = +e.target.value; $('thrv').textContent = S.threshold; needSample = true; });
+  $('invert').addEventListener('change', e => { S.invert = e.target.checked; needSample = true; });
+
+  $('lookseg').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S.look = b.dataset.look;
+    $('lookseg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    $('lookhint').textContent = S.look === 'stream' ? 'Random bits flicker through the shape.' : 'The picture as data: 1 inside, 0 outside.';
+    $('speed').disabled = S.look !== 'stream';
+    needDraw = true;
+  });
+  $('speed').addEventListener('input', e => { S.speed = +e.target.value; $('speedv').textContent = S.speed + ' ms'; });
+
+  $('prog').addEventListener('input', e => { S.progress = +e.target.value / 1000; $('progv').textContent = Math.round(S.progress * 100) + '%'; needDraw = true; });
+  function togglePlay() {
+    S.playing = !S.playing;
+    if (S.playing && S.progress >= 1) S.dir = -1;
+    if (S.playing && S.progress <= 0) S.dir = 1;
+    $('play').textContent = S.playing ? 'Pause' : 'Play';
+  }
+  $('play').addEventListener('click', togglePlay);
+
+  function snapshot() {
+    out.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'binary-animation.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  }
+  $('snap').addEventListener('click', snapshot);
+  function fullscreen() { if (document.fullscreenElement) document.exitFullscreen(); else stage.requestFullscreen?.(); }
+  $('full').addEventListener('click', fullscreen);
+
+  addEventListener('keydown', e => {
+    if (e.target.matches('input, select, textarea, button')) return;
+    if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'f' || e.key === 'F') fullscreen();
+    else if (e.key === 's' || e.key === 'S') snapshot();
+  });
+
+  /* ================= BOOT ================= */
+  new ResizeObserver(resize).observe(stage);
+  resize();
+  requestAnimationFrame(frame);
+  // glyphs and the word are drawn with the fallback font until Space Grotesk arrives; redo them then
+  if (document.fonts) document.fonts.ready.then(() => { rasteriseText(); buildSprites(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Journey - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --s1: .62667rem;
+    --s2: .94rem;
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ---- */
+  .app { height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: var(--s2); padding: var(--s2) var(--s3) var(--s3); }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); }
+  .brand { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+  h1 { font-size: 1.5rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+  .sub { font-weight: 300; max-width: 46ch; }
+  .nav { display: flex; align-items: center; gap: var(--s1); }
+  .nav .count { font-variant-numeric: tabular-nums; font-weight: 300; letter-spacing: .08em; min-width: 4ch; text-align: center; }
+
+  main { display: grid; grid-template-columns: 1fr minmax(20rem, 27rem); gap: var(--s3); min-height: 0; }
+  .label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--s1); display: flex; gap: var(--s2); align-items: baseline; flex-wrap: wrap; }
+  .label .num { font-weight: 300; }
+  .hint { font-size: .75rem; font-weight: 300; letter-spacing: .02rem; opacity: .75; text-transform: none; }
+
+  button {
+    font: inherit; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .35rem var(--s3); cursor: pointer; white-space: nowrap;
+  }
+  button:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
+  button:active:not([disabled]) { background: transparent; color: var(--ink); }
+  button[disabled] { opacity: .35; cursor: default; }
+  button.primary { background: var(--ink); color: var(--paper); }
+  button.primary:hover:not([disabled]) { background: transparent; color: var(--ink); }
+  select {
+    font: inherit; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink); padding: .35rem var(--s2); cursor: pointer;
+  }
+  .seg { display: inline-flex; }
+  .seg button { padding: .35rem var(--s2); margin-right: -2px; }
+  .seg button.on { background: var(--ink); color: var(--paper); }
+
+  /* ---- stage ---- */
+  .stage-wrap { display: flex; flex-direction: column; min-height: 0; }
+  .stage { flex: 1; min-height: 0; border: 1px solid var(--ink); }
+  svg { display: block; width: 100%; height: 100%; }
+  svg text { font-family: 'Space Grotesk', sans-serif; user-select: none; pointer-events: none; fill: var(--ink); }
+  .box rect { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .box.filled rect { fill: var(--ink); }
+  .box text { font-size: 14px; font-weight: 500; text-anchor: middle; dominant-baseline: central; letter-spacing: .06em; }
+  .box.filled text { fill: var(--paper); font-weight: 700; }
+  .box .sub { font-size: 12px; font-weight: 300; letter-spacing: .04em; }
+  .box.filled .sub { fill: var(--ink); }
+  .box.click rect { cursor: pointer; }
+  .box.click:hover rect { stroke-width: 4; }
+  .wire { stroke: var(--ink); stroke-width: 2; fill: none; }
+  .wire.dashed { stroke-dasharray: 8 8; }
+  .wire.thin { stroke-width: 1; }
+  .fly rect { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+  .fly text { font-size: 12px; font-weight: 700; fill: var(--paper); text-anchor: middle; dominant-baseline: central; letter-spacing: .04em; }
+  .fly.ghost rect { fill: var(--paper); stroke: var(--ink); }
+  .fly.ghost text { fill: var(--ink); }
+  .fly.dying { animation: blink .15s steps(2, start) 4; }
+  @keyframes blink { to { opacity: 0; } }
+  .t { font-size: 13px; font-weight: 300; letter-spacing: .04em; }
+  .t.mid { text-anchor: middle; }
+  .t.b { font-weight: 700; }
+  .t.big { font-size: 28px; font-weight: 500; letter-spacing: .08em; }
+  .t.up { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; font-weight: 600; }
+  .dim { opacity: .4; }
+  .caret { animation: caret 1s steps(2, start) infinite; }
+  @keyframes caret { to { opacity: 0; } }
+  .hidden { opacity: 0; }
+
+  /* ---- sidebar ---- */
+  aside { display: flex; flex-direction: column; gap: var(--s2); min-height: 0; border-left: 1px solid var(--ink); padding-left: var(--s3); }
+  .step-title { font-size: 1.35rem; font-weight: 500; line-height: 1.15; letter-spacing: .01em; }
+  .step-text { font-weight: 300; font-size: .95rem; line-height: 1.5; }
+  .step-text strong { font-weight: 600; }
+  .step-text a { color: inherit; }
+  .env { border: 2px solid var(--ink); padding: var(--s1) var(--s2); }
+  .env .label { margin-bottom: .3rem; }
+  .env .row { display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--s1); padding: .2rem 0; border-top: 1px solid var(--ink); font-variant-numeric: tabular-nums; }
+  .env .row .k { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding-top: .15rem; }
+  .env .row .v { font-weight: 500; letter-spacing: .04em; white-space: pre-wrap; }
+  .env .row .v .old { text-decoration: line-through; font-weight: 300; opacity: .6; margin-right: .5rem; }
+  .env .row.hi .v { background: var(--ink); color: var(--paper); padding: 0 .35rem; display: inline-block; }
+  .env .row.hi .v .old { color: var(--paper); opacity: .7; }
+  .env .row .v.empty { font-weight: 300; opacity: .45; }
+  .ctl { min-height: 2.4rem; display: flex; flex-wrap: wrap; gap: var(--s1); align-items: center; }
+  .spacer { flex: 1; }
+  .progress { display: flex; gap: .4rem; align-items: center; }
+  .progress button { width: 1.4rem; height: 1.4rem; padding: 0; border-width: 2px; }
+  .progress button.done { background: var(--ink); }
+  .progress button.cur { background: var(--ink); box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .progress button:hover { background: var(--ink); }
+  .progress .meta { margin-left: auto; font-size: .69rem; font-weight: 300; letter-spacing: .06em; text-transform: uppercase; opacity: .7; white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) { .fly.dying { animation: none; opacity: .3; } .caret { animation: none; } }
+
+  @media (max-width: 960px) {
+    html, body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    main { grid-template-columns: 1fr; }
+    .stage { flex: none; aspect-ratio: 2 / 1; }
+    aside { border-left: 0; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Data Journey</h1>
+      <p class="sub">The trip of one request, from your laptop to devine.be and back.</p>
+    </div>
+    <div class="nav">
+      <button id="prev">← Back</button>
+      <span id="count" class="count">1 / 8</span>
+      <button id="next" class="primary">Next →</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage-wrap">
+      <div class="label"><span class="num" id="stageNum">01</span><span id="stageLabel">Stage</span><span class="hint" id="stageHint"></span></div>
+      <div class="stage"><svg id="svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-label="Illustration of the current step"></svg></div>
+    </section>
+
+    <aside>
+      <h2 id="stepTitle" class="step-title"></h2>
+      <p id="stepText" class="step-text"></p>
+      <div class="env">
+        <div class="label">The packet</div>
+        <div class="row" data-k="from"><span class="k">From</span><span class="v"></span></div>
+        <div class="row" data-k="to"><span class="k">To</span><span class="v"></span></div>
+        <div class="row" data-k="seq"><span class="k">Seq</span><span class="v"></span></div>
+        <div class="row" data-k="data"><span class="k">Data</span><span class="v"></span></div>
+      </div>
+      <div id="ctl" class="ctl"></div>
+      <div class="spacer"></div>
+      <div class="progress" id="progress"><span class="meta">Digital Foundations — Week 04</span></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(() => {
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('svg');
+  const gScene = document.createElementNS(NS, 'g');
+  svg.appendChild(gScene);
+
+  // ---------- drawing helpers ----------
+  const el = (tag, attrs = {}, parent = gScene) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  };
+  const txt = (x, y, s, cls = 't', parent = gScene) => { const t = el('text', { x, y, class: cls }, parent); t.textContent = s; return t; };
+  const wire = (x1, y1, x2, y2, cls = '') => el('line', { x1, y1, x2, y2, class: 'wire ' + cls });
+  const box = (x, y, w, h, label, o = {}) => {
+    const g = el('g', { class: 'box' + (o.filled ? ' filled' : '') + (o.click ? ' click' : ''), transform: `translate(${x} ${y})` });
+    el('rect', { x: -w / 2, y: -h / 2, width: w, height: h }, g);
+    txt(0, o.sub && o.subInside ? -8 : 0, label, 'lbl', g);
+    if (o.sub) txt(0, o.subInside ? 12 : h / 2 + 16, o.sub, 'sub' + (o.subInside ? '' : ' mid'), g).setAttribute('text-anchor', 'middle');
+    g.pos = { x, y };
+    return g;
+  };
+  const place = (g, x, y) => { g.pos = { x, y }; g.setAttribute('transform', `translate(${x} ${y})`); };
+  const fly = (label, x, y, ghost = false) => {
+    const w = Math.max(28, label.length * 8 + 16);
+    const g = el('g', { class: 'fly' + (ghost ? ' ghost' : '') });
+    el('rect', { x: -w / 2, y: -14, width: w, height: 28 }, g);
+    txt(0, 0, label, '', g);
+    place(g, x, y);
+    return g;
+  };
+  const arrowHead = (x, y, dir) => {
+    el('polyline', { points: `${x - 12 * dir},${y - 9} ${x},${y} ${x - 12 * dir},${y + 9}`, class: 'wire' });
+  };
+
+  // ---------- timing: timers + tweens with rAF and a timer fallback ----------
+  let timers = [], tweens = [], raf = null, fallback = null;
+  const later = (fn, ms) => { const id = setTimeout(fn, REDUCED ? 0 : ms); timers.push(id); return id; };
+  function tween(dur, apply, done) {
+    if (REDUCED || dur <= 0) { apply(1); done && done(); return; }
+    tweens.push({ t0: performance.now(), dur, apply, done });
+    if (!raf) schedule();
+  }
+  const moveTo = (g, x, y, dur, done) => {
+    const { x: x0, y: y0 } = g.pos;
+    tween(dur, p => place(g, x0 + (x - x0) * p, y0 + (y - y0) * p), done);
+  };
+  function schedule() {
+    raf = requestAnimationFrame(now => { clearTimeout(fallback); step(now); });
+    fallback = setTimeout(() => { cancelAnimationFrame(raf); step(performance.now()); }, 100);
+  }
+  function step(now) {
+    raf = fallback = null;
+    const finished = [];
+    tweens = tweens.filter(tw => {
+      const p = Math.min(1, (now - tw.t0) / tw.dur);
+      tw.apply(p);
+      if (p >= 1) { finished.push(tw); return false; }
+      return true;
+    });
+    finished.forEach(tw => tw.done && tw.done());
+    if (tweens.length) schedule();
+  }
+  function clearAll() {
+    timers.forEach(clearTimeout); timers = [];
+    tweens = [];
+    cancelAnimationFrame(raf); clearTimeout(fallback); raf = fallback = null;
+    gScene.innerHTML = '';
+  }
+
+  // ---------- envelope card ----------
+  const EMPTY = { from: '', to: '', seq: '', data: '' };
+  const envRows = {};
+  document.querySelectorAll('.env .row').forEach(r => envRows[r.dataset.k] = r);
+  function applyEnv(env, changed = [], old = {}) {
+    for (const k in envRows) {
+      const row = envRows[k], v = row.querySelector('.v');
+      row.classList.toggle('hi', changed.includes(k));
+      v.innerHTML = '';
+      if (changed.includes(k) && old[k] && k !== 'seq') { const s = document.createElement('span'); s.className = 'old'; s.textContent = old[k]; v.appendChild(s); }
+      v.appendChild(document.createTextNode(env[k] || (k === 'seq' ? '—' : '?')));
+      v.classList.toggle('empty', !env[k]);
+    }
+  }
+
+  // ---------- shared state ----------
+  const state = { dest: 'Virginia' };
+  const PRIVATE = '192.168.0.12', PUBLIC = '84.195.7.21', SERVER = '104.21.36.9';
+
+  const ROUTES = {
+    Brussels:  { stops: [['HOME', 'Kortrijk'], ['ISP', 'Kortrijk'], ['BNIX', 'Brussels'], ['DATACENTER', 'Brussels'], ['SERVER', 'devine.be']], ms: [1, 3, 2, 1], cables: [] },
+    Frankfurt: { stops: [['HOME', 'Kortrijk'], ['ISP', 'Kortrijk'], ['BNIX', 'Brussels'], ['DE-CIX', 'Frankfurt'], ['DATACENTER', 'Frankfurt'], ['SERVER', 'devine.be']], ms: [1, 3, 4, 5, 1], cables: [] },
+    Virginia:  { stops: [['HOME', 'Kortrijk'], ['ISP', 'Kortrijk'], ['BNIX', 'Brussels'], ['LANDING', 'Cornwall'], ['LANDING', 'New Jersey'], ['DATACENTER', 'Virginia'], ['SERVER', 'devine.be']], ms: [1, 3, 5, 30, 5, 1], cables: [[3, 4, 'Atlantic cable · 5,500 km']] },
+    Sydney:    { stops: [['HOME', 'Kortrijk'], ['ISP', 'Kortrijk'], ['BNIX', 'Brussels'], ['LANDING', 'Marseille'], ['LANDING', 'Singapore'], ['LANDING', 'Sydney'], ['DATACENTER', 'Sydney'], ['SERVER', 'devine.be']], ms: [1, 3, 10, 70, 45, 8, 1], cables: [[3, 4, 'SEA-ME-WE cable · 12,000 km'], [4, 5, 'Pacific cable · 8,000 km']] },
+  };
+  const oneWay = d => ROUTES[d].ms.reduce((a, b) => a + b, 0);
+
+  // ---------- steps ----------
+  const STEPS = [
+    {
+      title: 'You press enter',
+      label: 'Your laptop',
+      text: 'You type <strong>devine.be</strong> and press enter. Your laptop now has a question for a computer it has never met: <em>send me that page</em>. That question is data — and data has to travel.',
+      env: { data: 'GET devine.be' }, changed: ['data'],
+      enter() {
+        el('rect', { x: 350, y: 110, width: 300, height: 200, class: 'wire' }).setAttribute('style', 'stroke-width:3');
+        el('rect', { x: 320, y: 320, width: 360, height: 22, style: 'fill:var(--ink)' });
+        el('rect', { x: 385, y: 150, width: 230, height: 36, class: 'wire' });
+        const t = txt(398, 168, '', 't b'); t.setAttribute('dominant-baseline', 'central'); t.setAttribute('style', 'font-size:18px');
+        const caret = txt(400, 168, '|', 't caret'); caret.setAttribute('dominant-baseline', 'central'); caret.setAttribute('style', 'font-size:18px');
+        const word = 'devine.be';
+        word.split('').forEach((c, i) => later(() => { t.textContent = word.slice(0, i + 1); caret.setAttribute('x', 400 + (i + 1) * 10.5); }, 350 + i * 110));
+        const enter = txt(500, 250, '↵  ENTER', 't up mid hidden');
+        later(() => { enter.classList.remove('hidden'); this.applyEnv(); }, 350 + word.length * 110 + 300);
+        txt(500, 375, 'YOUR LAPTOP', 't up mid');
+        txt(500, 400, 'address: not yet', 't mid dim');
+      }
+    },
+    {
+      title: 'Your home network (LAN)',
+      label: 'Home network',
+      hint: 'Click a device to see its address.',
+      text: 'Your laptop is not alone. Everything at home connects to the <strong>router</strong>, which hands out <strong>private addresses</strong> like 192.168.0.12. They only work inside your house — your neighbour\'s laptop may have exactly the same one.',
+      env: { from: PRIVATE }, changed: ['from'],
+      enter() {
+        const router = box(500, 250, 150, 70, 'ROUTER', { filled: true, sub: '192.168.0.1' });
+        const devices = [['LAPTOP', PRIVATE, 200, 120], ['PHONE', '192.168.0.7', 200, 250], ['TV', '192.168.0.15', 200, 380], ['PRINTER', '192.168.0.23', 800, 120], ['CONSOLE', '192.168.0.9', 800, 380]];
+        devices.forEach(([name, ip, x, y]) => {
+          wire(x + (x < 500 ? 60 : -60), y, x < 500 ? 425 : 575, y === 250 ? 250 : y);
+          if (y !== 250) wire(x < 500 ? 425 : 575, y, x < 500 ? 425 : 575, 250);
+          const b = box(x, y, 120, 50, name, { click: true });
+          const ipT = txt(0, 45, ip, 'sub mid hidden', b);
+          b.querySelector('rect').addEventListener('click', () => ipT.classList.toggle('hidden'));
+          if (name === 'LAPTOP') later(() => ipT.classList.remove('hidden'), 600);
+        });
+        txt(500, 455, 'PRIVATE ADDRESSES · 192.168.0.x · EVERY HOME REUSES THEM', 't up mid dim');
+        later(() => this.applyEnv(), 600);
+      }
+    },
+    {
+      title: 'The router: one address for the whole house',
+      label: 'NAT',
+      text: 'Private addresses do not exist on the internet. The router swaps your private address for the <strong>one public address</strong> your ISP gave your home. This is <strong>NAT</strong>: to the world, your whole house looks like a single computer.',
+      env: { from: PUBLIC }, changed: ['from'],
+      enter() {
+        const laptop = box(130, 250, 130, 60, 'LAPTOP', { sub: PRIVATE });
+        wire(195, 250, 380, 250);
+        el('rect', { x: 380, y: 170, width: 240, height: 160, class: 'wire' }).setAttribute('style', 'stroke-width:3');
+        wire(500, 170, 500, 330, 'dashed thin');
+        txt(440, 195, 'LAN SIDE', 't up mid'); txt(440, 218, '192.168.0.1', 't mid b');
+        txt(560, 195, 'WAN SIDE', 't up mid'); txt(560, 218, PUBLIC, 't mid b');
+        txt(500, 305, 'ROUTER', 't up mid');
+        txt(500, 150, 'NAT · network address translation', 't mid dim');
+        wire(620, 250, 800, 250);
+        box(870, 250, 130, 60, 'ISP', { sub: 'gives you 1 public address' });
+        const p = fly('from ' + PRIVATE, 130, 250);
+        later(() => moveTo(p, 440, 250, 900, () => {
+          later(() => {
+            p.querySelector('text').textContent = 'from ' + PUBLIC;
+            const w = Math.max(28, ('from ' + PUBLIC).length * 8 + 16);
+            p.querySelector('rect').setAttribute('x', -w / 2); p.querySelector('rect').setAttribute('width', w);
+            this.applyEnv();
+            moveTo(p, 560, 250, 400, () => later(() => moveTo(p, 870, 250, 900), 200));
+          }, 500);
+        }), 400);
+      }
+    },
+    {
+      title: 'Where is devine.be? (DNS)',
+      label: 'DNS lookup',
+      text: 'Computers only know numbers, not names. Before anything is sent, your ISP\'s <strong>resolver</strong> asks around: the <strong>root</strong> servers point to <strong>.be</strong>, .be points to devine.be\'s own name server, and that one answers with the address. Now your laptop knows where to send its packet.',
+      env: { to: SERVER }, changed: ['to'],
+      control: () => btn('Look up again', () => go(cur)),
+      enter() {
+        const you = box(110, 250, 130, 60, 'YOU', { filled: true, sub: 'router' });
+        const res = box(420, 250, 160, 60, 'RESOLVER', { sub: 'your ISP' });
+        const root = box(830, 100, 200, 60, 'ROOT  .', { sub: '13 server groups worldwide' });
+        const tld = box(830, 250, 200, 60, '.BE', { sub: 'DNS Belgium' });
+        const auth = box(830, 400, 200, 60, 'DEVINE.BE', { sub: 'its own name server' });
+        wire(175, 250, 340, 250); wire(500, 250, 730, 100); wire(500, 250, 730, 250); wire(500, 250, 730, 400);
+        const hop = (label, from, to, dur, done) => { const f = fly(label, from.pos.x, from.pos.y); moveTo(f, to.pos.x, to.pos.y, dur, () => { f.remove(); done && done(); }); };
+        const dialog = txt(500, 470, '', 't mid dim');
+        const s = [
+          () => { dialog.textContent = '"where is devine.be?"'; hop('devine.be?', you, res, 700, s[1]); },
+          () => hop('devine.be?', res, root, 700, s[2]),
+          () => { dialog.textContent = 'root: "ask .be"'; hop('ask .be', root, res, 700, s[3]); },
+          () => hop('devine.be?', res, tld, 700, s[4]),
+          () => { dialog.textContent = '.be: "ask devine.be\'s own name server"'; hop('ask devine.be', tld, res, 700, s[5]); },
+          () => hop('devine.be?', res, auth, 700, s[6]),
+          () => { dialog.textContent = 'devine.be: "104.21.36.9"'; hop(SERVER, auth, res, 700, s[7]); },
+          () => hop(SERVER, res, you, 700, () => { dialog.textContent = 'answer cached — next time this takes no time at all'; this.applyEnv(); }),
+        ];
+        later(s[0], 300);
+      }
+    },
+    {
+      title: 'Shake hands first (TCP)',
+      label: 'TCP handshake',
+      text: 'Before sending the request, <strong>TCP</strong> makes both sides agree to talk: <em>"can we talk?"</em> — <em>"yes, can you hear me?"</em> — <em>"yes."</em> Three messages, one round trip. Only now does your request leave. TCP also numbers everything it sends, so nothing can arrive twice or out of order.',
+      env: { seq: '1' }, changed: ['seq'],
+      enter() {
+        box(220, 70, 150, 50, 'YOU', { filled: true, sub: PUBLIC });
+        box(780, 70, 150, 50, 'SERVER', { filled: true, sub: SERVER });
+        wire(220, 95, 220, 470, 'thin'); wire(780, 95, 780, 470, 'thin');
+        const msgs = [['SYN', 1, 170, 'can we talk?'], ['SYN-ACK', -1, 270, 'yes — can you hear me?'], ['ACK', 1, 370, 'yes.']];
+        const draw = (i) => {
+          const [name, dir, y, say] = msgs[i];
+          const x0 = dir > 0 ? 220 : 780, x1 = dir > 0 ? 780 : 220;
+          const line = wire(x0, y, x0, y);
+          txt(500, y - 14, name, 't up mid b');
+          txt(500, y + 22, say, 't mid dim');
+          tween(700, p => line.setAttribute('x2', x0 + (x1 - x0) * p), () => { arrowHead(x1, y, dir); if (i < 2) later(() => draw(i + 1), 250); else { txt(500, 455, 'CONNECTED · 1 ROUND TRIP', 't up mid'); this.applyEnv(); } });
+        };
+        later(() => draw(0), 300);
+      }
+    },
+    {
+      title: 'The long way round',
+      label: 'Physical route',
+      hint: 'Latency numbers are approximate.',
+      text: 'Now the packet gets physical: copper or fibre to your ISP, an <strong>internet exchange</strong> where networks meet, perhaps a <strong>cable on the ocean floor</strong>, into a datacenter. Light in fibre still needs about <strong>5 ms per 1,000 km</strong>. Distance is latency — that is why a far-away server feels slow even on fast wifi.',
+      env: {}, changed: [],
+      control: () => {
+        const wrap = document.createElement('div'); wrap.className = 'seg';
+        Object.keys(ROUTES).forEach(d => { const b = btn(d, () => { state.dest = d; go(cur); }); if (d === state.dest) b.classList.add('on'); wrap.appendChild(b); });
+        return wrap;
+      },
+      enter() {
+        const R = ROUTES[state.dest], n = R.stops.length;
+        const xs = R.stops.map((_, i) => 90 + i * (820 / (n - 1)));
+        const w = Math.min(120, (820 / (n - 1)) * 0.68);
+        R.stops.forEach(([name, place_], i) => box(xs[i], 260, w, 56, name, { filled: i === 0 || i === n - 1, sub: place_ }));
+        for (let i = 0; i < n - 1; i++) {
+          const cable = R.cables.find(c => c[0] === i);
+          wire(xs[i] + w / 2, 260, xs[i + 1] - w / 2, 260, cable ? 'dashed' : '');
+          if (cable) txt((xs[i] + xs[i + 1]) / 2, 330, cable[2], 't mid dim');
+        }
+        const total = txt(500, 110, '0 ms', 't big mid');
+        txt(500, 140, 'ONE WAY · SERVER IN ' + state.dest.toUpperCase(), 't up mid dim');
+        const p = fly('GET', xs[0], 260);
+        let acc = 0;
+        const hopTo = (i) => {
+          if (i >= n) { txt(500, 175, `round trip ≈ ${acc * 2} ms · ${n} stops`, 't mid'); return; }
+          const ms = R.ms[i - 1];
+          moveTo(p, xs[i], 260, 250 + ms * 10, () => {
+            acc += ms; total.textContent = acc + ' ms';
+            txt((xs[i - 1] + xs[i]) / 2, 212, `+${ms} ms`, 't mid');
+            later(() => hopTo(i + 1), 150);
+          });
+        };
+        later(() => hopTo(1), 400);
+      }
+    },
+    {
+      title: 'Every packet gets a receipt',
+      label: 'TCP acknowledgements',
+      text: 'TCP numbers every packet and the server sends a <strong>receipt (ACK)</strong> for each one. No receipt? The sender assumes the packet is lost and <strong>sends it again</strong>. That is how a messy network still delivers a perfect copy. How packets find their own way through the routers: see the <a href="../packet-switching/">Packet Switching</a> demo.',
+      env: { seq: '1  2  3' }, changed: ['seq'],
+      control: () => btn('Lose one', () => { state.lose = true; go(cur); }),
+      enter() {
+        const lose = state.lose; state.lose = false;
+        box(120, 250, 130, 60, 'YOU', { filled: true });
+        box(880, 250, 130, 60, 'SERVER', { filled: true });
+        wire(185, 250, 815, 250);
+        const receipts = txt(500, 420, '', 't mid');
+        const got = [];
+        const ackBack = (i) => { const a = fly('ACK ' + i, 880, 250, true); moveTo(a, 120, 250, 1200, () => { a.remove(); got.push(i); receipts.textContent = 'receipts: ' + got.map(k => 'ACK ' + k).join('  ·  '); if (got.length === 3) { txt(500, 455, 'ALL 3 PACKETS CONFIRMED', 't up mid'); this.applyEnv(); } }); };
+        const sendPkt = (i, again) => {
+          const f = fly('#' + i + (again ? ' again' : ''), 120, 250);
+          if (lose && i === 2 && !again) {
+            moveTo(f, 500, 250, 600, () => { f.classList.add('dying'); later(() => f.remove(), 600); txt(500, 300, 'packet #2 lost — no receipt comes back', 't mid dim');
+              later(() => { txt(500, 330, 'timeout → sender resends #2', 't mid dim'); sendPkt(2, true); }, 2200); });
+          } else moveTo(f, 880, 250, 1200, () => { f.remove(); ackBack(i); });
+        };
+        [1, 2, 3].forEach(i => later(() => sendPkt(i), 300 + (i - 1) * 450));
+      }
+    },
+    {
+      title: 'The answer comes back',
+      label: 'Response',
+      text: '', // filled dynamically
+      env: { data: 'the page' }, changed: ['data'],
+      control: () => btn('Start over', () => go(0)),
+      enter() {
+        const rtt = oneWay(state.dest) * 2;
+        document.getElementById('stepText').innerHTML = `Before the first byte arrived, your laptop made <strong>three round trips</strong>: DNS, handshake, request. With the server in ${state.dest} that is roughly 3 × ${rtt} ms ≈ <strong>${3 * rtt} ms</strong> — a blink. Then the page itself came back, in packets, each with a receipt, and the browser put them in order.`;
+        box(880, 250, 130, 60, 'SERVER', { filled: true, sub: SERVER });
+        wire(185, 250, 815, 250);
+        el('rect', { x: 60, y: 190, width: 130, height: 90, class: 'wire' }).setAttribute('style', 'stroke-width:3');
+        el('rect', { x: 45, y: 285, width: 160, height: 12, style: 'fill:var(--ink)' });
+        const screen = txt(125, 235, '', 't mid b'); screen.setAttribute('style', 'font-size:20px'); screen.setAttribute('dominant-baseline', 'central');
+        txt(125, 325, 'YOUR LAPTOP', 't up mid');
+        const parts = ['DE', 'VI', 'NE']; let got = 0;
+        parts.forEach((part, i) => later(() => {
+          const f = fly('PAGE ' + (i + 1), 880, 250);
+          moveTo(f, 125, 250, 1100, () => { f.remove(); got++; screen.textContent = parts.slice(0, got).join(''); if (got === 3) { txt(500, 420, `≈ ${3 * rtt} ms before the first byte · then the page, packet by packet`, 't mid dim'); this.applyEnv(); } });
+        }, 300 + i * 500));
+      }
+    },
+  ];
+
+  // cumulative envelope state after each step
+  const ENV_AFTER = [];
+  STEPS.reduce((acc, s, i) => { const next = { ...acc, ...s.env }; ENV_AFTER[i] = next; return next; }, EMPTY);
+  STEPS.forEach((s, i) => s.applyEnv = () => applyEnv(ENV_AFTER[i], s.changed, ENV_AFTER[i - 1] || EMPTY));
+
+  // ---------- controls & navigation ----------
+  const btn = (label, fn) => { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', fn); return b; };
+  const $ = id => document.getElementById(id);
+  const progress = $('progress');
+  STEPS.forEach((s, i) => { const b = btn('', () => go(i)); b.title = s.title; b.setAttribute('aria-label', 'Step ' + (i + 1)); progress.insertBefore(b, progress.querySelector('.meta')); });
+
+  let cur = -1;
+  function go(i) {
+    i = Math.max(0, Math.min(STEPS.length - 1, i));
+    clearAll();
+    cur = i;
+    const s = STEPS[i];
+    $('count').textContent = `${i + 1} / ${STEPS.length}`;
+    $('stageNum').textContent = String(i + 1).padStart(2, '0');
+    $('stageLabel').textContent = s.label;
+    $('stageHint').textContent = s.hint || '';
+    $('stepTitle').textContent = s.title;
+    $('stepText').innerHTML = s.text;
+    const ctl = $('ctl'); ctl.innerHTML = '';
+    if (s.control) ctl.appendChild(s.control());
+    $('prev').disabled = i === 0;
+    $('next').disabled = i === STEPS.length - 1;
+    progress.querySelectorAll('button').forEach((b, k) => { b.classList.toggle('done', k < i); b.classList.toggle('cur', k === i); });
+    applyEnv(ENV_AFTER[i - 1] || EMPTY);
+    s.enter();
+    if (REDUCED) s.applyEnv();
+  }
+  $('prev').addEventListener('click', () => go(cur - 1));
+  $('next').addEventListener('click', () => go(cur + 1));
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return; // the button's own click handles it
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); go(cur + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+  });
+  go(0);
+})();
+</script>
+</body>
+</html>
