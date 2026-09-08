@@ -439,7 +439,7 @@ function cellHTML(item, cls) {
 function cardHTML(seed, i, cells, called) {
   const grid = cells.map(c => cellHTML(c, called ? (!c || called.has(c.id) ? 'hit' : 'miss') : '')).join('');
   return `<article class="card">
-    <div class="card-head"><h2>Binary Bingo</h2><span class="meta">Digital Foundations · Week 1</span><span class="meta">Card <b>${String(i).padStart(2, '0')}</b> · seed <b>${seed}</b></span></div>
+    <div class="card-head"><h2>Binary Bingo</h2><span class="meta">Digital Foundations · Week 3</span><span class="meta">Card <b>${String(i).padStart(2, '0')}</b> · seed <b>${seed}</b></span></div>
     <div class="grid">${grid}</div>${called ? '' : HELP}</article>`;
 }
 function renderCards(r) {
