@@ -10,14 +10,3 @@ Live site: https://vaernewijck.github.io/digital-foundations/
 - `public/teach/` — teacher tools (GIF maker, …). Listed in `public/teach/index.html`, not linked from the landing page.
 - `wip/` — tools in development. Visible in this repo, never published.
 
-## Publish a tool
-
-```sh
-git mv wip/<name> public/tools/<name>
-```
-
-Add a link in the week's **Tools** cell in `public/index.html`, commit, push. The workflow in `.github/workflows/pages.yml` deploys `public/` on every push to `main`.
-
-## Add a self-check quiz
-
-Create `public/self-check/week-XX/index.html` and replace the `soon` placeholder in that week's **Self-check** cell in `public/index.html` with a link.
