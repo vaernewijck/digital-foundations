@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Program Maker - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #161615; --paper: #f8f8f8; --grey1: #dcdcda; --grey2: #ececea; --s1: .62667rem; --s2: .94rem; --s3: 1.41rem; }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { background: var(--grey1); }
+  body {
+    color: var(--ink); font-family: 'Space Grotesk', sans-serif; font-size: .9375rem; line-height: 1.45;
+    letter-spacing: .01rem; font-feature-settings: "tnum"; -webkit-font-smoothing: antialiased;
+    padding: var(--s3) var(--s3) 6rem;
+  }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: center; align-items: center; gap: var(--s2); flex-wrap: wrap;
+    padding: var(--s2); background: var(--ink);
+  }
+  .bar button {
+    background: transparent; color: var(--paper); border: 2px solid var(--paper);
+    font-family: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: .5em 1.2em; cursor: pointer;
+  }
+  .bar button:hover { background: var(--paper); color: var(--ink); }
+  .bar button.on { background: var(--paper); color: var(--ink); }
+  .bar span { color: var(--paper); font-weight: 300; font-size: .8125rem; opacity: .8; }
+
+  main { max-width: 900px; margin: 4.5rem auto 0; display: grid; gap: var(--s3); }
+  a { color: inherit; }
+  h1 { font-weight: 700; font-size: 1.75rem; line-height: 1.15; }
+  h1 + p { font-weight: 300; margin-top: .25rem; }
+
+  .builder { background: var(--paper); border: 1px solid rgba(22,22,21,.15); padding: var(--s3); display: grid; gap: var(--s2); }
+  .builder h2 { font-weight: 700; font-size: 1rem; }
+  .builder .hint { font-weight: 300; font-size: .875rem; opacity: .75; }
+  .stage-wrap { display: flex; gap: var(--s2); align-items: flex-start; }
+  .stage-y { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; align-self: center; }
+  .stage-col { flex: 1; }
+  .stage-x { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; margin-bottom: .3rem; }
+  table.plot { border-collapse: collapse; margin: 0 auto; }
+  table.plot th, table.plot td { border: 1px solid var(--ink); width: 2.6rem; height: 2.6rem; text-align: center; font-size: .8125rem; font-weight: 300; }
+  table.plot th { font-weight: 700; }
+  table.plot td.cell { cursor: pointer; }
+  table.plot td.cell:hover { background: var(--grey2); }
+  table.plot td.filled { background: var(--ink); color: var(--paper); font-weight: 700; }
+  table.plot td.last { outline: 2px solid var(--ink); outline-offset: -2px; }
+
+  .status { display: flex; gap: var(--s3); font-size: .875rem; }
+  .status b { font-weight: 700; }
+
+  .page {
+    background: var(--paper); color: var(--ink); border: 1px solid rgba(22,22,21,.15);
+    padding: 14mm 16mm; display: flex; flex-direction: column; gap: var(--s2);
+  }
+  .letterhead { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: var(--s1); margin-bottom: var(--s1); }
+  .letterhead .id { display: flex; align-items: center; gap: .6em; }
+  .letterhead svg { width: 1.6rem; height: 1.07rem; flex: none; }
+  .letterhead .id span { font-weight: 700; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+  .letterhead .tag { font-weight: 300; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; opacity: .6; }
+  .page h1 { font-size: 1.5rem; }
+  .role { font-weight: 300; font-size: .9375rem; margin-top: .15rem; }
+  .fields { display: flex; gap: var(--s3); font-size: .8125rem; }
+  .fields .f { flex: 1; border-bottom: 1px solid var(--ink); padding-bottom: .2rem; }
+  .fields .f span { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: .6875rem; margin-right: .5em; }
+  .instructions { border: 1px solid var(--ink); padding: var(--s1); font-size: .875rem; }
+  .instructions ul { margin-top: .3rem; padding-left: 1.2em; display: grid; gap: .15rem; }
+  .instructions p { margin-top: .3rem; }
+  .cols { display: flex; gap: var(--s2); }
+  .cols .col { flex: 1; display: grid; gap: .12rem; align-content: start; }
+  .step { display: flex; align-items: baseline; gap: .5em; border-bottom: 1px solid rgba(22,22,21,.2); padding-bottom: .13rem; font-size: .8125rem; }
+  .step .box { flex: none; width: .9em; height: .9em; border: 1.5px solid var(--ink); margin-top: .15em; }
+  .step.done { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .step.done .box { display: none; }
+  .empty { font-weight: 300; opacity: .6; font-size: .875rem; }
+  table.data { border-collapse: collapse; margin-top: .4rem; }
+  table.data th, table.data td { border: 1px solid var(--ink); padding: .18rem .9rem; text-align: center; font-size: .9375rem; }
+  table.data th { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .8125rem; }
+  .foot { margin-top: auto; padding-top: var(--s2); border-top: 1px solid rgba(22,22,21,.3); font-weight: 300; font-size: .75rem; opacity: .65; display: flex; justify-content: space-between; gap: 1rem; }
+  .ans-split { display: flex; gap: var(--s3); align-items: flex-start; }
+
+  @media (max-width: 700px) {
+    .ans-split { flex-direction: column; }
+  }
+  @media print {
+    html, body { background: #fff; padding: 0; }
+    .bar, .builder, .no-print { display: none; }
+    main { max-width: none; margin: 0; gap: 0; }
+    .page { border: 0; width: auto; min-height: 100vh; margin: 0; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+  }
+  @page { size: A4; margin: 12mm; }
+</style>
+</head>
+<body>
+
+<div class="bar no-print">
+  <button id="btnUndo">Undo</button>
+  <button id="btnClear">Clear</button>
+  <button id="btnDone">Mark DONE!</button>
+  <button id="btnPrint">Print CPU sheet + answer key</button>
+  <span>Click the grid to add each point of the path, in order</span>
+</div>
+
+<main>
+
+  <div class="builder">
+    <h1>Program Maker</h1>
+    <p>Build a custom program for the <a href="../">How Computers Work</a> activity: click points on the grid in the order you want them drawn, and the CPU checklist writes itself below.</p>
+    <p class="hint">Click a filled square again to undo it. The path always starts at (0, 0) — that's Memory's starting position, not a Plot instruction.</p>
+
+    <div class="stage-wrap">
+      <div class="stage-y">y</div>
+      <div class="stage-col">
+        <div class="stage-x">x</div>
+        <div id="builderGrid"></div>
+      </div>
+    </div>
+
+    <div class="status">
+      <span><b id="stCount">0</b> points</span>
+      <span>currently at (<b id="stX">0</b>, <b id="stY">0</b>)</span>
+    </div>
+  </div>
+
+  <!-- ================= CPU SHEET (printable) ================= -->
+  <section class="page">
+    <div class="letterhead">
+      <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+      <div class="tag">How Computers Work</div>
+    </div>
+    <div class="fields"><div class="f"><span>Name</span></div><div class="f"><span>Date</span></div></div>
+
+    <h1>CPU — Custom Program</h1>
+    <p class="role">Central Processing Unit</p>
+
+    <div class="instructions">
+      Greetings CPU! Your job as the <b>Central Processing Unit</b> (CPU) is to execute the following program:
+      <ul>
+        <li>Math commands like "Add 5 to x" or "Subtract 3 from y" — ask Memory for the current value, work out the new value yourself, then tell Memory to store it.</li>
+        <li>Drawing commands like "Plot (x,y)" — ask Memory for the current values of x and y, then tell the Display to plot them.</li>
+      </ul>
+      Be sure to check off each line of the program as you finish it (so that you don't lose track of where you are).
+    </div>
+
+    <div class="cols" id="progOut"></div>
+    <p class="empty" id="progEmpty">Click the grid above to start building a program.</p>
+
+    <div class="foot"><span>CPU · Custom program</span><span>Digital Foundations · Devine</span></div>
+  </section>
+
+  <!-- ================= ANSWER KEY (printable) ================= -->
+  <section class="page">
+    <div class="letterhead">
+      <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+      <div class="tag">Answer key</div>
+    </div>
+
+    <h1>Answer key — Custom Program</h1>
+    <p class="role">After this program is complete, the Display and Memory should look like the following.</p>
+
+    <div class="ans-split">
+      <div>
+        <h3 style="font-size:.875rem;text-transform:uppercase;letter-spacing:.08em">Memory</h3>
+        <table class="data">
+          <thead><tr><th>x</th><th>y</th></tr></thead>
+          <tbody id="ansData"></tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:.875rem;text-transform:uppercase;letter-spacing:.08em">Display</h3>
+        <div class="stage-wrap">
+          <div class="stage-y">y</div>
+          <div class="stage-col">
+            <div class="stage-x">x</div>
+            <div id="answerGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot"><span>Answer key · Custom program</span><span>Digital Foundations · Devine</span></div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+  let points = [[0, 0]];   // path always starts at the origin
+  let finished = false;
+
+  /* ---- interactive builder grid ---- */
+  function buildBuilderGrid() {
+    const host = document.getElementById('builderGrid');
+    host.innerHTML = '';
+    const table = el('table', 'plot');
+    const head = el('tr'); head.appendChild(el('th'));
+    for (let x = 0; x < 10; x++) head.appendChild(el('th', '', x));
+    table.appendChild(head);
+    const last = points[points.length - 1];
+    // order number of the most recent visit to each cell
+    const orderAt = {};
+    points.forEach((p, i) => { if (i > 0) orderAt[p[0] + ',' + p[1]] = i; });
+    for (let y = 0; y < 10; y++) {
+      const tr = el('tr');
+      tr.appendChild(el('th', '', y));
+      for (let x = 0; x < 10; x++) {
+        const key = x + ',' + y;
+        const isLast = last[0] === x && last[1] === y;
+        const td = el('td', 'cell' + (key in orderAt ? ' filled' : '') + (isLast && points.length > 1 ? ' last' : ''), key in orderAt ? orderAt[key] : '');
+        td.addEventListener('click', () => clickCell(x, y));
+        tr.appendChild(td);
+      }
+      table.appendChild(tr);
+    }
+    host.appendChild(table);
+  }
+
+  function clickCell(x, y) {
+    const last = points[points.length - 1];
+    if (points.length > 1 && last[0] === x && last[1] === y) {
+      points.pop();   // clicking the current last point undoes it
+    } else {
+      points.push([x, y]);
+    }
+    render();
+  }
+
+  document.getElementById('btnUndo').addEventListener('click', () => { if (points.length > 1) points.pop(); render(); });
+  document.getElementById('btnClear').addEventListener('click', () => { points = [[0, 0]]; finished = false; render(); });
+  document.getElementById('btnDone').addEventListener('click', (e) => { finished = !finished; e.target.classList.toggle('on', finished); render(); });
+  document.getElementById('btnPrint').addEventListener('click', () => window.print());
+
+  /* ---- derive Add/Subtract/Plot instructions from the clicked path ---- */
+  function toInstructions() {
+    const lines = [];
+    for (let i = 1; i < points.length; i++) {
+      const [px, py] = points[i - 1], [x, y] = points[i];
+      const dx = x - px, dy = y - py;
+      if (dx > 0) lines.push(`Add ${dx} to x`);
+      if (dx < 0) lines.push(`Subtract ${-dx} from x`);
+      if (dy > 0) lines.push(`Add ${dy} to y`);
+      if (dy < 0) lines.push(`Subtract ${-dy} from y`);
+      lines.push('Plot (x,y)');
+    }
+    if (finished && points.length > 1) lines.push('DONE!');
+    return lines;
+  }
+
+  function checklist(container, list) {
+    container.innerHTML = '';
+    if (!list.length) return;
+    const mid = Math.ceil(list.length / 2);
+    [list.slice(0, mid), list.slice(mid)].forEach(half => {
+      const col = el('div', 'col');
+      half.forEach(line => {
+        const isDone = line.toUpperCase() === 'DONE!';
+        const row = el('div', 'step' + (isDone ? ' done' : ''));
+        row.appendChild(el('span', 'box'));
+        row.appendChild(el('span', '', line));
+        col.appendChild(row);
+      });
+      container.appendChild(col);
+    });
+  }
+
+  function buildAnswerGrid() {
+    const host = document.getElementById('answerGrid');
+    host.innerHTML = '';
+    const filled = new Set(points.slice(1).map(([x, y]) => x + ',' + y));
+    const table = el('table', 'plot');
+    const head = el('tr'); head.appendChild(el('th'));
+    for (let x = 0; x < 10; x++) head.appendChild(el('th', '', x));
+    table.appendChild(head);
+    for (let y = 0; y < 10; y++) {
+      const tr = el('tr');
+      tr.appendChild(el('th', '', y));
+      for (let x = 0; x < 10; x++) tr.appendChild(el('td', filled.has(x + ',' + y) ? 'filled' : ''));
+      table.appendChild(tr);
+    }
+    host.appendChild(table);
+  }
+
+  function render() {
+    buildBuilderGrid();
+    const last = points[points.length - 1];
+    document.getElementById('stCount').textContent = points.length - 1;
+    document.getElementById('stX').textContent = last[0];
+    document.getElementById('stY').textContent = last[1];
+
+    const list = toInstructions();
+    checklist(document.getElementById('progOut'), list);
+    document.getElementById('progEmpty').hidden = list.length > 0;
+
+    const ansBody = document.getElementById('ansData');
+    ansBody.innerHTML = '';
+    points.forEach(([x, y]) => ansBody.appendChild(el('tr', '', `<td>${x}</td><td>${y}</td>`)));
+    buildAnswerGrid();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

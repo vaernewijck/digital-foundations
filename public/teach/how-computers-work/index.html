@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Computers Work - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615; --paper: #f8f8f8;
+    --grey1: #dcdcda; --grey2: #ececea;
+    --s1: .62667rem; --s2: .94rem; --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { background: var(--grey1); }
+  body {
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .9375rem;
+    line-height: 1.45;
+    letter-spacing: .01rem;
+    font-feature-settings: "tnum";
+    -webkit-font-smoothing: antialiased;
+    padding: var(--s3) var(--s3) 6rem;
+  }
+  .bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: center; gap: var(--s2);
+    padding: var(--s2); background: var(--ink);
+  }
+  .bar button {
+    background: transparent; color: var(--paper); border: 2px solid var(--paper);
+    font-family: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: .5em 1.2em; cursor: pointer;
+  }
+  .bar button:hover { background: var(--paper); color: var(--ink); }
+  .bar span { color: var(--paper); font-weight: 300; font-size: .8125rem; align-self: center; opacity: .8; }
+  .bar a { color: var(--paper); }
+  main { max-width: 210mm; margin: 3.5rem auto 0; display: grid; gap: var(--s3); }
+
+  .page {
+    background: var(--paper); color: var(--ink);
+    width: 210mm; max-width: 100%; min-height: 297mm;
+    padding: 14mm 16mm; margin: 0 auto;
+    border: 1px solid rgba(22,22,21,.15);
+    display: flex; flex-direction: column; gap: var(--s2);
+  }
+
+  .letterhead { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: var(--s1); margin-bottom: var(--s1); }
+  .letterhead .id { display: flex; align-items: center; gap: .6em; }
+  .letterhead svg { width: 1.6rem; height: 1.07rem; flex: none; }
+  .letterhead .id span { font-weight: 700; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+  .letterhead .tag { font-weight: 300; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; opacity: .6; }
+
+  h1 { font-weight: 700; font-size: 1.75rem; line-height: 1.15; }
+  h1 + .role { font-weight: 300; font-size: .9375rem; margin-top: .15rem; }
+  h2 { font-weight: 700; font-size: 1.0625rem; margin-top: var(--s2); }
+  h3 { font-weight: 700; font-size: .875rem; text-transform: uppercase; letter-spacing: .08em; margin-top: var(--s1); }
+  p { margin-top: .35rem; }
+  .lede { font-weight: 400; font-size: 1rem; border-left: 2px solid var(--ink); padding-left: var(--s2); margin-top: var(--s1); }
+  ul, ol { padding-left: 1.2em; margin-top: .35rem; display: grid; gap: .3rem; }
+  b, strong { font-weight: 700; }
+  .dim { opacity: .6; font-weight: 300; }
+  .foot { margin-top: auto; padding-top: var(--s2); border-top: 1px solid rgba(22,22,21,.3); font-weight: 300; font-size: .75rem; opacity: .65; display: flex; justify-content: space-between; gap: 1rem; }
+
+  .page.compact { gap: .4rem; font-size: .8125rem; line-height: 1.32; }
+  .page.compact h2 { margin-top: .35rem; font-size: .9375rem; }
+  .page.compact ul, .page.compact ol { gap: .15rem; }
+  .page.compact .lede { padding-left: var(--s1); margin-top: .2rem; }
+  .page.compact p { margin-top: .2rem; }
+
+  .fields { display: flex; gap: var(--s3); font-size: .8125rem; margin-top: -.2rem; }
+  .fields .f { flex: 1; border-bottom: 1px solid var(--ink); padding-bottom: .2rem; }
+  .fields .f span { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: .6875rem; margin-right: .5em; }
+
+  .instructions { border: 1px solid var(--ink); padding: var(--s1); margin-top: var(--s1); font-size: .875rem; }
+  .instructions ul { margin-top: .3rem; gap: .15rem; }
+  .instructions p { margin-top: .3rem; }
+
+  .cols { display: flex; gap: var(--s2); margin-top: var(--s1); }
+  .cols .col { flex: 1; display: grid; gap: .12rem; align-content: start; }
+  .step { display: flex; align-items: baseline; gap: .5em; border-bottom: 1px solid rgba(22,22,21,.2); padding-bottom: .13rem; font-size: .8125rem; }
+  .step .box { flex: none; width: .9em; height: .9em; border: 1.5px solid var(--ink); margin-top: .15em; }
+  .step.done { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .step.done .box { display: none; }
+
+  table.data { border-collapse: collapse; margin-top: .4rem; }
+  table.data th, table.data td { border: 1px solid var(--ink); padding: .18rem .9rem; text-align: center; font-size: .9375rem; }
+  table.data th { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .8125rem; }
+
+  .stage-wrap { display: flex; gap: var(--s2); align-items: flex-start; margin-top: var(--s2); }
+  .stage-y { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; align-self: center; }
+  .stage-col { flex: 1; }
+  .stage-x { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; margin-bottom: .3rem; }
+  table.plot { border-collapse: collapse; margin: 0 auto; }
+  table.plot th, table.plot td { border: 1px solid var(--ink); width: 2.6rem; height: 2.6rem; text-align: center; font-size: .8125rem; font-weight: 300; }
+  table.plot th { font-weight: 700; }
+  table.plot td.filled { background: var(--ink); }
+
+  .ans-split { display: flex; gap: var(--s3); align-items: flex-start; }
+  .ans-split .data { flex: none; }
+
+  @media (max-width: 900px) {
+    body { padding-top: 5rem; }
+    .page { width: 100%; min-height: auto; }
+  }
+
+  @media print {
+    html, body { background: #fff; padding: 0; }
+    .bar { display: none; }
+    main { max-width: none; margin: 0; gap: 0; }
+    .page { border: 0; width: auto; min-height: 100vh; margin: 0; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+  }
+  @page { size: A4; margin: 12mm; }
+</style>
+</head>
+<body>
+
+<div class="bar no-print">
+  <button onclick="window.print()">Print this packet</button>
+  <span>6 pages · groups of 3 (CPU · Memory · Display) · Display sheet stays hidden until DONE · <a href="maker/">make a new program</a></span>
+</div>
+
+<main>
+
+<!-- ================= PAGE 1 : CPU - PROGRAM 1 ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">How Computers Work</div>
+  </div>
+  <div class="fields"><div class="f"><span>Name</span></div><div class="f"><span>Date</span></div></div>
+
+  <h1>CPU — Program 1</h1>
+  <p class="role">Central Processing Unit</p>
+
+  <div class="instructions">
+    Greetings CPU! Your job as the <b>Central Processing Unit</b> (CPU) is to execute the following program:
+    <ul>
+      <li>Math commands like "Add 5 to x" or "Subtract 3 from y" — ask Memory for the current value, work out the new value yourself, then tell Memory to store it.</li>
+      <li>Drawing commands like "Plot (x,y)" — ask Memory for the current values of x and y, then tell the Display to plot them.</li>
+    </ul>
+    Be sure to check off each line of the program as you finish it (so that you don't lose track of where you are).
+  </div>
+
+  <div class="cols" id="prog1"></div>
+
+  <div class="foot"><span>CPU · Program 1</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+<!-- ================= PAGE 2 : CPU - PROGRAM 2 ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">How Computers Work</div>
+  </div>
+  <div class="fields"><div class="f"><span>Name</span></div><div class="f"><span>Date</span></div></div>
+
+  <h1>CPU — Program 2</h1>
+  <p class="role">Central Processing Unit</p>
+
+  <div class="instructions">
+    Greetings CPU! Your job as the <b>Central Processing Unit</b> (CPU) is to execute the following program:
+    <ul>
+      <li>Math commands like "Add 5 to x" or "Subtract 3 from y" — ask Memory for the current value, work out the new value yourself, then tell Memory to store it.</li>
+      <li>Drawing commands like "Plot (x,y)" — ask Memory for the current values of x and y, then tell the Display to plot them.</li>
+    </ul>
+    Be sure to check off each line of the program as you finish it (so that you don't lose track of where you are).
+  </div>
+
+  <div class="cols" id="prog2"></div>
+
+  <div class="foot"><span>CPU · Program 2</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+<!-- ================= PAGE 3 : MEMORY ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">How Computers Work</div>
+  </div>
+  <div class="fields"><div class="f"><span>Name</span></div><div class="f"><span>Date</span></div></div>
+
+  <h1>Memory</h1>
+  <p class="role">Same sheet, either program</p>
+
+  <div class="instructions">
+    Greetings Memory! Your job is to keep track of the current values of x and y, so that you can tell the CPU what they are when asked. When the CPU works out a new value, write it down.
+    <p>Use the table below to record the values. Initially, both x and y are set to 0.</p>
+  </div>
+
+  <table class="data">
+    <thead><tr><th>x</th><th>y</th></tr></thead>
+    <tbody id="aluData"></tbody>
+  </table>
+
+  <div class="foot"><span>Memory</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+<!-- ================= PAGE 4 : DISPLAY ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">How Computers Work</div>
+  </div>
+  <div class="fields"><div class="f"><span>Name</span></div><div class="f"><span>Date</span></div></div>
+
+  <h1>Display</h1>
+  <p class="role">Same sheet, either program</p>
+
+  <div class="instructions">
+    Greetings Display! Your job is to wait until the CPU tells you to plot an (x, y) point on the screen. When you are asked to plot a point, find the column that corresponds to the x-value and the row that corresponds to the y-value, and plot the intersection by filling in the square.
+    <p>Don't show the image to your group partner(s) until the CPU has finished running the entire program.</p>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="stage-y">y</div>
+    <div class="stage-col">
+      <div class="stage-x">x</div>
+      <div class="grid" data-fill=""></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Display</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+<!-- ================= PAGE 5 : ANSWER KEY - PROGRAM 1 ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">Answer key</div>
+  </div>
+
+  <h1>Answer key — Program 1</h1>
+  <p class="role">After Program 1 is complete, the Display and Memory should look like the following.</p>
+
+  <div class="ans-split">
+    <div class="data">
+      <h3>Memory</h3>
+      <table class="data">
+        <thead><tr><th>x</th><th>y</th></tr></thead>
+        <tbody id="ans1Data"></tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Display</h3>
+      <div class="stage-wrap">
+        <div class="stage-y">y</div>
+        <div class="stage-col">
+          <div class="stage-x">x</div>
+          <div class="grid" data-fill="4,2;7,4;1,4;6,1;5,6;2,5;2,1;1,2;5,1;6,5;3,6;3,1;7,3;1,3;4,7;7,2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Answer key · Program 1</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+<!-- ================= PAGE 6 : ANSWER KEY - PROGRAM 2 ================= -->
+<section class="page">
+  <div class="letterhead">
+    <div class="id"><svg viewBox="0 0 450 300" aria-label="Devine" role="img"><path fill="currentColor" d="M300 0H0v300h300a150 150 0 0 0 0-300ZM155 290V10a140 140 0 0 1 0 280Z"/></svg><span>Digital Foundations</span></div>
+    <div class="tag">Answer key</div>
+  </div>
+
+  <h1>Answer key — Program 2</h1>
+  <p class="role">After Program 2 is complete, the Display and Memory should look like the following.</p>
+
+  <div class="ans-split">
+    <div class="data">
+      <h3>Memory</h3>
+      <table class="data">
+        <thead><tr><th>x</th><th>y</th></tr></thead>
+        <tbody id="ans2Data"></tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Display</h3>
+      <div class="stage-wrap">
+        <div class="stage-y">y</div>
+        <div class="stage-col">
+          <div class="stage-x">x</div>
+          <div class="grid" data-fill="5,3;6,6;3,5;1,3;5,1;7,3;4,7;5,7;3,7;1,5;1,4;7,4;7,5;5,5;2,6;2,2;6,2;3,3;3,1;4,1;4,5"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Answer key · Program 2</span><span>Digital Foundations · Devine</span></div>
+</section>
+
+</main>
+
+<script>
+(() => {
+  /* ---- original programs, verbatim from the source worksheets ---- */
+  const PROGRAM_1 = [
+    'Add 4 to x','Add 2 to y','Plot (x,y)',
+    'Add 3 to x','Add 2 to y','Plot (x,y)',
+    'Subtract 6 from x','Plot (x,y)',
+    'Add 5 to x','Subtract 3 from y','Plot (x,y)',
+    'Subtract 1 from x','Add 5 to y','Plot (x,y)',
+    'Subtract 3 from x','Subtract 1 from y','Plot (x,y)',
+    'Subtract 4 from y','Plot (x,y)',
+    'Subtract 1 from x','Add 1 to y','Plot (x,y)',
+    'Add 4 to x','Subtract 1 from y','Plot (x,y)',
+    'Add 1 to x','Add 4 to y','Plot (x,y)',
+    'Subtract 3 from x','Add 1 to y','Plot (x,y)',
+    'Subtract 5 from y','Plot (x,y)',
+    'Add 4 to x','Add 2 to y','Plot (x,y)',
+    'Subtract 6 from x','Plot (x,y)',
+    'Add 3 to x','Add 4 to y','Plot (x,y)',
+    'Add 3 to x','Subtract 5 from y','Plot (x,y)',
+    'DONE!'
+  ];
+  const PROGRAM_2 = [
+    'Add 5 to x','Add 3 to y','Plot (x,y)',
+    'Add 1 to x','Add 3 to y','Plot (x,y)',
+    'Subtract 3 from x','Subtract 1 from y','Plot (x,y)',
+    'Subtract 2 from x','Subtract 2 from y','Plot (x,y)',
+    'Add 4 to x','Subtract 2 from y','Plot (x,y)',
+    'Add 2 to x','Add 2 to y','Plot (x,y)',
+    'Subtract 3 from x','Add 4 to y','Plot (x,y)',
+    'Add 1 to x','Plot (x,y)',
+    'Subtract 2 from x','Plot (x,y)',
+    'Subtract 2 from x','Subtract 2 from y','Plot (x,y)',
+    'Subtract 1 from y','Plot (x,y)',
+    'Add 6 to x','Add 1 to y','Plot (x,y)',
+    'Subtract 2 from x','Plot (x,y)',
+    'Subtract 3 from x','Add 1 to y','Plot (x,y)',
+    'Subtract 4 from y','Plot (x,y)',
+    'Add 4 to x','Plot (x,y)',
+    'Subtract 3 from x','Add 1 to y','Plot (x,y)',
+    'Subtract 2 from y','Plot (x,y)',
+    'Add 1 to x','Plot (x,y)',
+    'Add 4 to y','Plot (x,y)',
+    'DONE!'
+  ];
+  const DATA_1 = [[0,0],[4,2],[7,4],[1,4],[6,1],[5,6],[2,5],[2,1],[1,2],[5,1],[6,5],[3,6],[3,1],[7,3],[1,3],[4,7],[7,2]];
+  const DATA_2 = [[0,0],[5,3],[6,6],[3,5],[1,3],[5,1],[7,3],[4,7],[5,7],[3,7],[1,5],[1,4],[7,4],[7,5],[5,5],[2,6],[2,2],[6,2],[3,3],[3,1],[4,1],[4,5]];
+
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+  /* ---- checklist, split into two columns like the original worksheet ---- */
+  function checklist(container, list) {
+    const mid = Math.ceil(list.length / 2);
+    [list.slice(0, mid), list.slice(mid)].forEach(half => {
+      const col = el('div', 'col');
+      half.forEach(line => {
+        const isDone = line.toUpperCase() === 'DONE!';
+        const row = el('div', 'step' + (isDone ? ' done' : ''));
+        row.appendChild(el('span', 'box'));
+        row.appendChild(el('span', '', line));
+        col.appendChild(row);
+      });
+      container.appendChild(col);
+    });
+  }
+  checklist(document.getElementById('prog1'), PROGRAM_1);
+  checklist(document.getElementById('prog2'), PROGRAM_2);
+
+  /* ---- blank data table, x/y starting at 0 ---- */
+  function blankData(container, blankCount) {
+    container.appendChild(el('tr', '', '<td>0</td><td>0</td>'));
+    for (let i = 0; i < blankCount; i++) container.appendChild(el('tr', '', '<td>&nbsp;</td><td>&nbsp;</td>'));
+  }
+  blankData(document.getElementById('aluData'), 21);
+
+  function ansData(container, pairs) {
+    pairs.forEach(([x, y]) => container.appendChild(el('tr', '', `<td>${x}</td><td>${y}</td>`)));
+  }
+  ansData(document.getElementById('ans1Data'), DATA_1);
+  ansData(document.getElementById('ans2Data'), DATA_2);
+
+  /* ---- 10x10 plot grids, filled from data-fill="x,y;x,y;..." ---- */
+  function buildGrid(container) {
+    const filled = new Set((container.dataset.fill || '').split(';').filter(Boolean));
+    const table = el('table', 'plot');
+    const head = el('tr'); head.appendChild(el('th'));
+    for (let x = 0; x < 10; x++) head.appendChild(el('th', '', x));
+    table.appendChild(head);
+    for (let y = 0; y < 10; y++) {
+      const tr = el('tr');
+      tr.appendChild(el('th', '', y));
+      for (let x = 0; x < 10; x++) tr.appendChild(el('td', filled.has(x + ',' + y) ? 'filled' : ''));
+      table.appendChild(tr);
+    }
+    container.appendChild(table);
+  }
+  document.querySelectorAll('.grid').forEach(buildGrid);
+})();
+</script>
+</body>
+</html>
