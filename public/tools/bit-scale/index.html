@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bit Scale - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --s1: .62667rem;
+    --s2: .94rem;
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { height: 100vh; padding: var(--s3); display: grid; grid-template-rows: auto 1fr auto; gap: var(--s2); }
+
+  /* ---- header ---- */
+  .top { display: flex; align-items: flex-end; gap: var(--s3); border-bottom: 1px solid var(--ink); padding-bottom: var(--s2); }
+  h1 { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+  .sub { font-weight: 300; opacity: .55; margin-top: 2px; }
+  .spacer { flex: 1; }
+  .buttons { display: flex; gap: var(--s1); }
+  button {
+    font: inherit; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .4rem 1rem; cursor: pointer;
+  }
+  button:hover { background: var(--ink); color: var(--paper); }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+
+  /* ---- readout ---- */
+  .readout { display: flex; gap: var(--s3); }
+  .cell { min-width: 9.5rem; }
+  .cell .k { font-size: .6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; opacity: .45; }
+  .cell .v { font-size: 1.0625rem; font-weight: 500; letter-spacing: .01em; white-space: nowrap; }
+
+  /* ---- stage ---- */
+  .stage { position: relative; border: 1px solid var(--ink); overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .payoff {
+    position: absolute; left: 0; right: 0; bottom: 7%;
+    text-align: center; font-size: clamp(1.6rem, 4.6vw, 3.4rem); font-weight: 700; letter-spacing: -.01em;
+    opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .payoff span { background: var(--paper); box-shadow: 0 0 0 .6rem var(--paper); }
+  .payoff.on { opacity: 1; }
+  .payoff.side { top: 50%; bottom: auto; transform: translateY(-50%); }
+  @media (prefers-reduced-motion: reduce) { .payoff { transition: none; } }
+
+  /* ---- zoom ---- */
+  .zoom { display: grid; gap: var(--s1); }
+  .track { position: relative; height: 1.5rem; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 1.5rem; background: transparent; cursor: ew-resize; display: block; margin: 0;
+  }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track { height: 1.5rem; background: transparent; border-bottom: 1px solid var(--ink); }
+  input[type=range]::-moz-range-track { height: 1.5rem; background: transparent; border-bottom: 1px solid var(--ink); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 1.5rem; background: var(--ink); border: 0; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 1.5rem; background: var(--ink); border: 0; border-radius: 0; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .ticks { position: relative; height: 1.1rem; }
+  .tick { position: absolute; top: 0; transform: translateX(-50%); font-size: .6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; }
+  .tick::before { content: ""; position: absolute; left: 50%; top: -.45rem; width: 1px; height: .35rem; background: var(--ink); }
+  .tick.end { transform: translateX(-100%); }
+  .tick.end::before { left: auto; right: 7px; }
+  .hint { font-weight: 300; opacity: .45; font-size: .75rem; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div>
+      <h1>Bit scale</h1>
+      <div class="sub">Every switch, a 0 or a 1. Zoom out.</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="readout">
+      <div class="cell"><div class="k">Switches on screen</div><div class="v" id="r-bits">&mdash;</div></div>
+      <div class="cell"><div class="k">That is</div><div class="v" id="r-rel">&mdash;</div></div>
+    </div>
+    <div class="buttons">
+      <button id="b-apollo">Apollo 11</button>
+      <button id="b-iphone">iPhone 16</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="c"></canvas>
+    <div class="payoff" id="payoff"><span>&times; 2,1 million</span></div>
+  </div>
+
+  <div class="zoom">
+    <div class="track">
+      <input type="range" id="slider" min="0" max="1000" value="0" step="1" aria-label="Zoom">
+    </div>
+    <div class="ticks">
+      <div class="tick" id="t-apollo" style="left:0">Apollo 11</div>
+      <div class="tick end" style="left:100%">iPhone 16</div>
+    </div>
+    <div class="hint" id="hint">Drag to zoom out. Scroll on the field, or use the arrow keys.</div>
+  </div>
+
+</div>
+<script>
+(() => {
+  'use strict';
+
+  // ---- the two machines, as exact powers of two so one nests inside the other ----
+  const APOLLO = { w: 256, h: 128, bits: 32768, name: 'Apollo 11', note: '4 KB RAM' };
+  const IPHONE = { w: 262144, h: 262144, bits: 68719476736, name: 'iPhone 16', note: '8 GB RAM' };
+  const RATIO = IPHONE.bits / APOLLO.bits; // 2 097 152
+
+  const INK = '#161615', PAPER = '#f8f8f8';
+  const MIN_BITS = 8;     // bit columns across the stage at maximum zoom-in
+  const GLYPH_CELL = 11;  // px: real 0/1 characters at or above this cell size
+  const RECT_CELL = 3;    // px: one square per 1 at or above this cell size
+  const GRAIN = 2;        // px: buffer pixel size once bits are smaller than that
+
+  const fmt = n => Math.round(n).toLocaleString('nl-BE');
+  const dec = n => n.toFixed(1).replace('.', ',');
+  const cv = document.getElementById('c'), ctx = cv.getContext('2d', { alpha: false });
+  const stage = document.getElementById('stage'), slider = document.getElementById('slider');
+  const rBits = document.getElementById('r-bits'), rRel = document.getElementById('r-rel');
+  const hint = document.getElementById('hint'), payoff = document.getElementById('payoff');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+  let W = 0, H = 0, dpr = 1;      // stage size in CSS px
+  let bitsAcross = MIN_BITS;      // the one piece of state: bit columns across the stage
+  let maxBits = 1e6, apolloBits = 1e3;
+  let frame = 0, anim = null;
+
+  // stable, roughly 50/50 pattern — a bit keeps its value at every zoom level
+  function bitAt(x, y) {
+    let h = (x * 73856093) ^ (y * 19349663);
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h >>> 16) & 1;
+  }
+
+  // zoom level at which a block of w x h bits just fits on the stage, with a little air
+  const fitBits = b => Math.max(b.w, b.h * (W / H)) * 1.14;
+
+  const lo = Math.log(MIN_BITS);
+  const toSlider = v => Math.round(1000 * (Math.log(v) - lo) / (Math.log(maxBits) - lo));
+  const fromSlider = s => Math.exp(lo + (s / 1000) * (Math.log(maxBits) - lo));
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    maxBits = fitBits(IPHONE); apolloBits = fitBits(APOLLO);
+    document.getElementById('t-apollo').style.left = toSlider(apolloBits) / 10 + '%';
+    setBits(bitsAcross);
+  }
+
+  // ---- the field of switches ----
+  const buf = document.createElement('canvas');
+  const bctx = buf.getContext('2d');
+  let img = null;
+
+  function drawField(cell, fw, fh) {
+    if (cell >= GLYPH_CELL) {                       // 1. readable characters
+      const cols = Math.ceil(fw / cell), rows = Math.ceil(fh / cell);
+      ctx.fillStyle = INK;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '500 ' + (cell * 0.66).toFixed(1) + "px 'Space Grotesk', sans-serif";
+      for (let y = 0; y < rows; y++)
+        for (let x = 0; x < cols; x++)
+          ctx.fillText(bitAt(x, y) ? '1' : '0', (x + .5) * cell, (y + .52) * cell);
+      return true;
+    }
+    if (cell >= RECT_CELL) {                        // 2. one square per 1
+      const cols = Math.ceil(fw / cell), rows = Math.ceil(fh / cell);
+      ctx.fillStyle = INK;
+      const s = Math.max(1, cell * .62), o = (cell - s) / 2;
+      for (let y = 0; y < rows; y++)
+        for (let x = 0; x < cols; x++)
+          if (bitAt(x, y)) ctx.fillRect(x * cell + o, y * cell + o, s, s);
+      return true;
+    }
+    // 3. below that, one buffer pixel per switch until switches are smaller than a
+    //    pixel; from there each pixel samples one switch out of the many it covers
+    const bp = Math.max(cell, GRAIN);
+    const bw = Math.max(1, Math.ceil(fw / bp)), bh = Math.max(1, Math.ceil(fh / bp));
+    if (buf.width !== bw || buf.height !== bh) {
+      buf.width = bw; buf.height = bh;
+      img = bctx.createImageData(bw, bh);
+    }
+    const d = img.data, k = bp / cell;
+    let i = 0;
+    for (let y = 0; y < bh; y++) {
+      const by = Math.floor(y * k);
+      for (let x = 0; x < bw; x++) {
+        const on = bitAt(Math.floor(x * k), by);
+        d[i++] = on ? 0x16 : 0xf8; d[i++] = on ? 0x16 : 0xf8; d[i++] = on ? 0x15 : 0xf8; d[i++] = 255;
+      }
+    }
+    bctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(buf, 0, 0, bw * bp, bh * bp);
+    ctx.imageSmoothingEnabled = true;
+    return false;
+  }
+
+  // ---- labels ----
+  const hits = (a, b) => a && b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+  function measure(lines) {
+    ctx.font = "700 12px 'Space Grotesk', sans-serif";
+    let w = ctx.measureText(lines[0]).width;
+    ctx.font = "300 12px 'Space Grotesk', sans-serif";
+    return { w: Math.max(w, ctx.measureText(lines[1]).width) + 12, h: 40 };
+  }
+
+  function drawLabel(lines, x, top, align, box) {
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(align === 'right' ? x - box.w + 6 : x - 6, top - 6, box.w, box.h);
+    ctx.fillStyle = INK; ctx.textAlign = align; ctx.textBaseline = 'top';
+    ctx.font = "700 12px 'Space Grotesk', sans-serif";
+    ctx.fillText(lines[0], x, top);
+    ctx.font = "300 12px 'Space Grotesk', sans-serif";
+    ctx.fillText(lines[1], x, top + 17);
+  }
+
+  function block(b, cell, avoid) {
+    const x1 = b.w * cell, y1 = b.h * cell;
+    if (x1 > W * 4 && y1 > H * 4) return null;      // far bigger than the stage: nothing to frame
+    const lines = [b.name.toUpperCase(), b.note + ' — ' + fmt(b.bits) + ' switches'];
+    const box = measure(lines);
+    const tiny = x1 < 30 || y1 < 30;
+
+    ctx.strokeStyle = INK; ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, Math.min(x1, W * 2), Math.min(y1, H * 2));
+
+    let x, top, align, rect;
+    if (tiny) {                                      // a speck: mark it and point at it
+      const mx = Math.max(x1, 5), my = Math.max(y1, 5);
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(-9, -9, mx + 18, my + 18);      // punch a hole in the field around it
+      ctx.fillStyle = INK;
+      ctx.fillRect(0, 0, Math.max(x1, 2), Math.max(y1, 2));
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-5, -5, mx + 10, my + 10);
+      x = mx + 52; top = my + 46; align = 'left';
+      rect = { x: x - 6, y: top - 6, w: box.w, h: box.h };
+      ctx.beginPath();
+      ctx.moveTo(mx + 7, my + 7); ctx.lineTo(x - 10, top + 2);
+      ctx.stroke();
+    } else {
+      x = Math.min(x1, W) - 14; align = 'right';
+      top = Math.min(y1, H) - 48;
+      rect = { x: x - box.w + 6, y: top - 6, w: box.w, h: box.h };
+      if (hits(rect, avoid)) {                       // swap to the top of the block
+        top = 14;
+        rect = { x: x - box.w + 6, y: top - 6, w: box.w, h: box.h };
+      }
+      if (rect.x < 4) { x += 4 - rect.x; rect.x = 4; }   // keep the plate on the stage
+      if (rect.y < 4) { top += 4 - rect.y; rect.y = 4; }
+    }
+    drawLabel(lines, x, top, align, box);
+    return rect;
+  }
+
+  function draw() {
+    if (!W) return;
+    const cell = W / bitsAcross;
+    const fw = Math.min(W, IPHONE.w * cell), fh = Math.min(H, IPHONE.h * cell);
+
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0, 0, W, H);
+    const sharp = drawField(cell, fw, fh);
+
+    // near the Apollo stop, fade everything that is not Apollo's memory
+    const t = bitsAcross / apolloBits;
+    const fade = Math.max(0, Math.min(1, (2.4 - t) / 1.4)) * .74;
+    if (fade > .01 && t > .9) {
+      const ax = APOLLO.w * cell, ay = APOLLO.h * cell;
+      ctx.fillStyle = PAPER; ctx.globalAlpha = fade;
+      if (ax < fw) ctx.fillRect(ax, 0, fw - ax, fh);
+      if (ay < fh) ctx.fillRect(0, ay, Math.min(ax, fw), fh - ay);
+      ctx.globalAlpha = 1;
+    }
+
+    const pr = payoff.classList.contains('on')
+      ? (r => ({ x: 0, y: r.top - stage.getBoundingClientRect().top, w: W, h: r.height }))(payoff.getBoundingClientRect())
+      : null;
+    const used = block(IPHONE, cell, pr);
+    block(APOLLO, cell, hits(used, pr) ? null : used || pr);
+
+    // readout
+    const onScreen = Math.min(Math.ceil(fw / cell) * Math.ceil(fh / cell), IPHONE.bits);
+    const rel = onScreen / APOLLO.bits;
+    rBits.textContent = fmt(onScreen);
+    rRel.textContent = rel < 1 ? dec(rel * 100) + '% of Apollo 11'
+      : '× ' + (rel < 10 ? dec(rel) : fmt(rel)) + ' Apollo 11';
+
+    const perPixel = 1 / (cell * cell);
+    hint.textContent = sharp
+      ? 'Drag to zoom out. Scroll on the field, or use the arrow keys.'
+      : perPixel < 1.5
+        ? 'A switch is now smaller than a pixel on this screen.'
+        : 'Every pixel on this screen now stands for about ' + fmt(perPixel) + ' switches.';
+
+    const whole = IPHONE.w * cell <= W && IPHONE.h * cell <= H;
+    payoff.classList.toggle('on', whole);
+    const side = whole && W - fw >= 320;            // set it beside the block, not over it
+    payoff.classList.toggle('side', side);
+    payoff.style.left = side ? fw + 'px' : '0';
+  }
+
+  function setBits(v, why) {
+    bitsAcross = Math.min(Math.max(v, MIN_BITS), maxBits);
+    if (why !== 'anim') anim = null;
+    slider.value = toSlider(bitsAcross);
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; draw(); });
+  }
+
+  function glideTo(target) {
+    if (reduced.matches) { setBits(target); return; }
+    const from = Math.log(bitsAcross), to = Math.log(Math.min(target, maxBits));
+    const t0 = performance.now(), dur = 1200;
+    anim = t0;
+    (function step(now) {
+      if (anim !== t0) return;
+      const p = Math.min(1, (now - t0) / dur);
+      const e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      setBits(Math.exp(from + (to - from) * e), 'anim');
+      if (p < 1) requestAnimationFrame(step); else anim = null;
+    })(t0);
+  }
+
+  slider.addEventListener('input', () => setBits(fromSlider(+slider.value)));
+  document.getElementById('b-apollo').addEventListener('click', () => glideTo(apolloBits));
+  document.getElementById('b-iphone').addEventListener('click', () => glideTo(maxBits));
+
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    setBits(bitsAcross * Math.exp(e.deltaY * .002));
+  }, { passive: false });
+
+  document.addEventListener('keydown', e => {
+    const k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowUp' || k === '+' || k === '=') { e.preventDefault(); setBits(bitsAcross * 1.25); }
+    else if (k === 'ArrowLeft' || k === 'ArrowDown' || k === '-') { e.preventDefault(); setBits(bitsAcross / 1.25); }
+    else if (k === '1') glideTo(apolloBits);
+    else if (k === '2') glideTo(maxBits);
+    else if (k === '0') { anim = null; setBits(MIN_BITS); }
+  });
+
+  payoff.firstElementChild.textContent = '× ' + dec(RATIO / 1e6) + ' million';
+  new ResizeObserver(resize).observe(stage);
+  if (document.fonts) document.fonts.ready.then(draw);
+  resize();
+})();
+</script>
+</body>
+</html>
