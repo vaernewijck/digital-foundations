@@ -91,7 +91,7 @@
     html, body { background: #fff; padding: 0; }
     .bar, .builder, .no-print { display: none; }
     main { max-width: none; margin: 0; gap: 0; }
-    .page { border: 0; width: auto; min-height: 100vh; margin: 0; page-break-after: always; }
+    .page { border: 0; width: auto; min-height: 100vh; margin: 0; padding: 0; page-break-after: always; }
     .page:last-child { page-break-after: auto; }
   }
   @page { size: A4; margin: 12mm; }
@@ -257,10 +257,10 @@
   function checklist(container, list) {
     container.innerHTML = '';
     if (!list.length) return;
-    const mid = Math.ceil(list.length / 2);
-    [list.slice(0, mid), list.slice(mid)].forEach(half => {
+    const per = Math.ceil(list.length / 3);
+    [0, 1, 2].map(i => list.slice(i * per, (i + 1) * per)).forEach(part => {
       const col = el('div', 'col');
-      half.forEach(line => {
+      part.forEach(line => {
         const isDone = line.toUpperCase() === 'DONE!';
         const row = el('div', 'step' + (isDone ? ' done' : ''));
         row.appendChild(el('span', 'box'));

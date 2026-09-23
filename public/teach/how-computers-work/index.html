@@ -430,6 +430,7 @@
         border: 0;
         width: auto;
         min-height: 100vh;
+        padding: 0;
         margin: 0;
         page-break-after: always;
       }
@@ -714,12 +715,12 @@
 
       const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
-      /* ---- checklist, split into two columns like the original worksheet ---- */
+      /* ---- checklist, split into three columns so it fits one A4 sheet ---- */
       function checklist(container, list) {
-        const mid = Math.ceil(list.length / 2);
-        [list.slice(0, mid), list.slice(mid)].forEach(half => {
+        const per = Math.ceil(list.length / 3);
+        [0, 1, 2].map(i => list.slice(i * per, (i + 1) * per)).forEach(part => {
           const col = el('div', 'col');
-          half.forEach(line => {
+          part.forEach(line => {
             const isDone = line.toUpperCase() === 'DONE!';
             const row = el('div', 'step' + (isDone ? ' done' : ''));
             row.appendChild(el('span', 'box'));
