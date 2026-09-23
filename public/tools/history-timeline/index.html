@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>History Timeline - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #ffffff;
+    --s2: .94rem;
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero";
+    -webkit-font-smoothing: antialiased;
+    cursor: crosshair;
+  }
+
+  .app { height: 100vh; padding: var(--s3) 3rem; display: flex; flex-direction: column; }
+  h1 {
+    flex: none; font-size: 1.125rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .18em;
+  }
+  .sub { flex: none; font-size: 1rem; font-weight: 300; margin-top: .3rem; }
+
+  /* ---- the line ---- */
+  .stage { flex: 1; position: relative; min-height: 0; }
+  .track { position: absolute; inset: 0; }
+  .axis { position: absolute; left: 0; right: 0; height: 1px; background: var(--ink); opacity: .5; }
+
+  /* year scale, above the line */
+  .tick { position: absolute; top: 0; left: 0; width: 0; }
+  .tick i { position: absolute; left: 0; width: 1px; height: .45rem; background: var(--ink); opacity: .22; }
+  .tick b {
+    position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap;
+    font-size: .625rem; font-weight: 300; letter-spacing: .1em; opacity: .3;
+    font-feature-settings: "tnum";
+  }
+
+  /* events: a stroke through the line, lengthened until its label has room */
+  .ev {
+    position: absolute; top: 0; left: 0; height: 100%; width: 2.2rem; margin-left: -1.1rem;
+    background: none; border: 0; padding: 0; font: inherit; color: inherit; pointer-events: none;
+    z-index: 1;
+  }
+  .stems { position: absolute; inset: 0; z-index: 0; }
+  .stem { position: absolute; left: 0; width: 1px; margin-left: -.5px; background: var(--ink); opacity: .34; }
+  .stem.on { opacity: 1; width: 2px; margin-left: -1px; }
+  .stem.pin {
+    background: none;
+    background-image: linear-gradient(var(--ink) 55%, transparent 55%);
+    background-size: 1px 5px;
+  }
+  .ev .lab {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    white-space: nowrap; text-align: center; display: grid; gap: .1rem;
+    background: var(--paper); padding: .12rem .4rem;
+  }
+  .ev .yr { font-size: 1.125rem; font-weight: 500; letter-spacing: .05em; font-feature-settings: "tnum"; }
+  .ev .ti { font-size: 1.0625rem; font-weight: 300; opacity: .5; }
+
+  .ev.on .yr { font-weight: 700; }
+  .ev.on .ti { opacity: 1; }
+  .ev:focus-visible .lab { outline: 1px solid var(--ink); outline-offset: 2px; }
+
+  /* ---- the card that follows the cursor ---- */
+  .card {
+    position: fixed; left: 0; top: 0; z-index: 5; pointer-events: none;
+    width: 21rem; max-width: 38vw;
+    background: var(--paper); padding: .5rem;
+    opacity: 0; transition: opacity .16s ease; will-change: transform;
+  }
+  .card.show { opacity: 1; }
+  .card img {
+    display: block; width: 100%; height: 9.5rem;
+    object-fit: contain; object-position: left bottom;
+  }
+  .card img[hidden] + p { margin-top: 0; }
+  .card img[hidden] { display: none; }
+  .card p {
+    font-size: .75rem; font-weight: 300; line-height: 1.45; opacity: .65; margin-top: .55rem;
+    min-height: 2.9em;
+  }
+
+  /* ---- too small to work ---- */
+  .small { display: none; }
+  @media (max-width: 56rem), (max-height: 30rem) {
+    .app { display: none; }
+    .card { display: none; }
+    .small {
+      display: flex; height: 100vh; align-items: center; padding: var(--s3);
+      font-weight: 300; line-height: 1.6;
+    }
+    .small b { font-weight: 600; display: block; margin-bottom: .4rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>From counting to computing</h1>
+  <p class="sub">Hover an event to see it.</p>
+  <div class="stage">
+    <div class="track" id="track"><div class="stems" id="stems"></div><div class="axis" id="axis"></div></div>
+  </div>
+</div>
+
+<p class="small"><span><b>From counting to computing</b>This timeline needs a wide screen and a mouse or trackpad. Open it on a laptop or desktop.</span></p>
+
+<figure class="card" id="card">
+  <img id="cimg" alt="" hidden>
+  <p id="cnote"></p>
+</figure>
+
+<script>
+(() => {
+  /* ---------- data ---------- */
+  // year: negative is BC. img: file in img/, or null when the deck has no picture.
+  const EVENTS = [
+    { year: -20000, title: 'Tally sticks', img: 'tally-sticks',
+      note: 'Notches cut into bone or wood: a way to record a number outside your head.' },
+    { year: -2700, title: 'The abacus', img: 'abacus',
+      note: 'Beads on rods make counting faster, but the person still carries out the procedure.' },
+    { year: 1613, title: 'A computer is a person', img: 'first-computer',
+      note: 'The word appears in print for the first time, in Richard Brathwaite\u2019s The Yong Mans Gleanings: \u201cthe truest computer of Times, and the best Arithmetician that euer breathed\u201d. A computer was a person.' },
+    { year: 1642, title: 'Pascaline', img: 'pascaline',
+      note: 'Pascal’s gears add and subtract, but the user still chooses every step by hand.' },
+    { year: 1673, title: 'Stepped Reckoner', img: 'stepped-reckoner',
+      note: 'Leibniz builds a machine that multiplies and divides as well.' },
+    { year: 1760, title: 'Industrial Revolution', img: 'industrial-revolution',
+      note: 'Machines take over repeatable work, and knowledge moves from the worker into the machine.' },
+    { year: 1794, title: 'Printed tables', img: 'printed-tables',
+      note: 'Results were looked up in printed tables, calculated and copied by hand by teams of human computers. Slow to make, and easy to get wrong.' },
+    { year: 1804, title: 'Jacquard loom', img: 'jacquard-loom',
+      note: 'Punched cards control the pattern. Change the cards and you change the cloth.' },
+    { year: 1822, title: 'Difference Engine', img: 'difference-engine',
+      note: 'Babbage designs a machine to compute and print mathematical tables without errors.' },
+    { year: 1834, title: 'Analytical Engine', img: 'analytical-engine',
+      note: 'A general-purpose design: the machine stays the same, the instructions change.' },
+    { year: 1839, title: 'Woven portrait', img: 'woven-portrait',
+      note: 'Jacquard’s portrait woven in silk from about 24,000 punched cards: an image stored as holes.' },
+    { year: 1843, title: 'The first program', img: 'first-program',
+      note: 'Ada Lovelace publishes a scheme for computing Bernoulli numbers, and sees that a number could stand for a letter, a colour or a note.' },
+    { year: 1890, title: 'Punch cards as data', img: 'hollerith',
+      note: 'Hollerith reuses the punched card for the US census. Now the holes are data, not instructions.' },
+    { year: 1939, title: 'World War II', img: 'computing-at-war',
+      note: 'The war creates an enormous demand for calculation, above all for artillery firing tables.' },
+    { year: 1943, title: 'ENIAC', img: 'eniac',
+      note: 'About 18,000 vacuum tubes and 30 tonnes, programmed by plugging cables and setting switches.' },
+    { year: 1945, title: 'Von Neumann architecture', img: null,
+      note: 'One memory holding both instructions and data, a CPU that executes them, and input and output around it.' },
+    { year: 1947, title: 'The first bug', img: 'first-bug',
+      note: 'Engineers on the Harvard Mark II find a real moth stuck in a relay, and tape it into the logbook.' },
+    { year: 1957, title: 'Human computers at NACA', img: 'naca-computers',
+      note: 'Women are still doing the calculating, here processing wind-tunnel data.' },
+    { year: 1967, title: 'The Computer Girls', img: 'computer-girls',
+      note: 'Cosmopolitan tells its readers that programming is a good career for a woman. The job title is changing hands.' },
+  ];
+
+  /* ---------- log scale ---------- */
+  // u increases with the year; deep time compresses on its own.
+  const END = 1970;                  // the week's story ends in the 1960s
+  const NOW = END + 10;              // the log singularity sits just past the end
+  const u = y => -Math.log10(NOW - y);
+  const yOf = uu => NOW - Math.pow(10, -uu);
+
+  // a fixed view: year 0 to the end, with the BC events pinned left
+  const u0 = u(0), u1 = u(END);
+
+  /* ---------- build ---------- */
+  const track = document.getElementById('track');
+  const axis = document.getElementById('axis');
+  const stems = document.getElementById('stems');
+  const card = document.getElementById('card');
+  const cimg = document.getElementById('cimg');
+  const cnote = document.getElementById('cnote');
+
+  const fmt = y => y < 0 ? (-y).toLocaleString('en-US') + ' BC' : String(y);
+
+  const nodes = EVENTS.map((e, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ev';
+    b.innerHTML = '<span class="lab"><span class="yr"></span><span class="ti"></span></span>';
+    const stem = document.createElement('span');
+    stem.className = 'stem';
+    stems.appendChild(stem);
+    b.querySelector('.yr').textContent = fmt(e.year);
+    b.querySelector('.ti').textContent = e.title;
+    b.setAttribute('aria-label', fmt(e.year) + ', ' + e.title);
+    b.addEventListener('focus', () => {
+      show(i);
+      const r = b.querySelector('.lab').getBoundingClientRect();
+      place(r.x + r.width / 2, r.top);
+    });
+    b.addEventListener('blur', () => show(-1));
+    track.appendChild(b);
+    return {
+      el: b, lab: b.querySelector('.lab'),
+      stem,
+      w: 90, ev: e, i,
+    };
+  });
+
+  // events sharing a year get a small nudge so both strokes stay reachable
+  const nudge = new Array(EVENTS.length).fill(0);
+  for (let i = 0; i < EVENTS.length;) {
+    let j = i; while (j + 1 < EVENTS.length && EVENTS[j + 1].year === EVENTS[i].year) j++;
+    const n = j - i + 1;
+    if (n > 1) for (let k = i; k <= j; k++) nudge[k] = (k - i - (n - 1) / 2) * 11;
+    i = j + 1;
+  }
+
+  const ticks = [];
+  for (let t = 0; t < 14; t++) {
+    const s = document.createElement('span');
+    s.className = 'tick';
+    s.innerHTML = '<i></i><b></b>';
+    s.hidden = true;
+    track.appendChild(s);
+    ticks.push(s);
+  }
+
+  function measure() {
+    const c = document.createElement('canvas').getContext('2d');
+    nodes.forEach(n => {
+      c.font = '500 18px "Space Grotesk", sans-serif';
+      const a = c.measureText(fmt(n.ev.year)).width;
+      c.font = '300 17px "Space Grotesk", sans-serif';
+      const b = c.measureText(n.ev.title).width;
+      n.w = Math.max(a, b) + 18;
+    });
+  }
+
+  /* ---------- render ---------- */
+  const TICK_STEPS = [10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+  const PITCH = 90;     // px between label rows
+  const PIN_STEP = 34;  // px between the strokes held at the left edge
+  const DROP = 20;      // px from the line to the first row
+  const GAP = 26;       // px of clear air between two labels on one row
+  const SCALE = 26;     // px above the line kept free for the year scale
+  const LAB_H = 56;     // px, one label
+  let W = 0, H = 0, AX = 0, pitch = PITCH;
+
+  function xOf(year) { return (u(year) - u0) / (u1 - u0) * W; }
+
+  // Pack every label into a row, taking the shallower of the two sides each
+  // time, so the labels zig-zag above and below the line instead of cascading
+  // down one side. Row choice depends only on x, so this can run before the
+  // row pitch is known.
+  function pack() {
+    const down = [], up = [];
+    let pinned = 0, dDeep = 0, uDeep = 0;
+    const out = nodes.map(n => {
+      const raw = xOf(n.ev.year) + nudge[n.i];
+      // the BC events can never sit on a visible year, so they hold the left edge,
+      // each one a step further in so they stay separately hoverable
+      const pin = n.ev.year < 0 && raw < 6 + pinned * PIN_STEP;
+      const x = pin ? 6 + pinned++ * PIN_STEP : raw;
+      if (!pin && (x < -30 || x > W + 30)) return { off: true };
+
+      let shift = 0;
+      if (x - n.w / 2 < 0) shift = n.w / 2 - x;
+      else if (x + n.w / 2 > W) shift = W - (x + n.w / 2);
+      const l = x + shift - n.w / 2;
+
+      let rd = 0; while (down[rd] !== undefined && l <= down[rd] + GAP) rd++;
+      let ru = 0; while (up[ru] !== undefined && l <= up[ru] + GAP) ru++;
+      const goUp = ru < rd;
+      const row = goUp ? ru : rd;
+      (goUp ? up : down)[row] = l + n.w;
+      if (goUp) uDeep = Math.max(uDeep, row + 1);
+      else dDeep = Math.max(dDeep, row + 1);
+
+      return { x, shift, pin, row, up: goUp };
+    });
+    return { out, uDeep, dDeep };
+  }
+
+  function render() {
+    W = track.clientWidth;
+    H = track.clientHeight;
+
+    const { out, uDeep, dDeep } = pack();
+
+    // rows tighten on a short window rather than running off the edge
+    const spread = Math.max(1, uDeep + dDeep - 2);
+    pitch = Math.max(26, Math.min(PITCH,
+      (H - 16 - 2 * DROP - SCALE - 2 * LAB_H) / spread));
+
+    const above = uDeep ? DROP + SCALE + (uDeep - 1) * pitch + LAB_H : SCALE + 8;
+    const below = dDeep ? DROP + (dDeep - 1) * pitch + LAB_H : 8;
+    // the line and both stacks are centred together as one group
+    AX = Math.round(Math.max(above + 8,
+      Math.min((H - above - below) / 2 + above, H - below - 8)));
+    axis.style.top = AX + 'px';
+
+    out.forEach((p, i) => {
+      const n = nodes[i];
+      if (p.off) {
+        n.x = null;
+        n.el.style.visibility = 'hidden';
+        n.stem.style.visibility = 'hidden';
+        return;
+      }
+      n.x = p.x;
+      n.el.style.visibility = '';
+      n.stem.style.visibility = '';
+      n.stem.classList.toggle('pin', !!p.pin);
+      const tf = 'translate3d(' + p.x.toFixed(1) + 'px,0,0)';
+      n.el.style.transform = tf;
+      n.stem.style.transform = tf;
+
+      const tx = 'translateX(calc(-50% + ' + p.shift.toFixed(1) + 'px))';
+      if (p.up) {
+        const d = DROP + SCALE + p.row * pitch;
+        n.stem.style.top = (AX - d) + 'px';
+        n.stem.style.height = (d + 6) + 'px';
+        n.lab.style.top = (AX - d) + 'px';
+        n.lab.style.transform = tx + ' translateY(-100%)';
+      } else {
+        const d = DROP + p.row * pitch;
+        n.stem.style.top = (AX - 6) + 'px';
+        n.stem.style.height = (d + 6) + 'px';
+        n.lab.style.top = (AX + d) + 'px';
+        n.lab.style.transform = tx;
+      }
+    });
+
+    // year scale, in the band just above the line
+    const placed = [];
+    for (const step of TICK_STEPS) {
+      if (placed.length >= ticks.length) break;
+      const from = Math.ceil(yOf(u0) / step) * step;
+      const to = yOf(u1);
+      if ((to - from) / step > 400) continue;
+      for (let y = from; y <= to; y += step) {
+        if (y === 0 || y > END) continue;
+        const x = xOf(y);
+        if (x < 30 || x > W - 30) continue;
+        if (placed.some(q => Math.abs(q.x - x) < 86)) continue;
+        placed.push({ x, y });
+        if (placed.length >= ticks.length) break;
+      }
+    }
+    ticks.forEach((t, i) => {
+      const q = placed[i];
+      t.hidden = !q;
+      if (!q) return;
+      t.style.transform = 'translate3d(' + q.x.toFixed(1) + 'px,0,0)';
+      t.querySelector('i').style.top = (AX - 11) + 'px';
+      t.querySelector('b').style.top = (AX - 26) + 'px';
+      t.querySelector('b').textContent = fmt(q.y);
+    });
+  }
+
+  /* ---------- the card ---------- */
+  let cur = -1;
+
+  function show(i) {
+    if (i === cur) return;
+    cur = i;
+    if (i < 0) card.classList.remove('show');
+    else {
+      const e = EVENTS[i];
+      if (e.img) { cimg.src = 'img/' + e.img + '.webp'; cimg.hidden = false; }
+      else cimg.hidden = true;
+      cnote.textContent = e.note;
+      card.classList.add('show');
+    }
+    nodes.forEach((n, k) => {
+      n.el.classList.toggle('on', k === i);
+      n.stem.classList.toggle('on', k === i);
+    });
+  }
+
+  // up and to the right of the cursor, clear of the line and its year scale
+  function place(px, py) {
+    const OFF = 18;
+    const w = card.offsetWidth, h = card.offsetHeight;
+    let x = px + OFF, y = py - OFF - h;
+    if (x + w > innerWidth - 16) x = Math.max(16, px - OFF - w);
+    if (y < 12) y = 12;
+    card.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
+  }
+
+  function nearest(px) {
+    let best = -1, bd = 46;
+    nodes.forEach(n => {
+      if (n.x == null) return;
+      const d = Math.abs(n.x - px);
+      if (d < bd) { bd = d; best = n.i; }
+    });
+    return best;
+  }
+
+  /* ---------- interaction ---------- */
+  function hover(ev) {
+    show(nearest(ev.clientX - track.getBoundingClientRect().left));
+    place(ev.clientX, ev.clientY);
+  }
+  track.addEventListener('pointerdown', hover);
+  track.addEventListener('pointermove', hover);
+  track.addEventListener('pointerleave', () => show(-1));
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') show(-1); });
+
+  addEventListener('resize', render);
+
+  /* ---------- go ---------- */
+  measure();
+  render();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { measure(); render(); });
+  }
+  addEventListener('load', () => {
+    EVENTS.forEach(e => { if (e.img) new Image().src = 'img/' + e.img + '.webp'; });
+  });
+})();
+</script>
+</body>
+</html>
