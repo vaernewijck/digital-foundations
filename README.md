@@ -8,5 +8,5 @@ Live site: https://vaernewijck.github.io/digital-foundations/
 
 - `public/` — everything GitHub Pages serves. `public/tools/<name>/index.html` and `public/self-check/week-XX/index.html`. The landing page lists them per week.
 - `public/teach/` — teacher tools (GIF maker, …). Listed in `public/teach/index.html`, not linked from the landing page.
-- `wip/` — tools in development. Visible in this repo, never published.
+- Tools in development live outside this repo, in `../tools-wip/`. This repo is public: only publishable material goes here.
 
