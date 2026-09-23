@@ -10,11 +10,11 @@
 <style>
   :root {
     --ink: #161615;
-    --paper: #f8f8f8;
+    --paper: #ffffff;
     --s1: .62667rem;
     --s2: .94rem;
     --s3: 1.41rem;
-    --bead: 32px;
+    --bead: 30px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
   html, body { height: 100%; }
@@ -30,58 +30,62 @@
   }
 
   /* ---- shell ---- */
-  .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: var(--s3); padding: var(--s2) var(--s3) var(--s3); }
-  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding-bottom: var(--s2); border-bottom: 1px solid var(--ink); }
-  .brand { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
-  h1 { font-size: 1.5rem; font-weight: 600; line-height: 1; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
-  .sub { font-weight: 300; max-width: 46ch; }
-  .nav { display: flex; align-items: center; gap: var(--s1); flex-wrap: wrap; }
+  .app { min-height: 100vh; padding: var(--s3) 3rem; display: flex; flex-direction: column; }
+  .top { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+  h1 {
+    font-size: 1.125rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .18em;
+  }
+  .sub { font-size: 1rem; font-weight: 300; margin-top: .3rem; }
+  .nav { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
 
   button {
-    font: inherit; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-    background: transparent; color: var(--ink); border: 2px solid var(--ink);
-    padding: .35rem var(--s3); cursor: pointer; white-space: nowrap;
+    font: inherit; font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+    background: none; color: var(--ink); border: 0; padding: .2rem 0;
+    cursor: pointer; white-space: nowrap; opacity: .5;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .3em;
+    transition: opacity .15s ease;
   }
-  button:hover:not([disabled]) { background: var(--ink); color: var(--paper); }
-  button:active:not([disabled]) { background: transparent; color: var(--ink); }
-  button[disabled] { opacity: .35; cursor: default; }
-  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  button:hover:not([disabled]) { opacity: 1; }
+  button[disabled] { opacity: .2; cursor: default; text-decoration: none; }
+  button:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
 
   /* ---- stage ---- */
-  .stage { display: grid; place-items: center; align-content: center; gap: var(--s3); }
-  .abacus { width: min(100%, 40rem); border: 2px solid var(--ink); padding: var(--s2) var(--s3); display: grid; }
-  .row { display: grid; grid-template-columns: 5rem 1fr; align-items: center; gap: var(--s3); height: calc(var(--bead) + var(--s2)); }
-  .label { text-align: right; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .stage { flex: 1; display: grid; place-items: center; align-content: center; gap: 3rem; }
+  .abacus { width: min(100%, 40rem); display: grid; }
+  .row { display: grid; grid-template-columns: 4rem 1fr; align-items: center; gap: var(--s3); height: calc(var(--bead) + var(--s2)); }
+  .label { text-align: right; font-size: .625rem; font-weight: 300; letter-spacing: .1em; opacity: .4; }
   .track { position: relative; height: 100%; }
-  .rod { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: var(--ink); }
+  .rod { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--ink); opacity: .5; }
   .bead {
     position: absolute; top: 50%; width: var(--bead); height: var(--bead); margin-top: calc(var(--bead) / -2);
-    padding: 0; border: 2px solid var(--ink); border-radius: 50%;
-    background: var(--paper); color: var(--ink);
+    padding: 0; border: 1px solid var(--ink); border-radius: 50%;
+    background: var(--paper); opacity: 1; text-decoration: none;
     transition: left .3s ease, background-color .15s ease;
   }
-  .bead:hover:not([disabled]) { background: var(--paper); box-shadow: 0 0 0 2px var(--ink); }
+  .bead:hover:not([disabled]) { background: #e8e8e7; }
   .bead.on, .bead.on:hover:not([disabled]) { background: var(--ink); }
+  .bead:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
 
-  .result { display: flex; flex-direction: column; align-items: center; gap: var(--s1); }
-  .result-label { font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-  .result-value { font-size: 3rem; font-weight: 500; line-height: 1; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
-  .result-sum { font-weight: 300; font-variant-numeric: tabular-nums; min-height: 1.4em; }
-  .hint { font-size: .75rem; font-weight: 300; opacity: .75; text-align: center; }
+  .result { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+  .result-label { font-size: .625rem; font-weight: 300; letter-spacing: .18em; text-transform: uppercase; opacity: .5; }
+  .result-value { font-size: 3rem; font-weight: 300; line-height: 1; letter-spacing: .04em; }
+  .result-sum { font-size: 1rem; font-weight: 300; opacity: .5; min-height: 1.4em; }
+  .hint { font-size: .75rem; font-weight: 300; opacity: .5; text-align: center; }
 
   @media (max-width: 480px) {
     :root { --bead: 24px; }
-    .row { grid-template-columns: 3.5rem 1fr; gap: var(--s2); }
-    .abacus { padding: var(--s1) var(--s2); }
+    .app { padding: var(--s2) 1rem; }
+    .row { grid-template-columns: 3rem 1fr; gap: var(--s2); }
     .result-value { font-size: 2.25rem; }
   }
-  @media (prefers-reduced-motion: reduce) { .bead { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand">
+    <div>
       <h1>Abacus</h1>
       <p class="sub">Ten beads per rod. Slide beads to the right to count, back to the left to clear.</p>
     </div>
