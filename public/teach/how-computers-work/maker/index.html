@@ -81,6 +81,7 @@
   table.data th, table.data td { border: 1px solid var(--ink); padding: .18rem .9rem; text-align: center; font-size: .9375rem; }
   table.data th { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .8125rem; }
   .foot { margin-top: auto; padding-top: var(--s2); border-top: 1px solid rgba(22,22,21,.3); font-weight: 300; font-size: .75rem; opacity: .65; display: flex; justify-content: space-between; gap: 1rem; }
+  .page h3 { font-weight: 700; font-size: .875rem; text-transform: uppercase; letter-spacing: .08em; }
   .ans-split { display: flex; gap: var(--s3); align-items: flex-start; }
 
   @media (max-width: 700px) {
@@ -140,13 +141,14 @@
 
     <div class="instructions">
       Greetings CPU! Your job as the <b>Central Processing Unit</b> (CPU) is to execute the program below, one line at a time. It uses two kinds of commands:
-        <ul>
-          <li><b>Math commands</b>, for example "Add 5 to x" or "Subtract 3 from y": ask Memory for the current value, work out the new value yourself, then tell Memory to store it.</li>
-          <li><b>Plot (x,y)</b>: ask Memory for the current values of x and y, then tell the Display to plot that point.</li>
-        </ul>
-        Check off each line as you finish it, so you don't lose track of where you are. When you reach DONE!, the Display can show the picture.
+      <ul>
+        <li><b>Math commands</b>, for example "Add 5 to x" or "Subtract 3 from y": ask Memory for the current value, work out the new value yourself, then tell Memory to store it.</li>
+        <li><b>Plot (x,y)</b>: ask Memory for the current values of x and y, then tell the Display to plot that point.</li>
+      </ul>
+      Check off each line as you finish it, so you don't lose track of where you are. When you reach DONE!, the Display can show the picture.
     </div>
 
+    <h3>Instructions</h3>
     <div class="cols" id="progOut"></div>
     <p class="empty" id="progEmpty">Click the grid above to start building a program.</p>
 
@@ -165,14 +167,14 @@
 
     <div class="ans-split">
       <div>
-        <h3 style="font-size:.875rem;text-transform:uppercase;letter-spacing:.08em">Memory</h3>
+        <h3>Memory</h3>
         <table class="data">
           <thead><tr><th>x</th><th>y</th></tr></thead>
           <tbody id="ansData"></tbody>
         </table>
       </div>
       <div>
-        <h3 style="font-size:.875rem;text-transform:uppercase;letter-spacing:.08em">Display</h3>
+        <h3>Display</h3>
         <div class="stage-wrap">
           <div class="stage-y">y</div>
           <div class="stage-col">
