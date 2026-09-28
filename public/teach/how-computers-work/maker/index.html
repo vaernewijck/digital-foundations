@@ -88,6 +88,8 @@
     .ans-split { flex-direction: column; }
   }
   @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { background: #fff; }
     html, body { background: #fff; padding: 0; }
     .bar, .builder, .no-print { display: none; }
     main { max-width: none; margin: 0; gap: 0; }

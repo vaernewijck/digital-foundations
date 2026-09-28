@@ -423,6 +423,10 @@
     }
 
     @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
 
       html,
       body {
@@ -446,6 +450,7 @@
         min-height: 100vh;
         padding: 0;
         margin: 0;
+        background: #fff;
         page-break-after: always;
       }
 
