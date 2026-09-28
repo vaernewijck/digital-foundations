@@ -42,8 +42,8 @@
   .stage-y { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; align-self: center; }
   .stage-col { flex: 1; }
   .stage-x { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .8125rem; margin-bottom: .3rem; }
-  table.plot { border-collapse: collapse; margin: 0 auto; }
-  table.plot th, table.plot td { border: 1px solid var(--ink); width: 2.6rem; height: 2.6rem; text-align: center; font-size: .8125rem; font-weight: 300; }
+  table.plot { border-collapse: separate; border-spacing: 0; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); margin: 0 auto; }
+  table.plot th, table.plot td { border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); width: 2.6rem; height: 2.6rem; text-align: center; font-size: .8125rem; font-weight: 300; }
   table.plot th { font-weight: 700; }
   table.plot td.cell { cursor: pointer; }
   table.plot td.cell:hover { background: var(--grey2); }
@@ -77,8 +77,8 @@
   .step.done { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
   .step.done .box { display: none; }
   .empty { font-weight: 300; opacity: .6; font-size: .875rem; }
-  table.data { border-collapse: collapse; margin-top: .4rem; }
-  table.data th, table.data td { border: 1px solid var(--ink); padding: .18rem .9rem; text-align: center; font-size: .9375rem; }
+  table.data { border-collapse: separate; border-spacing: 0; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); margin-top: .4rem; }
+  table.data th, table.data td { border: 0; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: .18rem .9rem; text-align: center; font-size: .9375rem; }
   table.data th { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .8125rem; }
   .foot { margin-top: auto; padding-top: var(--s2); border-top: 1px solid rgba(22,22,21,.3); font-weight: 300; font-size: .75rem; opacity: .65; display: flex; justify-content: space-between; gap: 1rem; }
   .page h3 { font-weight: 700; font-size: .875rem; text-transform: uppercase; letter-spacing: .08em; }

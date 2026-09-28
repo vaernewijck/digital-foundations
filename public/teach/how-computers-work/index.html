@@ -315,16 +315,25 @@
     }
 
     table.data {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-top: 1px solid var(--ink);
+      border-left: 1px solid var(--ink);
       margin-top: .4rem;
     }
 
     table.data th,
     table.data td {
-      border: 1px solid var(--ink);
+      border: 0;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
       padding: .18rem .9rem;
       text-align: center;
       font-size: .9375rem;
+    }
+
+    .page > table.data {
+      width: calc(100% - 4px);
     }
 
     table.data th {
@@ -365,13 +374,18 @@
     }
 
     table.plot {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-top: 1px solid var(--ink);
+      border-left: 1px solid var(--ink);
       margin: 0 auto;
     }
 
     table.plot th,
     table.plot td {
-      border: 1px solid var(--ink);
+      border: 0;
+      border-right: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
       width: 2.6rem;
       height: 2.6rem;
       text-align: center;
