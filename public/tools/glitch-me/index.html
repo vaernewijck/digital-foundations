@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Me - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #161615; --paper: #f8f8f8; --line: #d8d8d6; --head: #fbe3cf; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+    display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+  }
+  header, footer { display: flex; align-items: center; gap: .8rem 1rem; padding: .9rem 1.5rem; flex-wrap: wrap; }
+  header { border-bottom: 1px solid var(--ink); }
+  footer { border-top: 1px solid var(--ink); min-height: 3.6rem; }
+  h1 { font-size: .9rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-right: .5rem; }
+  .right { margin-left: auto; display: flex; gap: .5rem; }
+  button {
+    font: inherit; font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .4rem .9rem; cursor: pointer;
+  }
+  button:hover { background: var(--ink); color: var(--paper); }
+  button:disabled { opacity: .3; pointer-events: none; }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  input[type=file] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 37rem; min-height: 0; }
+  #stage { position: relative; min-height: 0; border-right: 1px solid var(--ink); cursor: crosshair; }
+  #stage.drop { outline: 4px dashed var(--ink); outline-offset: -1rem; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #upload {
+    position: absolute; inset: 1.5rem; display: grid; place-content: center; text-align: center; gap: .5rem;
+    border: 2px dashed var(--ink); cursor: pointer;
+  }
+  #upload:hover, #stage.drop #upload { border-style: solid; }
+  #upload strong { font-size: clamp(1.2rem, 2.4vw, 1.8rem); }
+  #upload span { font-weight: 300; }
+  body.loaded #upload { display: none; }
+  body:not(.loaded) .side, body:not(.loaded) .right button { opacity: .25; pointer-events: none; }
+  #broken { position: absolute; inset: 0; display: none; place-content: center; text-align: center; padding: 2rem; gap: .8rem; }
+  #broken.on { display: grid; }
+  #broken h2 { font-size: 1.6rem; }
+  #broken p { font-weight: 300; max-width: 26rem; margin: 0 auto; }
+
+  .side { display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0; }
+  #what { font-weight: 300; margin-bottom: .8rem; }
+  #what b { font-weight: 700; }
+  #what .sw { display: inline-block; width: .9em; height: .9em; border: 1px solid var(--ink); vertical-align: -.1em; margin: 0 .2rem 0 .5rem; }
+  .act { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin-top: .5rem; }
+  .act .k { margin: 0; min-width: 5.5rem; }
+  .act button { padding: .3rem .6rem; }
+  .act .small { font-weight: 400; letter-spacing: 0; }
+  #amount { font: inherit; font-size: .9rem; width: 4.5rem; padding: .3rem .4rem; border: 2px solid var(--ink); background: transparent; color: var(--ink); }
+  #amount:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .act .hint { font-weight: 300; font-size: .8rem; opacity: .6; }
+  .pix[hidden], .head[hidden] { display: none; }
+  .box { padding: 1rem 1.25rem; }
+  .k { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .6rem; }
+  .k span { font-weight: 300; letter-spacing: .04em; text-transform: none; font-size: .8rem; margin-left: .4rem; }
+  #headbox summary { cursor: pointer; margin: 0; list-style: none; }
+  #headbox summary::before { content: '+ '; }
+  #headbox[open] summary::before { content: '− '; }
+  #headbox[open] summary { margin-bottom: .6rem; }
+  #card { display: grid; gap: .25rem; }
+  #card div { display: flex; gap: .8rem; align-items: baseline; padding: .2rem .4rem; cursor: pointer; background: var(--head); }
+  #card div:hover { outline: 1px solid var(--ink); }
+  #card b { min-width: 7.5rem; font-size: 1.05rem; }
+  #card span { font-weight: 300; }
+
+  #hex { position: relative; overflow-y: auto; min-height: 0; font: .76rem 'Space Mono', monospace; outline: none; }
+  #hex:focus-visible { box-shadow: inset 0 0 0 2px var(--ink); }
+  #rows { position: absolute; left: 0; right: 0; padding: 0 1.25rem; }
+  .hexhead, .hexrow { display: grid; grid-template-columns: 4.4rem repeat(16, 1.3rem) .7rem repeat(16, .5rem); align-items: center; }
+  .hexhead { padding: .45rem 1.25rem; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); font: 700 .7rem 'Space Mono', monospace; opacity: .5; }
+  .hexrow { height: 24px; }
+  .off { opacity: .4; font-size: .68rem; }
+  .as { text-align: center; opacity: .55; font-size: .68rem; }
+  .as.sel { opacity: 1; background: var(--ink); color: var(--paper); }
+  .by { text-align: center; cursor: pointer; line-height: 20px; }
+  .by:hover { outline: 1px solid var(--ink); }
+  .by.h { background: var(--head); }
+  .by.px, .as.px { background: #c9c9c6; }
+  .by.sel { background: var(--ink); color: var(--paper); }
+
+  #readout { font-weight: 300; font-size: clamp(.9rem, 1.4vw, 1.1rem); max-width: 70rem; }
+  #readout b { font-weight: 700; }
+  /* tour */
+  #tour { position: fixed; inset: 0; z-index: 50; display: none; pointer-events: none; }
+  #tour.on { display: block; }
+  #spot { position: fixed; box-shadow: 0 0 0 200vmax rgba(22, 22, 21, .55); outline: 2px solid var(--paper); transition: all .25s ease; pointer-events: none; }
+  #pop { pointer-events: auto; position: fixed; width: min(18rem, calc(100vw - 2rem)); background: var(--paper); border: 2px solid var(--ink); padding: 1rem 1.1rem; transition: top .25s ease, left .25s ease; }
+  #pop small { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+  #tText { font-size: 1.05rem; line-height: 1.35; margin-top: .3rem; }
+  #tText b { font-weight: 700; }
+  #pop table { margin-top: .5rem; border-collapse: collapse; font-size: 1rem; }
+  #pop td { padding: .1rem .8rem .1rem 0; }
+  #pop td code { font: 700 .95rem 'Space Mono', monospace; }
+  #pop .nav { display: flex; gap: .4rem; margin-top: .8rem; }
+  #pop [hidden] { display: none; }
+  #pop .nav .skip { margin-right: auto; border-color: transparent; font-weight: 400; padding-left: 0; }
+  #pop .nav .skip:hover { background: none; color: var(--ink); text-decoration: underline; }
+  @media (max-width: 900px) {
+    body { overflow: auto; } main { grid-template-columns: 1fr; } #stage { height: 55vh; border-right: 0; border-bottom: 1px solid var(--ink); } .side { height: 75vh; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Glitch Me</h1>
+  <span class="right">
+    <button id="tourBtn">Tour</button><button id="undo" disabled>Undo</button><button id="reset">Reset</button><button id="save">Download</button>
+  </span>
+</header>
+<main>
+  <div id="stage">
+    <canvas id="view"></canvas>
+    <label id="upload">
+      <input type="file" id="file" accept="image/*">
+      <strong>Drop a photo of yourself here</strong>
+      <span>or click to choose one (JPG or PNG)</span>
+    </label>
+    <div id="broken"><h2>No picture</h2><p id="why"></p><p><b>Undo</b> to fix it.</p></div>
+  </div>
+  <div class="side">
+    <details class="box" id="headbox">
+      <summary class="k">Header <span>orange bytes: how to read the rest</span></summary>
+      <div id="card"></div>
+    </details>
+    <div class="hexhead"><span>byte</span><span>00</span><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>0A</span><span>0B</span><span>0C</span><span>0D</span><span>0E</span><span>0F</span><span></span><span style="grid-column: span 16">as text</span></div>
+    <div id="hex" tabindex="0"><div id="spacer"></div><div id="rows"></div></div>
+    <div class="box">
+      <p id="what"></p>
+      <div class="act head">
+        <span class="k">New value</span>
+        <button class="small" data-v="0">00</button><button class="small" data-v="128">80</button><button class="small" data-v="255">FF</button>
+        <span class="hint">or type 0-9 A-F</span>
+      </div>
+      <div class="act pix">
+        <span class="k">Shift</span>
+        <button id="left">← Left</button><button id="right">Right →</button>
+        <span class="hint">by</span>
+        <input type="number" id="amount" min="1" max="9999" value="30" aria-label="Number of bytes">
+        <span class="hint">bytes</span>
+      </div>
+      <div class="act pix">
+        <span class="k">Smear</span>
+        <button id="smear">Repeat row ↓</button>
+      </div>
+    </div>
+  </div>
+</main>
+<footer><p id="readout"></p></footer>
+<div id="tour" role="dialog" aria-live="polite" aria-label="Tour">
+  <div id="spot"></div>
+  <div id="pop">
+    <small id="tCount"></small>
+    <div id="tText"></div>
+    <div class="nav"><button class="skip" id="tSkip">Skip</button><button id="tNext">Next</button></div>
+  </div>
+</div>
+<script>
+  const MAX_SIDE = 720;
+  const HEADER = 54;
+  const ROW_H = 24;
+
+  const stage = document.getElementById('stage');
+  const view = document.getElementById('view');
+  const ctx = view.getContext('2d');
+  const hexEl = document.getElementById('hex');
+  const rowsEl = document.getElementById('rows');
+  const spacer = document.getElementById('spacer');
+  const readout = document.getElementById('readout');
+  const card = document.getElementById('card');
+  const brokenEl = document.getElementById('broken');
+
+  let file = null;          // the BMP file, byte by byte
+  let undo = [];
+  let sel = HEADER;         // selected byte
+  let half = false;         // typed one hex digit of two
+  let last = '';            // what the last shift did, for the readout
+  let out = document.createElement('canvas');
+  let info = null;          // what the header currently says
+  let rect = { x: 0, y: 0, s: 1 };
+  let name = 'photo';
+  let srcSize = 0;          // size of the uploaded file, to compare with the uncompressed BMP
+
+  const ascii = v => v >= 32 && v < 127 ? String.fromCharCode(v) : '·';
+  const u16 = (b, o) => b[o] | b[o + 1] << 8;
+  const u32 = (b, o) => (b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0;
+  const i32 = (b, o) => b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24;
+  const hex2 = v => v.toString(16).toUpperCase().padStart(2, '0');
+
+  // The three header facts students need. Each points at its bytes.
+  const CARD = [
+    { at: 0, value: b => ascii(b[0]) + ascii(b[1]), what: 'I am a BMP' },
+    { at: 18, value: b => i32(b, 18) + ' × ' + Math.abs(i32(b, 22)), what: 'pixels' },
+    { at: 28, value: b => u16(b, 28) / 8 + ' bytes', what: 'per pixel' },
+  ];
+
+  // Turn a picture into a real BMP file: 54 header bytes, then blue, green, red for every pixel, row after row.
+  function toBMP(img) {
+    const k = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+    const w = Math.round(img.width * k), h = Math.round(img.height * k);
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0, w, h);
+    const px = g.getImageData(0, 0, w, h).data;
+    const stride = Math.ceil(w * 3 / 4) * 4;
+    const b = new Uint8Array(HEADER + stride * h);
+    const dv = new DataView(b.buffer);
+    b[0] = 66; b[1] = 77;
+    dv.setUint32(2, b.length, true); dv.setUint32(10, HEADER, true); dv.setUint32(14, 40, true);
+    dv.setInt32(18, w, true); dv.setInt32(22, -h, true);   // negative height: rows stored top to bottom
+    dv.setUint16(26, 1, true); dv.setUint16(28, 24, true); dv.setUint32(30, 0, true);
+    dv.setUint32(34, stride * h, true); dv.setInt32(38, 2835, true); dv.setInt32(42, 2835, true);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const s = (y * w + x) * 4, d = HEADER + y * stride + x * 3;
+      b[d] = px[s + 2]; b[d + 1] = px[s + 1]; b[d + 2] = px[s];
+    }
+    return b;
+  }
+
+  // Read the file the way a BMP viewer would. If the header no longer makes sense, say why.
+  function readHeader(b) {
+    if (b[0] !== 66 || b[1] !== 77) return { error: 'The first bytes are no longer "BM".' };
+    const off = u32(b, 10), w = i32(b, 18), hRaw = i32(b, 22), bpp = u16(b, 28), comp = u32(b, 30);
+    const h = Math.abs(hRaw);
+    if (bpp !== 24) return { error: 'Bits per pixel is now ' + bpp + ' instead of 24.' };
+    if (comp !== 0) return { error: 'The header now says "compressed".' };
+    if (off >= b.length) return { error: 'The pixels now start after the end of the file.' };
+    if (w <= 0 || w > 4000 || h === 0 || h > 4000) return { error: 'The size is now ' + w + ' × ' + h + ' pixels.' };
+    return { off, w, h, topDown: hRaw < 0, stride: Math.ceil(w * 3 / 4) * 4 };
+  }
+
+  function decode() {
+    info = readHeader(file);
+    if (info.error) {
+      document.getElementById('why').textContent = info.error;
+      brokenEl.classList.add('on');
+      return;
+    }
+    brokenEl.classList.remove('on');
+    const { off, w, h, topDown, stride } = info;
+    out.width = w; out.height = h;
+    const img = new ImageData(w, h), d = img.data;
+    for (let row = 0; row < h; row++) {
+      const y = topDown ? row : h - 1 - row;
+      for (let x = 0; x < w; x++) {
+        const s = off + row * stride + x * 3, o = (y * w + x) * 4;
+        if (s + 2 < file.length) { d[o] = file[s + 2]; d[o + 1] = file[s + 1]; d[o + 2] = file[s]; }
+        else { d[o] = d[o + 1] = d[o + 2] = 200; }
+        d[o + 3] = 255;
+      }
+    }
+    out.getContext('2d').putImageData(img, 0, 0);
+  }
+
+  // Which pixel and colour does a byte belong to, according to the header?
+  function pixelOf(i) {
+    if (!info || info.error || i < info.off) return null;
+    const rel = i - info.off, row = Math.floor(rel / info.stride), col = rel % info.stride;
+    if (row >= info.h || col >= info.w * 3) return null;
+    return { x: Math.floor(col / 3), y: info.topDown ? row : info.h - 1 - row, ch: col % 3 };
+  }
+  function byteOf(x, y) {
+    const row = info.topDown ? y : info.h - 1 - y;
+    return info.off + row * info.stride + x * 3;
+  }
+
+  // ---------- drawing ----------
+  function size() {
+    const dpr = window.devicePixelRatio || 1;
+    view.width = stage.clientWidth * dpr; view.height = stage.clientHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function draw() {
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0, 0, sw, sh);
+    if (!info || info.error) return;
+    const s = Math.min(sw / out.width, sh / out.height) * .92;
+    rect = { x: (sw - out.width * s) / 2, y: (sh - out.height * s) / 2, s };
+    ctx.imageSmoothingEnabled = s < 1;
+    ctx.drawImage(out, rect.x, rect.y, out.width * s, out.height * s);
+    const p = pixelOf(sel);
+    if (p) {
+      const ly = Math.round(rect.y + (p.y + .5) * s) + .5;
+      ctx.setLineDash([8, 6]); ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f8f8f8'; ctx.beginPath(); ctx.moveTo(rect.x, ly + 2); ctx.lineTo(rect.x + out.width * s, ly + 2); ctx.stroke();
+      ctx.strokeStyle = '#161615'; ctx.beginPath(); ctx.moveTo(rect.x, ly); ctx.lineTo(rect.x + out.width * s, ly); ctx.stroke();
+      ctx.setLineDash([]);
+      const cx = rect.x + (p.x + .5) * s;
+      ctx.lineWidth = 3; ctx.strokeStyle = '#161615'; ctx.beginPath(); ctx.arc(cx, ly, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = '#f8f8f8'; ctx.beginPath(); ctx.arc(cx, ly, 12, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+
+  function renderHex() {
+    const rows = Math.ceil(file.length / 16);
+    spacer.style.height = Math.round(rows * ROW_H) + 'px';
+    const first = Math.max(0, Math.floor(hexEl.scrollTop / ROW_H) - 5);
+    const end = Math.min(rows, first + Math.ceil(hexEl.clientHeight / ROW_H) + 10);
+    rowsEl.style.top = first * ROW_H + 'px';
+    const p = pixelOf(sel), px0 = p ? byteOf(p.x, p.y) : -1;   // the 3 bytes of the selected pixel
+    const inPx = i => i >= px0 && i < px0 + 3 && px0 >= 0;
+    let html = '';
+    for (let r = first; r < end; r++) {
+      html += '<div class="hexrow"><span class="off">' + (r * 16).toLocaleString('en') + '</span>';
+      let txt = '';
+      for (let c = 0; c < 16; c++) {
+        const i = r * 16 + c;
+        if (i >= file.length) { html += '<span></span>'; continue; }
+        const mark = i === sel ? ' sel' : inPx(i) ? ' px' : '';
+        html += '<span class="by' + (i < HEADER ? ' h' : '') + mark + '" data-i="' + i + '">' + hex2(file[i]) + '</span>';
+        txt += '<span class="as' + mark + '">' + ascii(file[i]).replace('<', '&lt;') + '</span>';
+      }
+      html += '<span></span>' + txt + '</div>';
+    }
+    rowsEl.innerHTML = html;
+  }
+
+  function renderCard() {
+    card.innerHTML = CARD.map(f => '<div data-go="' + f.at + '"><b>' + f.value(file) + '</b><span>' + f.what + '</span></div>').join('');
+  }
+
+  function describe() {
+    const v = file[sel], p = pixelOf(sel), head = sel < HEADER;
+    let s = '<b>Byte ' + sel.toLocaleString('en') + '</b> · ' + hex2(v) + ' = ' + v + ' · ';
+    if (head) s += '<b>header</b>';
+    else if (p) {
+      const i = byteOf(p.x, p.y), rgb = [file[i + 2], file[i + 1], file[i]];
+      s += '<b>' + ['blue', 'green', 'red'][p.ch] + '</b> of pixel ' + p.x + ', ' + p.y +
+        ' <i class="sw" style="background:rgb(' + rgb + ')"></i> R ' + rgb[0] + ' G ' + rgb[1] + ' B ' + rgb[2];
+    } else s += 'no pixel';
+    document.getElementById('what').innerHTML = s;
+    document.querySelectorAll('.pix').forEach(el => el.hidden = head);
+    document.querySelectorAll('.head').forEach(el => el.hidden = !head);
+    if (tStep >= 0) { readout.innerHTML = ''; return; }   // the tour explains it
+    readout.innerHTML = last || (head ? 'Header byte: change it and see what survives.' : 'Shift everything below, or repeat the row.');
+  }
+
+  let queued = false;
+  function update(changed) {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      if (!file) return;
+      if (changed) decode();
+      draw(); renderHex(); renderCard(); describe();
+      document.getElementById('undo').disabled = !undo.length;
+    });
+  }
+
+  function select(i, scroll) {
+    sel = Math.max(0, Math.min(file.length - 1, i)); half = false; last = '';
+    if (scroll) {
+      const top = Math.floor(sel / 16) * ROW_H;
+      if (top < hexEl.scrollTop || top > hexEl.scrollTop + hexEl.clientHeight - ROW_H * 2) {
+        spacer.style.height = Math.round(Math.ceil(file.length / 16) * ROW_H) + 'px';
+        hexEl.scrollTop = Math.max(0, Math.round(top - hexEl.clientHeight / 3));
+      }
+    }
+    update(false);
+  }
+
+  // ---------- editing ----------
+  function remember() { undo.push(file.slice()); if (undo.length > 25) undo.shift(); }
+
+  // Where does a pixel's blue byte land after shifting d bytes in total (d = +right, -left)?
+  function swap(d) { return ['', 'blue is read as green', 'blue is read as red'][((d % 3) + 3) % 3]; }
+  function why(n) {
+    return n % 3 === 0 ? n + ' bytes = ' + n / 3 + ' pixel' + (n > 3 ? 's' : '') + ': the colours do not change.'
+                       : n + ' byte' + (n > 1 ? 's' : '') + ': not a whole pixel, so every colour moves one slot.';
+  }
+
+  // Shift right: new black bytes go in here, the last bytes fall off the end. The file stays the same length.
+  function shiftRight(n) {
+    remember();
+    const next = new Uint8Array(file.length);
+    next.set(file.subarray(0, sel));
+    next.set(file.subarray(sel, file.length - n), sel + n);
+    file = next; half = false; last = why(n); tourEvent('shift', n);
+    update(true);
+  }
+  // Shift left: bytes here disappear, everything after moves up, black bytes fill the end.
+  function shiftLeft(n) {
+    remember();
+    const next = new Uint8Array(file.length);
+    next.set(file.subarray(0, sel));
+    next.set(file.subarray(sel + n), sel);
+    file = next; half = false; last = why(n); tourEvent('shift', -n);
+    update(true);
+  }
+
+  function setValue(v) {
+    remember(); file[sel] = v; half = false;
+    last = sel < HEADER ? 'You changed the header.' : 'One byte = one colour of one pixel.';
+    update(true);
+    if (readHeader(file).error) tourEvent('broken');
+  }
+
+  // Smear: copy one row of pixels, starting here, and paste it over the next 20 rows.
+  function smear() {
+    if (!info || info.error) return;
+    remember();
+    const row = file.slice(sel, sel + info.stride);
+    for (let k = 1; k <= 20; k++) {
+      const at = sel + k * info.stride;
+      if (at >= file.length) break;
+      file.set(row.subarray(0, Math.min(row.length, file.length - at)), at);
+    }
+    half = false;
+    last = 'One row, pasted 20 times.';
+    update(true);
+  }
+
+  function type(d) {
+    if (!half) { remember(); file[sel] = d << 4 | (file[sel] & 15); half = true; }
+    else { file[sel] = (file[sel] & 240) | d; half = false; sel = Math.min(file.length - 1, sel + 1); }
+    last = 'Keep typing to change the next bytes.'; update(true);
+    if (readHeader(file).error) tourEvent('broken');
+  }
+
+  hexEl.addEventListener('scroll', () => { if (file) renderHex(); });
+  rowsEl.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) { select(+t.dataset.i); hexEl.focus(); } });
+  card.addEventListener('click', e => { const t = e.target.closest('[data-go]'); if (t) { select(+t.dataset.go, true); hexEl.focus(); } });
+  hexEl.addEventListener('keydown', e => {
+    const k = e.key;
+    if (/^[0-9a-f]$/i.test(k) && !e.metaKey && !e.ctrlKey) { e.preventDefault(); type(parseInt(k, 16)); }
+    else if (k === 'ArrowRight') { e.preventDefault(); select(sel + 1, true); }
+    else if (k === 'ArrowLeft') { e.preventDefault(); select(sel - 1, true); }
+    else if (k === 'ArrowDown') { e.preventDefault(); select(sel + 16, true); }
+    else if (k === 'ArrowUp') { e.preventDefault(); select(sel - 16, true); }
+  });
+
+  stage.addEventListener('pointerdown', e => {
+    if (!info || info.error) return;
+    const r = stage.getBoundingClientRect();
+    const x = Math.floor((e.clientX - r.left - rect.x) / rect.s), y = Math.floor((e.clientY - r.top - rect.y) / rect.s);
+    if (x < 0 || y < 0 || x >= info.w || y >= info.h) return;
+    select(byteOf(x, y), true);
+    tourEvent('pick');
+  });
+
+  const amountEl = document.getElementById('amount');
+  const amount = () => Math.max(1, Math.min(9999, Math.round(+amountEl.value) || 1));
+  document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => setValue(+b.dataset.v)));
+  document.getElementById('smear').addEventListener('click', smear);
+  document.getElementById('left').addEventListener('click', () => shiftLeft(amount()));
+  document.getElementById('right').addEventListener('click', () => shiftRight(amount()));
+  document.getElementById('undo').addEventListener('click', () => { if (undo.length) { file = undo.pop(); half = false; last = ''; update(true); tourEvent('undo'); } });
+  document.getElementById('reset').addEventListener('click', () => {
+    if (tStep >= 0) endTour();
+    document.body.classList.remove('loaded'); document.getElementById('file').value = '';
+    file = null; info = null; draw();
+    readout.innerHTML = 'Start with a photo of yourself.';
+  });
+  document.getElementById('save').addEventListener('click', () => {
+    if (!info || info.error) return;
+    out.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'glitch-' + name + '.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  });
+
+  // ---------- tour ----------
+  // Learn by doing: most steps wait until the student has done the action.
+  let tTotal = 0;           // bytes shifted during the tour (+right, -left)
+  const pick = n => () => { amountEl.value = n; };
+  const result = () => tTotal % 3
+    ? Math.abs(tTotal) + ' bytes: not a whole number of pixels. Every pixel now starts at the wrong byte: ' + swap(tTotal) + '. <b>The colours swap.</b>'
+    : Math.abs(tTotal) + ' bytes = exactly ' + Math.abs(tTotal) / 3 + ' pixels. The rows slide, <b>the colours are right.</b>';
+  const TOUR = [
+    { el: '#stage', text: 'Click a spot on your photo. Everything below it will change.', wait: 'pick' },
+    { el: '#hex', text: () => {
+      const p = pixelOf(sel);
+      if (!p) return 'The highlighted bytes are the spot you clicked.';
+      const i = byteOf(p.x, p.y);
+      const row = (n, k) => '<tr><td>' + n + '</td><td><code>' + hex2(file[i + k]) + '</code></td><td>= ' + file[i + k] + '</td></tr>';
+      return 'The 3 highlighted bytes are that pixel, in hex:<table>' + row('Blue', 0) + row('Green', 1) + row('Red', 2) + '</table>';
+    } },
+    { el: '.act.pix', text: '<b>Right →</b> pushes this byte and everything after it 30 bytes further. Click it.', wait: 'shift', before: () => { tTotal = 0; pick(30)(); } },
+    { el: '#stage', text: result },
+    { el: '.act.pix', text: 'Now shift by <b>1</b> byte: click <b>Right →</b>.', wait: 'shift', before: pick(1) },
+    { el: '#stage', text: result },
+    { el: '.act.pix', text: 'Shift by <b>2</b> more: click <b>Right →</b>.', wait: 'shift', before: pick(2) },
+    { el: '#stage', text: () => result() + ' <b>Same bytes, read from the right starting point.</b>' },
+    { el: '.act.head', text: 'The first byte, <b>42</b>, is the letter B of "BM" in ASCII: "I am a BMP". Set it to <b>00</b>.', wait: 'broken', before: () => select(0, true) },
+    { el: '#undo', text: 'No picture. Without the header, the bytes are just numbers. Take a screenshot, then click <b>Undo</b>.', wait: 'undo' },
+    { el: null, text: 'Your turn. Tip: start just under your face, so it stays recognisable.' },
+  ];
+  let tStep = -1;
+  const tour = document.getElementById('tour'), spot = document.getElementById('spot'), pop = document.getElementById('pop');
+
+  function showStep() {
+    const st = TOUR[tStep];
+    if (st.before) st.before();
+    document.getElementById('tCount').textContent = (tStep + 1) + ' / ' + TOUR.length;
+    document.getElementById('tText').innerHTML = typeof st.text === 'function' ? st.text() : st.text;
+    const next = document.getElementById('tNext');
+    next.hidden = !!st.wait;
+    next.textContent = tStep === TOUR.length - 1 ? 'Go' : 'Next';
+    requestAnimationFrame(place);
+  }
+  function place() {
+    if (tStep < 0) return;
+    const st = TOUR[tStep], el = st.el && document.querySelector(st.el);
+    const vw = innerWidth, vh = innerHeight, pad = 6, pw = pop.offsetWidth, ph = pop.offsetHeight, gap = 14;
+    if (!el) {
+      spot.style.cssText = 'left:' + vw / 2 + 'px;top:' + vh / 2 + 'px;width:0;height:0';
+      pop.style.left = (vw - pw) / 2 + 'px'; pop.style.top = (vh - ph) / 2 + 'px';
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    spot.style.cssText = 'left:' + (r.left - pad) + 'px;top:' + (r.top - pad) + 'px;width:' + (r.width + pad * 2) + 'px;height:' + (r.height + pad * 2) + 'px';
+    let x, y;
+    if (r.width > vw / 2) { x = r.left + r.width / 2 - pw / 2; y = r.top + 24; }   // big area: inside, at the top
+    else if (r.left - gap - pw > 0) { x = r.left - gap - pw; y = r.top; }          // left of it
+    else { x = r.left; y = r.top - gap - ph; }                                     // above
+    pop.style.left = Math.max(16, Math.min(vw - pw - 16, x)) + 'px';
+    pop.style.top = Math.max(16, Math.min(vh - ph - 16, y)) + 'px';
+  }
+  function tourEvent(name, n) {
+    if (tStep < 0 || TOUR[tStep].wait !== name) return;
+    if (name === 'shift') tTotal += n;
+    setTimeout(() => { tStep++; showStep(); }, 500);   // let them see what happened first
+  }
+  function startTour() { if (!file) return; tStep = 0; tour.classList.add('on'); showStep(); }
+  function endTour() {
+    tStep = -1; tour.classList.remove('on'); last = ''; update(false);
+    try { localStorage.setItem('glitch-me-tour', '1'); } catch (e) {}
+  }
+  document.getElementById('tNext').addEventListener('click', () => { if (tStep < TOUR.length - 1) { tStep++; showStep(); } else endTour(); });
+  document.getElementById('tSkip').addEventListener('click', endTour);
+  document.getElementById('tourBtn').addEventListener('click', startTour);
+  document.addEventListener('keydown', e => { if (tStep >= 0 && e.key === 'Escape') endTour(); });
+  window.addEventListener('resize', place);
+
+  function load(img) {
+    document.body.classList.add('loaded');
+    file = toBMP(img); undo = []; last = '';
+    info = readHeader(file);
+    sel = info.off; hexEl.scrollTop = 0;
+    last = 'Your photo is now <b>' + file.length.toLocaleString('en') + ' bytes</b>' +
+      (srcSize ? ', uncompressed. Your original file was ' + srcSize.toLocaleString('en') + ' bytes.' : '.');
+    update(true);
+    let seen = false;
+    try { seen = localStorage.getItem('glitch-me-tour') === '1'; } catch (e) {}
+    if (!seen) setTimeout(startTour, 400);
+  }
+
+  function openFile(f) {
+    if (!f || !f.type.startsWith('image/')) return;
+    const img = new Image();
+    img.onload = () => {
+      name = f.name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9-_]+/gi, '-') || 'photo';
+      srcSize = f.size;
+      load(img); URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => { readout.innerHTML = '<b>That did not open.</b> Use a JPG or PNG.'; };
+    img.src = URL.createObjectURL(f);
+  }
+  document.getElementById('file').addEventListener('change', e => openFile(e.target.files[0]));
+  stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drop'); });
+  stage.addEventListener('dragleave', () => stage.classList.remove('drop'));
+  stage.addEventListener('drop', e => { e.preventDefault(); stage.classList.remove('drop'); openFile(e.dataTransfer.files[0]); });
+
+  window.addEventListener('resize', () => { size(); if (file) update(false); else draw(); });
+  size(); readout.innerHTML = 'Start with a photo of yourself.';
+  document.fonts && document.fonts.ready.then(() => { if (file) update(false); });
+</script>
+</body>
+</html>
