@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Reader - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #ffffff;
+    --s2: .94rem;
+    --s3: 1.41rem;
+    --gap: 1.25rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ---- */
+  .app { min-height: 100vh; padding: var(--s3) 3rem; display: flex; flex-direction: column; }
+  .top { flex: none; display: flex; align-items: flex-start; justify-content: flex-end; gap: var(--s3); flex-wrap: wrap; }
+  .nav { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+
+  button {
+    font: inherit; font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+    background: none; color: var(--ink); border: 0; padding: .2rem 0;
+    cursor: pointer; white-space: nowrap; opacity: .5;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .3em;
+    transition: opacity .15s ease;
+  }
+  button:hover:not([disabled]) { opacity: 1; }
+  button[disabled] { opacity: .2; cursor: default; text-decoration: none; }
+  button:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+
+  /* ---- stage ---- */
+  .stage { flex: 1; display: grid; place-items: center; align-content: center; gap: 3rem; }
+  .bits {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 6rem);
+    gap: var(--gap); justify-content: center;
+    width: min(100%, 60rem);
+  }
+  .place { display: grid; justify-items: center; gap: .6rem; }
+  .value { font-size: 1rem; font-weight: 300; opacity: .5; transition: opacity .15s ease; }
+  .place.on .value { opacity: 1; }
+  .bit {
+    width: 100%; aspect-ratio: 1; padding: 0;
+    border: max(3px, .35rem) solid var(--ink); border-radius: 50%;
+    background: var(--paper); opacity: 1; text-decoration: none;
+    transition: background-color .15s ease;
+  }
+  .bit:hover:not([disabled]) { background: #e8e8e7; }
+  .bit.on, .bit.on:hover:not([disabled]) { background: var(--ink); }
+  .bit:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+  .digit { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+
+  .result { display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+  .result-label { font-size: .625rem; font-weight: 300; letter-spacing: .18em; text-transform: uppercase; opacity: .5; }
+  .result-value { font-size: 3rem; font-weight: 300; line-height: 1; letter-spacing: .04em; }
+  .result-sum { font-size: 1rem; font-weight: 300; opacity: .5; min-height: 1.4em; text-align: center; }
+  .hint { font-size: .75rem; font-weight: 300; opacity: .5; text-align: center; }
+
+  @media (max-width: 480px) {
+    :root { --gap: .5rem; }
+    .app { padding: var(--s2) 1rem; }
+    .digit { font-size: 1.5rem; }
+    .value { font-size: .75rem; }
+    .result-value { font-size: 2.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <nav class="nav">
+      <button id="add-bit" type="button">Add bit (32)</button>
+      <button id="count" type="button">+1</button>
+      <button id="reset" type="button">Reset</button>
+    </nav>
+  </header>
+
+  <main class="stage">
+    <div class="bits" id="bits" aria-label="Binary number"></div>
+
+    <div class="result" aria-live="polite">
+      <div class="result-label">Total</div>
+      <div class="result-value" id="total">0</div>
+      <div class="result-sum" id="sum"></div>
+    </div>
+    <p class="hint" id="hint"></p>
+  </main>
+</div>
+
+<script>
+(() => {
+  const MIN_BITS = 1;
+  const MAX_BITS = 8;
+  const bitsEl = document.getElementById('bits');
+  const totalEl = document.getElementById('total');
+  const sumEl = document.getElementById('sum');
+  const hintEl = document.getElementById('hint');
+  const addBtn = document.getElementById('add-bit');
+
+  // ?bits=8 starts with a byte; default 5 (the five volunteers)
+  const asked = parseInt(new URLSearchParams(location.search).get('bits'));
+  let count = Number.isInteger(asked) ? Math.min(MAX_BITS, Math.max(MIN_BITS, asked)) : 5;
+  let value = 0;
+
+  const placeValue = i => 2 ** (count - 1 - i);   // leftmost place is worth the most
+
+  function build() {
+    bitsEl.replaceChildren();
+    for (let i = 0; i < count; i++) {
+      const pv = placeValue(i);
+      const place = document.createElement('div');
+      place.className = 'place';
+      const label = document.createElement('span');
+      label.className = 'value';
+      label.textContent = pv;
+      const bit = document.createElement('button');
+      bit.type = 'button';
+      bit.className = 'bit';
+      bit.setAttribute('aria-label', `Bit worth ${pv}`);
+      bit.addEventListener('click', () => { value ^= pv; render(); });
+      const digit = document.createElement('span');
+      digit.className = 'digit';
+      digit.setAttribute('aria-hidden', 'true');
+      place.append(label, bit, digit);
+      bitsEl.appendChild(place);
+    }
+    addBtn.disabled = count >= MAX_BITS;
+    addBtn.textContent = count >= MAX_BITS ? 'Add bit' : `Add bit (${2 ** count})`;
+    render();
+  }
+
+  function render() {
+    const on = [];
+    bitsEl.querySelectorAll('.place').forEach((place, i) => {
+      const pv = placeValue(i);
+      const isOn = (value & pv) !== 0;
+      place.classList.toggle('on', isOn);
+      place.querySelector('.bit').classList.toggle('on', isOn);
+      place.querySelector('.bit').setAttribute('aria-pressed', isOn);
+      place.querySelector('.digit').textContent = isOn ? '1' : '0';
+      if (isOn) on.push(pv);
+    });
+    totalEl.textContent = value;
+    sumEl.textContent = on.length > 1 ? on.join(' + ') : '';
+    const options = 2 ** count;
+    hintEl.textContent = `${count} ${count === 1 ? 'bit' : 'bits'}: ${options} options, from 0 to ${options - 1}. Arrow keys count up and down.`;
+  }
+
+  function addBit() {
+    if (count >= MAX_BITS) return;
+    count++;
+    build();
+  }
+
+  // +1 shows the carry: it rolls back to 0 after the biggest number
+  function step(by) {
+    const options = 2 ** count;
+    value = (value + by + options) % options;
+    render();
+  }
+
+  // arrow keys (and presenter clickers, which send Page Up/Down) count up and down
+  const KEYS = { ArrowUp: 1, ArrowRight: 1, PageDown: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: -1 };
+  addEventListener('keydown', e => {
+    if (!(e.key in KEYS) || e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault();
+    step(KEYS[e.key]);
+  });
+
+  function reset() {
+    value = 0;
+    render();
+  }
+
+  addBtn.addEventListener('click', addBit);
+  document.getElementById('count').addEventListener('click', () => step(1));
+  document.getElementById('reset').addEventListener('click', reset);
+  build();
+})();
+</script>
+</body>
+</html>
