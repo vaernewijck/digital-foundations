@@ -198,6 +198,7 @@
   const u32 = (b, o) => (b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0;
   const i32 = (b, o) => b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24;
   const hex2 = v => v.toString(16).toUpperCase().padStart(2, '0');
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
   // The three header facts students need. Each points at its bytes.
   const CARD = [
@@ -209,7 +210,7 @@
   // Turn a picture into a real BMP file: 54 header bytes, then blue, green, red for every pixel, row after row.
   function toBMP(img) {
     const k = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
-    const w = Math.round(img.width * k), h = Math.round(img.height * k);
+    const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const g = c.getContext('2d');
@@ -269,7 +270,7 @@
   function pixelOf(i) {
     if (!info || info.error || i < info.off) return null;
     const rel = i - info.off, row = Math.floor(rel / info.stride), col = rel % info.stride;
-    if (row >= info.h || col >= info.w * 3) return null;
+    if (row >= info.h || col >= info.w * 3 || i - col % 3 + 2 >= file.length) return null;   // whole pixel must be in the file
     return { x: Math.floor(col / 3), y: info.topDown ? row : info.h - 1 - row, ch: col % 3 };
   }
   function byteOf(x, y) {
@@ -322,7 +323,7 @@
         if (i >= file.length) { html += '<span></span>'; continue; }
         const mark = i === sel ? ' sel' : inPx(i) ? ' px' : '';
         html += '<span class="by' + (i < HEADER ? ' h' : '') + mark + '" data-i="' + i + '">' + hex2(file[i]) + '</span>';
-        txt += '<span class="as' + mark + '">' + ascii(file[i]).replace('<', '&lt;') + '</span>';
+        txt += '<span class="as' + mark + '">' + esc(ascii(file[i])) + '</span>';
       }
       html += '<span></span>' + txt + '</div>';
     }
@@ -330,7 +331,7 @@
   }
 
   function renderCard() {
-    card.innerHTML = CARD.map(f => '<div data-go="' + f.at + '"><b>' + f.value(file) + '</b><span>' + f.what + '</span></div>').join('');
+    card.innerHTML = CARD.map(f => '<div data-go="' + f.at + '"><b>' + esc(f.value(file)) + '</b><span>' + f.what + '</span></div>').join('');
   }
 
   function describe() {
@@ -349,14 +350,16 @@
     readout.innerHTML = last || (head ? 'Header byte: change it and see what survives.' : 'Shift everything below, or repeat the row.');
   }
 
-  let queued = false;
+  let queued = false, dirty = false;
   function update(changed) {
+    dirty = dirty || changed;   // keep a pending re-decode even if a plain redraw was queued first
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
-      queued = false;
+      const redo = dirty;
+      queued = false; dirty = false;
       if (!file) return;
-      if (changed) decode();
+      if (redo) decode();
       draw(); renderHex(); renderCard(); describe();
       document.getElementById('undo').disabled = !undo.length;
     });
@@ -386,6 +389,7 @@
 
   // Shift right: new black bytes go in here, the last bytes fall off the end. The file stays the same length.
   function shiftRight(n) {
+    n = Math.min(n, file.length - sel);
     remember();
     const next = new Uint8Array(file.length);
     next.set(file.subarray(0, sel));
@@ -395,6 +399,7 @@
   }
   // Shift left: bytes here disappear, everything after moves up, black bytes fill the end.
   function shiftLeft(n) {
+    n = Math.min(n, file.length - sel);
     remember();
     const next = new Uint8Array(file.length);
     next.set(file.subarray(0, sel));
@@ -436,6 +441,7 @@
   rowsEl.addEventListener('click', e => { const t = e.target.closest('[data-i]'); if (t) { select(+t.dataset.i); hexEl.focus(); } });
   card.addEventListener('click', e => { const t = e.target.closest('[data-go]'); if (t) { select(+t.dataset.go, true); hexEl.focus(); } });
   hexEl.addEventListener('keydown', e => {
+    if (!file) return;
     const k = e.key;
     if (/^[0-9a-f]$/i.test(k) && !e.metaKey && !e.ctrlKey) { e.preventDefault(); type(parseInt(k, 16)); }
     else if (k === 'ArrowRight') { e.preventDefault(); select(sel + 1, true); }
@@ -534,10 +540,13 @@
     pop.style.left = Math.max(16, Math.min(vw - pw - 16, x)) + 'px';
     pop.style.top = Math.max(16, Math.min(vh - ph - 16, y)) + 'px';
   }
+  let tWait = false;         // a step is about to advance: ignore repeat clicks
   function tourEvent(name, n) {
-    if (tStep < 0 || TOUR[tStep].wait !== name) return;
+    if (tStep < 0) return;
     if (name === 'shift') tTotal += n;
-    setTimeout(() => { tStep++; showStep(); }, 500);   // let them see what happened first
+    if (tWait || TOUR[tStep].wait !== name) return;
+    tWait = true;
+    setTimeout(() => { tWait = false; if (tStep < 0) return; tStep++; showStep(); }, 500);   // let them see what happened first
   }
   function startTour() { if (!file) return; tStep = 0; tour.classList.add('on'); showStep(); }
   function endTour() {
