@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Bingo Cards - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #ffffff;
+    --s2: .94rem;
+    --s3: 1.41rem;
+    --emoji: 'Space Grotesk', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ---- */
+  .app { min-height: 100vh; padding: var(--s3) 3rem; display: flex; flex-direction: column; gap: 2.5rem; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+  .nav, .ctl { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+  .title { font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; padding: .2rem 0; }
+
+  button, .link {
+    font: inherit; font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+    background: none; color: var(--ink); border: 0; padding: .2rem 0;
+    cursor: pointer; white-space: nowrap; opacity: .5;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .3em;
+    transition: opacity .15s ease;
+  }
+  button:hover, .link:hover, button.on { opacity: 1; }
+  button:focus-visible, .link:focus-visible, input:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+  label { font-size: .75rem; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: baseline; gap: .6rem; }
+  input {
+    font: inherit; font-size: .875rem; font-weight: 500; letter-spacing: .04em; text-transform: none;
+    background: none; color: var(--ink); border: 0; border-bottom: 1px solid var(--ink); padding: .1rem 0; width: 7rem;
+  }
+  input[type=number] { width: 3.5rem; }
+  .note { font-size: .75rem; font-weight: 300; opacity: .5; }
+
+  [hidden] { display: none !important; }
+  .view { display: none; }
+  .view.on { display: block; }
+
+  /* ---- cards ---- */
+  .cards { display: flex; flex-wrap: wrap; gap: 3rem; justify-content: center; --cell: 28mm; }
+  .page { display: contents; }
+  .card-head { display: flex; gap: 1rem; justify-content: space-between; align-items: baseline; font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3mm; }
+  .card-head span:first-child { font-weight: 700; }
+  .card-head span:last-child { font-weight: 300; }
+  .card-head .name { flex: 1; font-weight: 300; border-bottom: 1px solid var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(3, var(--cell)); border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+  .cell {
+    height: var(--cell); display: grid; place-items: center;
+    border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+    font-family: var(--emoji); font-size: calc(var(--cell) * .36); font-weight: 400; line-height: 1;
+  }
+  .cell.hit { background: var(--ink); color: var(--paper); }
+
+  /* ---- check ---- */
+  .check { display: grid; justify-items: center; gap: 2rem; }
+  .check .card { width: auto; }
+  .check { --cell: min(24vw, 18vh); }
+  .status { font-size: 3rem; font-weight: 300; line-height: 1; text-align: center; }
+
+  /* ---- decoding table ---- */
+  .sheet { width: 186mm; margin: 0 auto; font-size: 8.5pt; }
+  .sheet h1 { font-size: 9pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6mm; display: flex; justify-content: space-between; }
+  .sheet h1 span { font-weight: 300; }
+  .sheet h2 { font-size: 8pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .sheet section { margin-bottom: 7mm; }
+  .sheet p { font-weight: 300; margin: 1mm 0 2.5mm; }
+  table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td, th { border: 1px solid var(--ink); text-align: center; }
+  .bits { width: 100%; table-layout: fixed; }
+  .bits th { font-weight: 700; height: 6mm; }
+  .bits td { height: 7mm; }
+  .bits .eq { border: 0; border-bottom: 1px solid var(--ink); width: 18mm; text-align: left; padding-left: 2mm; font-weight: 300; }
+  .bits th.eq { border-bottom: 0; }
+  .cols { display: grid; gap: 4mm; }
+  .cols.four { grid-template-columns: repeat(4, 1fr); }
+  .cols.two { grid-template-columns: repeat(2, 1fr); }
+  .cols table { width: 100%; }
+  .cols th { font-weight: 300; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; border: 0; border-bottom: 1px solid var(--ink); padding-bottom: .5mm; }
+  .cols td { height: 5mm; padding: 0 1.5mm; }
+  .cols td.ch { font-family: var(--emoji); font-size: 10pt; font-weight: 700; width: 9mm; }
+  .cols td.name { text-align: left; font-weight: 300; }
+
+  @media (max-width: 720px) {
+    .app { padding: var(--s2) 1rem; }
+    .sheet { width: 100%; overflow-x: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* ---- print: 4 cards per A4, or the table ---- */
+  @page { size: A4 portrait; margin: 12mm; }
+  @media print {
+    .app { padding: 0; display: block; }
+    .top, .ctl { display: none !important; }
+    .cards { display: block; }
+    .page { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 136mm 136mm; break-after: page; }
+    .page:last-child { break-after: auto; }
+    .card { display: flex; flex-direction: column; justify-content: center; align-items: center; break-inside: avoid; }
+    .card-head { width: calc(var(--cell) * 3); }
+    /* dashed cut lines between the 4 cards */
+    .card:nth-child(odd) { border-right: 1px dashed var(--ink); }
+    .card:nth-child(-n+2) { border-bottom: 1px dashed var(--ink); }
+    .sheet { width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <span class="title">Binary Bingo</span>
+    <nav class="nav" id="tabs">
+      <button type="button" data-view="cards">Cards</button>
+      <button type="button" data-view="table">Table</button>
+      <button type="button" data-view="check">Check</button>
+      <a class="link" id="projector" href="../../tools/binary-bingo/" target="_blank">Projector</a>
+    </nav>
+  </header>
+
+  <div class="ctl">
+    <label>Seed <input type="text" id="seed" spellcheck="false"></label>
+    <label data-for="cards">Cards <input type="number" id="n" min="1" max="200"></label>
+    <label data-for="check">Card <input type="number" id="card" min="1"></label>
+    <button type="button" id="print" data-for="cards table">Print</button>
+    <span class="note" id="note"></span>
+  </div>
+
+  <main>
+    <section class="view" id="cards"><div class="cards" id="card-list"></div></section>
+    <section class="view" id="table"><div class="sheet" id="sheet"></div></section>
+    <section class="view" id="check"><div class="check" id="check-out"></div></section>
+  </main>
+</div>
+
+<script src="../../tools/binary-bingo/bingo.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const VIEWS = ['cards', 'table', 'check'];
+
+  // everything lives in the URL: ?view=cards&seed=devine&n=30&card=1
+  const params = new URLSearchParams(location.search);
+  const S = {
+    view: VIEWS.includes(params.get('view')) ? params.get('view') : 'cards',
+    seed: Bingo.seedFrom(params),
+    n: Math.min(200, Math.max(1, +params.get('n') || 30)),
+    card: Math.max(1, +params.get('card') || 1),
+  };
+  const pad = n => String(n).padStart(2, '0');
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  function cardHTML(n, called) {
+    const cells = Bingo.card(S.seed, n).map(c => `<div class="cell${called && called.has(c.id) ? ' hit' : ''}">${c.answer}</div>`).join('');
+    return `<article class="card"><div class="card-head"><span>Binary Bingo</span>${called ? '' : '<span class="name"></span>'}<span>Card ${pad(n)} · ${esc(S.seed)}</span></div><div class="grid">${cells}</div></article>`;
+  }
+
+  function renderCards() {
+    // 4 cards per A4, cut along the dashed lines
+    let html = '';
+    for (let i = 1; i <= S.n; i++) html += (i % 4 === 1 ? '<div class="page">' : '') + cardHTML(i) + (i % 4 === 0 || i === S.n ? '</div>' : '');
+    $('card-list').innerHTML = html;
+    $('note').textContent = `${S.n} cards on ${Math.ceil(S.n / 4)} pages. Same seed, same cards.`;
+  }
+
+  function renderTable() {
+    const vals = [128, 64, 32, 16, 8, 4, 2, 1];
+    const blank = '<tr>' + vals.map(() => '<td></td>').join('') + '<td class="eq">=</td></tr>';
+    const bits = `<table class="bits"><tr>${vals.map(v => `<th>${v}</th>`).join('')}<th class="eq"></th></tr>${blank.repeat(10)}</table>`;
+
+    const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'];
+    const ascii = [0, 13, 26, 39].map(o => `<table><tr><th></th><th>Dec</th></tr>${letters.slice(o, o + 13).map(ch =>
+      `<tr><td class="ch">${ch}</td><td>${ch.charCodeAt(0)}</td></tr>`).join('')}</table>`).join('');
+
+    const uni = [...Bingo.UNICODE, ...Bingo.DECOYS].sort((a, b) => a[0].codePointAt(0) - b[0].codePointAt(0));
+    const half = Math.ceil(uni.length / 2);
+    const unicode = [uni.slice(0, half), uni.slice(half)].map(rows => `<table><tr><th>Code point</th><th></th><th>Name</th></tr>${rows.map(([ch, name]) =>
+      `<tr><td>${Bingo.cp(ch)}</td><td class="ch">${ch}</td><td class="name">${name}</td></tr>`).join('')}</table>`).join('');
+
+    $('sheet').innerHTML = `
+      <h1>Binary Bingo <span>Decoding table</span></h1>
+      <section><h2>Bit values</h2><p>Write the 8 bits under their values. Add up the values that have a 1.</p>${bits}</section>
+      <section><h2>ASCII letters</h2><p>One byte per letter. Decode the bits to a number, then find the letter. A = 65, every next letter is one higher, lowercase is uppercase + 32.</p><div class="cols four">${ascii}</div></section>
+      <section><h2>Unicode</h2><p>Every character in every language has a number: its code point, written in hex after U+.</p><div class="cols two">${unicode}</div></section>`;
+    $('note').textContent = 'One per student, next to their card.';
+  }
+
+  function renderCheck() {
+    const order = Bingo.calls(S.seed);
+    const { pos } = Bingo.load(S.seed);
+    // a code counts once it is on the screen
+    const called = new Set(order.slice(0, pos + 1).map(p => p.id));
+    const cells = Bingo.card(S.seed, S.card);
+    const hit = i => called.has(cells[i].id);
+    const lines = Bingo.LINES.filter(l => l.every(hit)).length;
+    const full = cells.every((_, i) => hit(i));
+    const status = full ? 'Full card' : lines ? `Bingo${lines > 1 ? ' × ' + lines : ''}` : 'No line yet';
+    $('check-out').innerHTML = `<div class="status">${status}</div>${cardHTML(S.card, called)}`;
+    $('note').textContent = pos < 0
+      ? 'Nothing called yet. Check reads the projector in this browser.'
+      : `${pos + 1} of ${order.length} called. Reads the projector in this browser.`;
+  }
+
+  function render() {
+    VIEWS.forEach(v => $(v).classList.toggle('on', v === S.view));
+    $('tabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+    document.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(S.view); });
+    $('seed').value = S.seed; $('n').value = S.n; $('card').value = S.card;
+    $('projector').href = '../../tools/binary-bingo/?' + new URLSearchParams({ seed: S.seed });
+    ({ cards: renderCards, table: renderTable, check: renderCheck })[S.view]();
+    const q = new URLSearchParams({ view: S.view, seed: S.seed, n: S.n, card: S.card });
+    history.replaceState(null, '', '?' + q);
+  }
+
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { S.view = b.dataset.view; render(); } });
+  $('seed').addEventListener('change', () => { S.seed = $('seed').value.trim() || Bingo.DEFAULT_SEED; render(); });
+  $('n').addEventListener('change', () => { S.n = Math.min(200, Math.max(1, +$('n').value || 1)); render(); });
+  $('card').addEventListener('change', () => { S.card = Math.max(1, +$('card').value || 1); render(); });
+  $('print').addEventListener('click', () => print());
+  // the projector runs in another tab: follow its progress live
+  addEventListener('storage', () => { if (S.view === 'check') renderCheck(); });
+  render();
+})();
+</script>
+</body>
+</html>
