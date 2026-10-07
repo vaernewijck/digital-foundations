@@ -45,6 +45,7 @@
 <body>
 <header>
   <label class="btn">Open image<input type="file" id="file" accept="image/*"></label>
+  <button id="egg">Egg</button>
   <button id="fit">Fit</button>
   <span class="zoom" id="zoom"></span>
 </header>
@@ -205,6 +206,15 @@
     img.onload = () => { load(img); URL.revokeObjectURL(img.src); };
     img.src = URL.createObjectURL(f);
   }
+  // The egg from the world_record_egg Instagram post; falls back to the sunset if it can't be read
+  // (e.g. opened from file://, where the canvas would be tainted).
+  function openEgg() {
+    const img = new Image();
+    img.onload = () => { try { load(img); } catch (err) { load(sunset()); } };
+    img.onerror = () => load(sunset());
+    img.src = 'egg.jpg';
+  }
+  document.getElementById('egg').addEventListener('click', openEgg);
   document.getElementById('file').addEventListener('change', e => openFile(e.target.files[0]));
   document.getElementById('fit').addEventListener('click', fit);
   stage.addEventListener('dragover', e => { e.preventDefault(); stage.classList.add('drop'); });
@@ -212,7 +222,7 @@
   stage.addEventListener('drop', e => { e.preventDefault(); stage.classList.remove('drop'); openFile(e.dataTransfer.files[0]); });
 
   window.addEventListener('resize', () => { size(); draw(); });
-  size(); load(sunset());
+  size(); load(sunset()); openEgg();
   document.fonts && document.fonts.ready.then(draw);
 </script>
 </body>
