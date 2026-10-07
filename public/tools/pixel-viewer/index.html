@@ -6,58 +6,70 @@
 <title>Pixel Viewer - Digital Foundations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #161615; --paper: #f8f8f8; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --ink: #161615; --paper: #ffffff; --s2: .94rem; --s3: 1.41rem; }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
   html, body { height: 100%; }
   body {
     background: var(--paper); color: var(--ink);
     font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem; line-height: 1.4; letter-spacing: .02rem;
     font-feature-settings: "zero", "tnum";
     -webkit-font-smoothing: antialiased;
     display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
   }
-  header, footer { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.5rem; flex-wrap: wrap; }
-  header { border-bottom: 1px solid var(--ink); }
-  footer { border-top: 1px solid var(--ink); font-size: clamp(1rem, 2.2vw, 1.6rem); }
-  .zoom { font-weight: 300; margin-left: auto; }
+
+  /* ---- shell ---- */
+  .top { display: flex; align-items: flex-start; justify-content: flex-end; gap: var(--s3); flex-wrap: wrap; padding: var(--s3) 3rem 0; }
   button, label.btn {
-    font: inherit; font-size: .85rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-    background: transparent; color: var(--ink); border: 2px solid var(--ink);
-    padding: .4rem 1.2rem; cursor: pointer;
+    font: inherit; font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+    background: none; color: var(--ink); border: 0; padding: .2rem 0;
+    cursor: pointer; white-space: nowrap; opacity: .5;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .3em;
+    transition: opacity .15s ease;
   }
-  button:hover, label.btn:hover { background: var(--ink); color: var(--paper); }
-  button:focus-visible, label.btn:focus-within { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  button:hover, label.btn:hover { opacity: 1; }
+  button:focus-visible, label.btn:focus-within { outline: 1px solid var(--ink); outline-offset: 2px; }
   input[type=file] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  /* ---- stage ---- */
   #stage { position: relative; min-height: 0; cursor: grab; touch-action: none; }
   #stage.dragging { cursor: grabbing; }
-  #stage.drop { outline: 4px dashed var(--ink); outline-offset: -1rem; }
+  #stage.drop { outline: 1px dashed var(--ink); outline-offset: -1rem; }
   canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .swatch { width: 2.5rem; height: 2.5rem; border: 2px solid var(--ink); flex: none; }
-  .ch { display: grid; line-height: 1.15; }
-  .ch b { font-weight: 700; }
-  .ch small { font-weight: 300; font-size: .6em; letter-spacing: .04em; }
-  .hex { font-weight: 700; letter-spacing: .04em; }
-  .hint { font-weight: 300; opacity: .5; font-size: .8em; }
+
+  /* ---- readout ---- */
+  #readout { min-height: 6.5rem; padding: 0 3rem var(--s3); display: flex; align-items: center; justify-content: center; gap: 2rem; }
+  .swatch { width: 3rem; height: 3rem; flex: none; box-shadow: inset 0 0 0 1px rgba(22,22,21,.15); }
+  .ch { display: grid; justify-items: center; gap: .2rem; }
+  .label { font-size: .625rem; font-weight: 300; letter-spacing: .18em; text-transform: uppercase; opacity: .5; }
+  .num { font-size: 2rem; font-weight: 300; line-height: 1; }
+  .bin { font-size: .75rem; font-weight: 300; opacity: .5; letter-spacing: .08em; }
+  .hint { font-size: .75rem; font-weight: 300; opacity: .5; text-align: center; }
+
+  @media (max-width: 480px) {
+    .top, #readout { padding-left: 1rem; padding-right: 1rem; }
+    #readout { gap: 1rem; }
+    .num { font-size: 1.4rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<header>
-  <label class="btn">Open image<input type="file" id="file" accept="image/*"></label>
-  <button id="egg">Egg</button>
-  <button id="fit">Fit</button>
-  <span class="zoom" id="zoom"></span>
+<header class="top">
+  <label class="btn">Your photo<input type="file" id="file" accept="image/*"></label>
+  <button id="egg" type="button">Egg</button>
+  <button id="fit" type="button">Reset zoom</button>
 </header>
 <div id="stage"><canvas id="view"></canvas></div>
-<footer id="readout"><span class="hint">Scroll to zoom · drag to move · hover a pixel</span></footer>
+<footer id="readout"></footer>
 <script>
   const MAX_SIDE = 2000;
   const stage = document.getElementById('stage');
   const view = document.getElementById('view');
   const ctx = view.getContext('2d');
   const readout = document.getElementById('readout');
-  const zoomLabel = document.getElementById('zoom');
 
   let src = document.createElement('canvas');
   let pixels = null;               // Uint8ClampedArray, RGBA per pixel
@@ -114,7 +126,7 @@
 
   function draw() {
     const w = stage.clientWidth, h = stage.clientHeight;
-    ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
     ctx.imageSmoothingEnabled = scale < 1;
     ctx.drawImage(src, ox, oy, src.width * scale, src.height * scale);
 
@@ -131,11 +143,11 @@
 
     if (scale >= 56) {
       const fs = Math.min(18, scale / 5);
-      ctx.font = `700 ${fs}px 'Space Grotesk', sans-serif`;
+      ctx.font = `400 ${fs}px 'Space Grotesk', sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
         const c = rgb(x, y), cx = ox + (x + .5) * scale, cy = oy + (y + .5) * scale;
-        ctx.fillStyle = light(c) ? '#161615' : '#f8f8f8';
+        ctx.fillStyle = light(c) ? '#161615' : '#ffffff';
         c.forEach((v, i) => ctx.fillText(v, cx, cy + (i - 1) * fs * 1.2));
       }
     }
@@ -143,21 +155,24 @@
     if (hover) {
       ctx.strokeStyle = '#161615'; ctx.lineWidth = 3;
       ctx.strokeRect(ox + hover.x * scale, oy + hover.y * scale, scale, scale);
-      ctx.strokeStyle = '#f8f8f8'; ctx.lineWidth = 1;
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
       ctx.strokeRect(ox + hover.x * scale - 2, oy + hover.y * scale - 2, scale + 4, scale + 4);
     }
 
-    zoomLabel.textContent = `${src.width} × ${src.height} px · ${scale >= 1 ? Math.round(scale) + '×' : Math.round(scale * 100) + '%'}`;
+    if (!hover) showReadout();
   }
 
   function showReadout() {
-    if (!hover) { readout.innerHTML = '<span class="hint">Scroll to zoom · drag to move · hover a pixel</span>'; return; }
+    if (!hover) {
+      readout.innerHTML = `<p class="hint">${src.width} × ${src.height} pixels · scroll to zoom in · hover a pixel to see its colour</p>`;
+      return;
+    }
     const c = rgb(hover.x, hover.y);
     readout.innerHTML =
       `<span class="swatch" style="background:${hex(c)}"></span>` +
-      ['R', 'G', 'B'].map((n, i) => `<span class="ch"><b>${n} ${c[i]}</b><small>${bin(c[i])}</small></span>`).join('') +
-      `<span class="hex">${hex(c)}</span>` +
-      `<span class="hint">pixel ${hover.x}, ${hover.y}</span>`;
+      ['Red', 'Green', 'Blue'].map((n, i) =>
+        `<span class="ch"><span class="label">${n}</span><span class="num">${c[i]}</span><span class="bin">${bin(c[i])}</span></span>`).join('') +
+      `<span class="ch"><span class="label">Hex</span><span class="num">${hex(c)}</span><span class="bin">pixel ${hover.x}, ${hover.y}</span></span>`;
   }
 
   function zoomAt(f, sx, sy) {
