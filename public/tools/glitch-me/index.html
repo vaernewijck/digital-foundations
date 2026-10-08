@@ -135,7 +135,7 @@
       <summary class="k">Header <span>orange bytes: how to read the rest</span></summary>
       <div id="card"></div>
     </details>
-    <div class="hexhead"><span>byte</span><span>00</span><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>0A</span><span>0B</span><span>0C</span><span>0D</span><span>0E</span><span>0F</span><span></span><span style="grid-column: span 16">as text</span></div>
+    <div class="hexhead"><span>byte</span><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span></span><span style="grid-column: span 16">as text</span></div>
     <div id="hex" tabindex="0"><div id="spacer"></div><div id="rows"></div></div>
     <div class="box">
       <p id="what"></p>
@@ -490,7 +490,7 @@
   const pick = n => () => { amountEl.value = n; };
   const result = () => tTotal % 3
     ? Math.abs(tTotal) + ' bytes: not a whole number of pixels. Every pixel now starts at the wrong byte: ' + swap(tTotal) + '. <b>The colours swap.</b>'
-    : Math.abs(tTotal) + ' bytes = exactly ' + Math.abs(tTotal) / 3 + ' pixels. The rows slide, <b>the colours are right.</b>';
+    : Math.abs(tTotal) + ' bytes = exactly ' + Math.abs(tTotal) / 3 + ' pixel' + (Math.abs(tTotal) === 3 ? '' : 's') + '. The rows slide, <b>the colours are right.</b>';
   const TOUR = [
     { el: '#stage', text: 'Click a spot on your photo. Everything below it will change.', wait: 'pick' },
     { el: '#hex', text: () => {
@@ -505,7 +505,7 @@
     { el: '.act.pix', text: 'Now shift by <b>1</b> byte: click <b>Right →</b>.', wait: 'shift', before: pick(1) },
     { el: '#stage', text: result },
     { el: '.act.pix', text: 'Shift by <b>2</b> more: click <b>Right →</b>.', wait: 'shift', before: pick(2) },
-    { el: '#stage', text: () => result() + ' <b>Same bytes, read from the right starting point.</b>' },
+    { el: '#stage', text: () => result() + (tTotal % 3 ? '' : ' <b>Same bytes, read from the right starting point.</b>') },
     { el: '.act.head', text: 'The first byte, <b>42</b>, is the letter B of "BM" in ASCII: "I am a BMP". Set it to <b>00</b>.', wait: 'broken', before: () => select(0, true) },
     { el: '#undo', text: 'No picture. Without the header, the bytes are just numbers. Take a screenshot, then click <b>Undo</b>.', wait: 'undo' },
     { el: null, text: 'Your turn. Tip: start just under your face, so it stays recognisable.' },
