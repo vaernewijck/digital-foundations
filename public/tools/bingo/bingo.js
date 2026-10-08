@@ -1,28 +1,35 @@
 // Bingo: shared by the projector (tools/bingo/) and the card maker (teach/bingo/).
 // Same seed = same cards and same call order, so the two pages always agree.
+// Changing the pool changes every card: printed cards then no longer match.
 (() => {
   const bin8 = n => n.toString(2).padStart(8, '0');
+  const hex2 = n => '0x' + n.toString(16).toUpperCase().padStart(2, '0');
   const cp = c => 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
 
-  // numbers stay out of the letter range (65-122), so a code never means two things
-  const NUMS = [1, 2, 3, 5, 7, 8, 10, 12, 15, 16, 21, 25, 31, 42, 50, 64, 127, 128, 200, 255];
-  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabeoz';
+  // 30 items, only the numbers need adding up; everything else is a lookup on the decoding sheet.
+  // Numbers have at most three 1s and stay out of the letter range (65-122).
+  const NUMS = [6, 12, 20, 42, 48, 160];
+  const HEX_LETTERS = 'HKRWez';
+  const BIN_LETTERS = 'BFMTYo';   // never A: A is the worked example on the sheet
   const UNICODE = [
-    ['é', 'e with acute'], ['ñ', 'n with tilde'], ['ß', 'sharp s'], ['€', 'euro sign'], ['Ω', 'Greek capital omega'],
-    ['π', 'Greek small pi'], ['中', 'CJK: middle'], ['❤', 'heavy black heart'], ['😀', 'grinning face'], ['🥚', 'egg'],
+    ['é', 'e with acute'], ['ñ', 'n with tilde'], ['ß', 'sharp s'], ['€', 'euro sign'],
+    ['Ω', 'Greek capital omega'], ['π', 'Greek small pi'], ['中', 'CJK: middle'], ['❤', 'heavy black heart'],
+    ['😀', 'grinning face'], ['👍', 'thumbs up'], ['🔥', 'fire'], ['🥚', 'egg'],
   ];
-  // on the reference sheet only: never called, look-alikes so the table is a real lookup
+  // on the sheet only: never called, look-alikes so the table is a real lookup
   const DECOYS = [
     ['ç', 'c with cedilla'], ['¥', 'yen sign'], ['μ', 'Greek small mu'], ['日', 'CJK: sun, day'],
     ['😂', 'face with tears of joy'], ['🐣', 'hatching chick'],
   ];
 
+  const TASK = { num: 'Binary → number', hex: 'Hex → letter', bin: 'Binary → letter', uni: 'Unicode → character' };
   const POOL = [
-    ...NUMS.map(n => ({ id: 'n' + n, type: 'Number', code: bin8(n), answer: String(n) })),
-    ...[...LETTERS].map(ch => ({ id: 'c' + ch, type: 'Letter', code: bin8(ch.charCodeAt(0)), answer: ch })),
-    ...UNICODE.map(([ch]) => ({ id: 'u' + cp(ch), type: 'Unicode', code: cp(ch), answer: ch })),
+    ...NUMS.map(n => ({ id: 'n' + n, type: 'num', code: bin8(n), answer: String(n) })),
+    ...[...HEX_LETTERS].map(ch => ({ id: 'c' + ch, type: 'hex', code: hex2(ch.charCodeAt(0)), answer: ch })),
+    ...[...BIN_LETTERS].map(ch => ({ id: 'c' + ch, type: 'bin', code: bin8(ch.charCodeAt(0)), answer: ch })),
+    ...UNICODE.map(([ch]) => ({ id: 'u' + cp(ch), type: 'uni', code: cp(ch), answer: ch, emoji: ch.codePointAt(0) >= 0x1F000 || ch === '❤' })),
   ];
-  const QUOTA = { Number: 3, Letter: 3, Unicode: 3 };   // 3 x 3, no FREE: a FREE middle makes a line too easy
+  const QUOTA = { num: 2, hex: 2, bin: 2, uni: 3 };   // 3 x 3, no FREE: a FREE middle makes a line too easy
 
   // seeded random: xmur3 hash -> mulberry32
   function xmur3(str) {
@@ -44,10 +51,18 @@
   function card(seed, n) {
     const rng = rngFor(seed + ':card:' + n);
     let cells = [];
-    for (const type in QUOTA) cells.push(...shuffle(POOL.filter(p => p.type === type), rng).slice(0, QUOTA[type]));
+    for (const type in QUOTA) {
+      const picks = shuffle(POOL.filter(p => p.type === type), rng);
+      const chosen = picks.slice(0, QUOTA[type]);
+      // every card gets at least one emoji: swap the last Unicode pick for the first emoji left over.
+      // No extra random draws, so cards that already had an emoji stay exactly the same.
+      if (type === 'uni' && !chosen.some(p => p.emoji)) chosen[chosen.length - 1] = picks.find(p => p.emoji);
+      cells.push(...chosen);
+    }
     return shuffle(cells, rng);
   }
-  const calls = seed => shuffle(POOL, rngFor(seed + ':calls'));
+  // every round has its own order, the cards stay the same
+  const calls = (seed, round = 0) => shuffle(POOL, rngFor(seed + ':calls' + (round ? ':' + round : '')));
 
   // 3 rows, 3 columns, 2 diagonals
   const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
@@ -56,11 +71,11 @@
   const DEFAULT_SEED = 'devine';
   const KEY = seed => 'bingo:' + seed;
   function load(seed) {
-    try { return { pos: -1, ...JSON.parse(localStorage.getItem(KEY(seed)) || '{}') }; }
-    catch { return { pos: -1 }; }
+    try { return { pos: -1, round: 0, ...JSON.parse(localStorage.getItem(KEY(seed)) || '{}') }; }
+    catch { return { pos: -1, round: 0 }; }
   }
   function save(seed, state) { try { localStorage.setItem(KEY(seed), JSON.stringify(state)); } catch {} }
   const seedFrom = params => (params.get('seed') || '').trim() || DEFAULT_SEED;
 
-  window.Bingo = { POOL, LETTERS, UNICODE, DECOYS, bin8, cp, card, calls, LINES, load, save, seedFrom, storageKey: KEY, DEFAULT_SEED };
+  window.Bingo = { POOL, TASK, UNICODE, DECOYS, bin8, hex2, cp, card, calls, LINES, load, save, seedFrom, storageKey: KEY, DEFAULT_SEED };
 })();
