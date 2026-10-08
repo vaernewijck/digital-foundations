@@ -69,34 +69,63 @@
   }
   .cell.hit { background: var(--ink); color: var(--paper); }
 
+  /* "3 in a row wins" with a row, a column and a diagonal */
+  .rule { display: flex; align-items: center; gap: 2.5mm; margin-top: 3mm; font-size: 8pt; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+  .rule span { margin-right: auto; }
+  .mini { display: grid; grid-template-columns: repeat(3, 1.8mm); gap: .4mm; }
+  .mini i { height: 1.8mm; border: .5px solid var(--ink); }
+  .mini i.on { background: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
   /* ---- check ---- */
-  .check { display: grid; justify-items: center; gap: 2rem; }
-  .check .card { width: auto; }
-  .check { --cell: min(24vw, 18vh); }
+  .check { display: grid; justify-items: center; gap: 2rem; --cell: min(24vw, 18vh); }
   .status { font-size: 3rem; font-weight: 300; line-height: 1; text-align: center; }
 
-  /* ---- decoding table ---- */
+  /* ---- answers ---- */
+  .answers { width: min(100%, 40rem); margin: 0 auto; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .answers td, .answers th { border: 0; border-bottom: 1px solid var(--ink); padding: .35rem .5rem; text-align: left; }
+  .answers th { font-size: .625rem; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+  .answers td:first-child { opacity: .5; width: 3rem; }
+  .answers td.code { font-weight: 500; letter-spacing: .04em; }
+  .answers td.ans { font-family: var(--emoji); font-size: 1.25rem; font-weight: 700; }
+
+  /* ---- decoding sheet ---- */
   .sheet { width: 186mm; margin: 0 auto; font-size: 8.5pt; }
-  .sheet h1 { font-size: 9pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6mm; display: flex; justify-content: space-between; }
-  .sheet h1 span { font-weight: 300; }
+  .sheet header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 2mm; margin-bottom: 5mm; }
+  .sheet header b { font-size: 9pt; letter-spacing: .12em; text-transform: uppercase; }
+  .sheet header span { font-weight: 500; }
   .sheet h2 { font-size: 8pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-  .sheet section { margin-bottom: 7mm; }
-  .sheet p { font-weight: 300; margin: 1mm 0 2.5mm; }
+  .sheet section { margin-bottom: 6mm; }
+  .sheet p { font-weight: 300; margin: .8mm 0 2.5mm; }
+  .sheet p b { font-weight: 700; }
   table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
   td, th { border: 1px solid var(--ink); text-align: center; }
+
+  /* bit rows: every box carries its value, so nobody has to look up */
   .bits { width: 100%; table-layout: fixed; }
-  .bits th { font-weight: 700; height: 6mm; }
-  .bits td { height: 7mm; }
-  .bits .eq { border: 0; border-bottom: 1px solid var(--ink); width: 18mm; text-align: left; padding-left: 2mm; font-weight: 300; }
-  .bits th.eq { border-bottom: 0; }
+  .bits td { height: 7.5mm; position: relative; font-size: 11pt; font-weight: 500; }
+  .bits td small { position: absolute; top: .5mm; left: 1mm; font-size: 6pt; font-weight: 300; opacity: .6; }
+  .bits td.eq { width: 46mm; border: 0; border-bottom: 1px solid var(--ink); text-align: left; padding-left: 2mm; font-size: 8.5pt; font-weight: 300; }
+  .bits tr.ex td { color: #8a8a88; }
+  .bits tr.ex td.eq { color: var(--ink); }
+
   .cols { display: grid; gap: 4mm; }
   .cols.four { grid-template-columns: repeat(4, 1fr); }
   .cols.two { grid-template-columns: repeat(2, 1fr); }
   .cols table { width: 100%; }
   .cols th { font-weight: 300; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; border: 0; border-bottom: 1px solid var(--ink); padding-bottom: .5mm; }
-  .cols td { height: 5mm; padding: 0 1.5mm; }
-  .cols td.ch { font-family: var(--emoji); font-size: 10pt; font-weight: 700; width: 9mm; }
+  .cols td { height: 5mm; padding: 0 1.2mm; }
+  .cols td.ch { font-family: var(--emoji); font-size: 10pt; font-weight: 700; width: 7mm; }
   .cols td.name { text-align: left; font-weight: 300; }
+  .sheet-page + .sheet-page { margin-top: 12mm; }
+
+  .hexd { width: 100%; table-layout: fixed; }
+  .hexd th { width: 16mm; font-size: 7pt; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; border: 0; text-align: left; }
+  .hexd td { height: 6mm; font-size: 8pt; }
+  .hexd td b { font-size: 10pt; }
+
+  .ascii td { height: 6.6mm; padding: 0 1mm; }
+  .ascii td.ch { font-size: 11pt; width: 11mm; }
+  .ascii td.ch i { font-style: normal; font-size: 6.5pt; font-weight: 300; letter-spacing: .04em; }
 
   @media (max-width: 720px) {
     .app { padding: var(--s2) 1rem; }
@@ -104,7 +133,7 @@
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-  /* ---- print: 4 cards per A4, or the table ---- */
+  /* ---- print: 4 cards per A4, the sheet, or the answers ---- */
   @page { size: A4 portrait; margin: 12mm; }
   @media print {
     .app { padding: 0; display: block; }
@@ -113,11 +142,14 @@
     .page { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 136mm 136mm; break-after: page; }
     .page:last-child { break-after: auto; }
     .card { display: flex; flex-direction: column; justify-content: center; align-items: center; break-inside: avoid; }
-    .card-head { width: calc(var(--cell) * 3); }
+    .card-head, .rule { width: calc(var(--cell) * 3); }
     /* dashed cut lines between the 4 cards */
     .card:nth-child(odd) { border-right: 1px dashed var(--ink); }
     .card:nth-child(-n+2) { border-bottom: 1px dashed var(--ink); }
     .sheet { width: auto; }
+    .sheet-page { break-after: page; }
+    .sheet-page:last-child { break-after: auto; }
+    .sheet-page + .sheet-page { margin-top: 0; }
   }
 </style>
 </head>
@@ -127,7 +159,8 @@
     <span class="title">Bingo</span>
     <nav class="nav" id="tabs">
       <button type="button" data-view="cards">Cards</button>
-      <button type="button" data-view="table">Table</button>
+      <button type="button" data-view="table">Sheet</button>
+      <button type="button" data-view="answers">Answers</button>
       <button type="button" data-view="check">Check</button>
       <a class="link" id="projector" href="../../tools/bingo/" target="_blank">Projector</a>
     </nav>
@@ -136,14 +169,16 @@
   <div class="ctl">
     <label>Seed <input type="text" id="seed" spellcheck="false"></label>
     <label data-for="cards">Cards <input type="number" id="n" min="1" max="200"></label>
+    <label data-for="answers">Round <input type="number" id="round" min="1"></label>
     <label data-for="check">Card <input type="number" id="card" min="1"></label>
-    <button type="button" id="print" data-for="cards table">Print</button>
+    <button type="button" id="print" data-for="cards table answers">Print</button>
     <span class="note" id="note"></span>
   </div>
 
   <main>
     <section class="view" id="cards"><div class="cards" id="card-list"></div></section>
     <section class="view" id="table"><div class="sheet" id="sheet"></div></section>
+    <section class="view" id="answers"><table class="answers" id="answer-list"></table></section>
     <section class="view" id="check"><div class="check" id="check-out"></div></section>
   </main>
 </div>
@@ -152,22 +187,26 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const VIEWS = ['cards', 'table', 'check'];
+  const VIEWS = ['cards', 'table', 'answers', 'check'];
 
-  // everything lives in the URL: ?view=cards&seed=devine&n=30&card=1
+  // everything lives in the URL: ?view=cards&seed=devine&n=30&card=1&round=1
   const params = new URLSearchParams(location.search);
   const S = {
     view: VIEWS.includes(params.get('view')) ? params.get('view') : 'cards',
     seed: Bingo.seedFrom(params),
     n: Math.min(200, Math.max(1, +params.get('n') || 30)),
     card: Math.max(1, +params.get('card') || 1),
+    round: Math.max(1, +params.get('round') || Bingo.load(Bingo.seedFrom(params)).round + 1),   // shown from 1, stored from 0
   };
   const pad = n => String(n).padStart(2, '0');
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
+  const mini = cells => `<span class="mini">${[...Array(9).keys()].map(i => `<i${cells.includes(i) ? ' class="on"' : ''}></i>`).join('')}</span>`;
+  const RULE = `<div class="rule"><span>3 in a row wins</span>${mini([3, 4, 5])}${mini([1, 4, 7])}${mini([0, 4, 8])}</div>`;
+
   function cardHTML(n, called) {
     const cells = Bingo.card(S.seed, n).map(c => `<div class="cell${called && called.has(c.id) ? ' hit' : ''}">${c.answer}</div>`).join('');
-    return `<article class="card"><div class="card-head"><span>Bingo</span>${called ? '' : '<span class="name"></span>'}<span>Card ${pad(n)} · ${esc(S.seed)}</span></div><div class="grid">${cells}</div></article>`;
+    return `<article class="card"><div class="card-head"><span>Bingo</span>${called ? '' : '<span class="name"></span>'}<span>Card ${pad(n)} · ${esc(S.seed)}</span></div><div class="grid">${cells}</div>${called ? '' : RULE}</article>`;
   }
 
   function renderCards() {
@@ -178,31 +217,53 @@
     $('note').textContent = `${S.n} cards on ${Math.ceil(S.n / 4)} pages. Same seed, same cards.`;
   }
 
+  // two sheets per student: 1 decoding (bits, hex digits, Unicode), 2 the full ASCII table
+  const CONTROL = 'NUL SOH STX ETX EOT ENQ ACK BEL BS TAB LF VT FF CR SO SI DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM SUB ESC FS GS RS US'.split(' ');
+  const asciiChar = c => c < 32 ? `<i>${CONTROL[c]}</i>` : c === 32 ? '<i>space</i>' : c === 127 ? '<i>DEL</i>' : esc(String.fromCharCode(c));
+
   function renderTable() {
     const vals = [128, 64, 32, 16, 8, 4, 2, 1];
-    const blank = '<tr>' + vals.map(() => '<td></td>').join('') + '<td class="eq">=</td></tr>';
-    const bits = `<table class="bits"><tr>${vals.map(v => `<th>${v}</th>`).join('')}<th class="eq"></th></tr>${blank.repeat(10)}</table>`;
+    const row = (bits, eq, cls = '') => `<tr${cls ? ` class="${cls}"` : ''}>${vals.map((v, i) => `<td><small>${v}</small>${bits[i] || ''}</td>`).join('')}<td class="eq">${eq}</td></tr>`;
+    const bits = `<table class="bits">${row('00101010', '32 + 8 + 2 = <b>42</b>', 'ex')}${row('', '=').repeat(14)}</table>`;
 
-    const letters = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'];
-    const ascii = [0, 13, 26, 39].map(o => `<table><tr><th></th><th>Dec</th></tr>${letters.slice(o, o + 13).map(ch =>
-      `<tr><td class="ch">${ch}</td><td>${ch.charCodeAt(0)}</td></tr>`).join('')}</table>`).join('');
+    const digits = [...Array(16).keys()];
+    const hex = `<table class="hexd"><tr><th>Hex</th>${digits.map(d => `<td><b>${d.toString(16).toUpperCase()}</b></td>`).join('')}</tr>
+      <tr><th>Dec</th>${digits.map(d => `<td>${d}</td>`).join('')}</tr>
+      <tr><th>Binary</th>${digits.map(d => `<td>${d.toString(2).padStart(4, '0')}</td>`).join('')}</tr></table>`;
 
     const uni = [...Bingo.UNICODE, ...Bingo.DECOYS].sort((a, b) => a[0].codePointAt(0) - b[0].codePointAt(0));
     const half = Math.ceil(uni.length / 2);
     const unicode = [uni.slice(0, half), uni.slice(half)].map(rows => `<table><tr><th>Code point</th><th></th><th>Name</th></tr>${rows.map(([ch, name]) =>
       `<tr><td>${Bingo.cp(ch)}</td><td class="ch">${ch}</td><td class="name">${name}</td></tr>`).join('')}</table>`).join('');
 
+    const ascii = [0, 32, 64, 96].map(o => `<table class="ascii"><tr><th>Dec</th><th>Hex</th><th>Binary</th><th></th></tr>${[...Array(32).keys()].map(i => {
+      const c = o + i;
+      return `<tr><td>${c}</td><td>${Bingo.hex2(c)}</td><td>${Bingo.bin8(c)}</td><td class="ch">${asciiChar(c)}</td></tr>`;
+    }).join('')}</table>`).join('');
+
+    const head = n => `<header><b>Bingo · Sheet ${n} of 2</b><span>3 in a row wins: across, down or diagonal. Shout BINGO!</span></header>`;
     $('sheet').innerHTML = `
-      <h1>Bingo <span>Decoding table</span></h1>
-      <section><h2>Bit values</h2><p>Write the 8 bits under their values. Add up the values that have a 1.</p>${bits}</section>
-      <section><h2>ASCII letters</h2><p>One byte per letter. Decode the bits to a number, then find the letter. A = 65, every next letter is one higher, lowercase is uppercase + 32.</p><div class="cols four">${ascii}</div></section>
-      <section><h2>Unicode</h2><p>Every character in every language has a number: its code point, written in hex after U+.</p><div class="cols two">${unicode}</div></section>`;
-    $('note').textContent = 'One per student, next to their card.';
+      <div class="sheet-page">${head(1)}
+        <section><h2>Binary → number</h2><p>Write each bit in a box. Add up the small values of the boxes with a 1. The grey row is an example.</p>${bits}</section>
+        <section><h2>Hex digits</h2><p>One hex digit is 4 bits. Two hex digits are one byte: <b>0x48 = 0100 1000</b>. For a hex or binary letter, use the ASCII table on sheet 2.</p>${hex}</section>
+        <section><h2>Unicode → character</h2><p>Find the code point. Unicode starts where ASCII stops: <b>U+0041 = A</b> again. Careful, some characters look alike.</p><div class="cols two">${unicode}</div></section>
+      </div>
+      <div class="sheet-page">${head(2)}
+        <section><h2>ASCII → letter</h2><p>Find the code in the Hex or the Binary column. <b>0x41 = 65 = 01000001 = A</b>: one byte, written three ways. Codes 0 to 31 are control codes, not letters.</p><div class="cols four">${ascii}</div></section>
+      </div>`;
+    $('note').textContent = 'Two sheets per student, next to their card.';
+  }
+
+  function renderAnswers() {
+    const order = Bingo.calls(S.seed, S.round - 1);
+    $('answer-list').innerHTML = `<tr><th>#</th><th>Task</th><th>Code</th><th>Answer</th></tr>` + order.map((it, i) =>
+      `<tr><td>${i + 1}</td><td>${Bingo.TASK[it.type]}</td><td class="code">${it.code}</td><td class="ans">${it.answer}</td></tr>`).join('');
+    $('note').textContent = `Seed ${S.seed}, round ${S.round}. Works on any device: the order only depends on the seed and the round.`;
   }
 
   function renderCheck() {
-    const order = Bingo.calls(S.seed);
-    const { pos } = Bingo.load(S.seed);
+    const { pos, round } = Bingo.load(S.seed);
+    const order = Bingo.calls(S.seed, round);
     // a code counts once it is on the screen
     const called = new Set(order.slice(0, pos + 1).map(p => p.id));
     const cells = Bingo.card(S.seed, S.card);
@@ -213,17 +274,17 @@
     $('check-out').innerHTML = `<div class="status">${status}</div>${cardHTML(S.card, called)}`;
     $('note').textContent = pos < 0
       ? 'Nothing called yet. Check reads the projector in this browser.'
-      : `${pos + 1} of ${order.length} called. Reads the projector in this browser.`;
+      : `Round ${round + 1}: ${pos + 1} of ${order.length} called. Reads the projector in this browser.`;
   }
 
   function render() {
     VIEWS.forEach(v => $(v).classList.toggle('on', v === S.view));
     $('tabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
     document.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(S.view); });
-    $('seed').value = S.seed; $('n').value = S.n; $('card').value = S.card;
+    $('seed').value = S.seed; $('n').value = S.n; $('card').value = S.card; $('round').value = S.round;
     $('projector').href = '../../tools/bingo/?' + new URLSearchParams({ seed: S.seed });
-    ({ cards: renderCards, table: renderTable, check: renderCheck })[S.view]();
-    const q = new URLSearchParams({ view: S.view, seed: S.seed, n: S.n, card: S.card });
+    ({ cards: renderCards, table: renderTable, answers: renderAnswers, check: renderCheck })[S.view]();
+    const q = new URLSearchParams({ view: S.view, seed: S.seed, n: S.n, card: S.card, round: S.round });
     history.replaceState(null, '', '?' + q);
   }
 
@@ -231,9 +292,14 @@
   $('seed').addEventListener('change', () => { S.seed = $('seed').value.trim() || Bingo.DEFAULT_SEED; render(); });
   $('n').addEventListener('change', () => { S.n = Math.min(200, Math.max(1, +$('n').value || 1)); render(); });
   $('card').addEventListener('change', () => { S.card = Math.max(1, +$('card').value || 1); render(); });
+  $('round').addEventListener('change', () => { S.round = Math.max(1, +$('round').value || 1); render(); });
   $('print').addEventListener('click', () => print());
   // the projector runs in another tab: follow its progress live
-  addEventListener('storage', () => { if (S.view === 'check') renderCheck(); });
+  addEventListener('storage', e => {
+    if (e.key !== Bingo.storageKey(S.seed)) return;
+    if (S.view === 'check') renderCheck();
+    if (S.view === 'answers') { S.round = Bingo.load(S.seed).round + 1; render(); }
+  });
   render();
 })();
 </script>
