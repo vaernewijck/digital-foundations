@@ -59,8 +59,8 @@
   .act .k { margin: 0; min-width: 5.5rem; }
   .act button { padding: .3rem .6rem; }
   .act .small { font-weight: 400; letter-spacing: 0; }
-  #amount { font: inherit; font-size: .9rem; width: 4.5rem; padding: .3rem .4rem; border: 2px solid var(--ink); background: transparent; color: var(--ink); }
-  #amount:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .act input[type=number] { font: inherit; font-size: .9rem; width: 4.5rem; padding: .3rem .4rem; border: 2px solid var(--ink); background: transparent; color: var(--ink); }
+  .act input[type=number]:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
   .act .hint { font-weight: 300; font-size: .8rem; opacity: .6; }
   .pix[hidden], .head[hidden] { display: none; }
   .box { padding: 1rem 1.25rem; }
@@ -154,6 +154,20 @@
       <div class="act pix">
         <span class="k">Smear</span>
         <button id="smear">Repeat row ↓</button>
+        <input type="number" id="smearRows" min="1" max="999" value="20" aria-label="Number of rows">
+        <span class="hint">rows</span>
+      </div>
+      <div class="act pix">
+        <span class="k">Colour</span>
+        <button id="invert">Invert ↓</button>
+      </div>
+      <div class="act pix">
+        <span class="k">No</span>
+        <button data-ch="2" data-to="0">Red</button><button data-ch="1" data-to="0">Green</button><button data-ch="0" data-to="0">Blue</button>
+      </div>
+      <div class="act pix">
+        <span class="k">Full</span>
+        <button data-ch="2" data-to="255">Red</button><button data-ch="1" data-to="255">Green</button><button data-ch="0" data-to="255">Blue</button>
       </div>
     </div>
   </div>
@@ -347,6 +361,7 @@
     document.getElementById('what').innerHTML = s;
     document.querySelectorAll('.pix').forEach(el => el.hidden = head);
     document.querySelectorAll('.head').forEach(el => el.hidden = !head);
+    document.querySelectorAll('[data-ch], #smear').forEach(b => b.disabled = !p);
     if (tStep >= 0) { readout.innerHTML = ''; return; }   // the tour explains it
     readout.innerHTML = last || (head ? 'Header byte: change it and see what survives.' : 'Shift everything below, or repeat the row.');
   }
@@ -416,18 +431,42 @@
     if (readHeader(file).error) tourEvent('broken');
   }
 
-  // Smear: copy one row of pixels, starting here, and paste it over the next 20 rows.
-  function smear() {
+  // Smear: copy one row of pixels, starting here, and paste it over the next n rows.
+  // Then select the last pasted row, so the next click carries on from there.
+  function smear(n) {
     if (!info || info.error) return;
+    if (sel + info.stride >= file.length) { last = 'This is the last row: nothing below to paste over.'; update(false); return; }
     remember();
     const row = file.slice(sel, sel + info.stride);
-    for (let k = 1; k <= 20; k++) {
+    let k = 1;
+    for (; k <= n; k++) {
       const at = sel + k * info.stride;
       if (at >= file.length) break;
       file.set(row.subarray(0, Math.min(row.length, file.length - at)), at);
     }
     half = false;
-    last = 'One row, pasted 20 times.';
+    update(true);
+    select(Math.min(file.length - 1, sel + (k - 1) * info.stride), true);
+    last = 'One row, pasted ' + (k - 1) + (k === 2 ? ' time' : ' times') + '. Click again to keep going.';
+  }
+
+  // Invert: every byte from here becomes 255 minus itself. Dark turns light, every colour turns into its opposite.
+  function invert() {
+    remember();
+    for (let i = sel; i < file.length; i++) file[i] = 255 - file[i];
+    half = false;
+    last = 'Every byte below became 255 − itself: dark is now light.';
+    update(true);
+  }
+
+  // Every 3rd byte: one colour of every pixel from this one on, set to one value. ch: 0 blue, 1 green, 2 red.
+  function everyThird(ch, v) {
+    const p = pixelOf(sel);
+    if (!p) return;
+    remember();
+    for (let i = byteOf(p.x, p.y) + ch; i < file.length; i += 3) file[i] = v;
+    half = false;
+    last = 'Every 3rd byte below set to ' + hex2(v) + ': ' + (v ? 'full ' : 'no ') + ['blue', 'green', 'red'][ch] + (v ? ' everywhere.' : ' left.');
     update(true);
   }
 
@@ -463,7 +502,10 @@
   const amountEl = document.getElementById('amount');
   const amount = () => Math.max(1, Math.min(9999, Math.round(+amountEl.value) || 1));
   document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => setValue(+b.dataset.v)));
-  document.getElementById('smear').addEventListener('click', smear);
+  const rowCount = document.getElementById('smearRows');
+  document.getElementById('smear').addEventListener('click', () => smear(Math.max(1, Math.min(999, Math.round(+rowCount.value) || 1))));
+  document.getElementById('invert').addEventListener('click', invert);
+  document.querySelectorAll('[data-ch]').forEach(b => b.addEventListener('click', () => everyThird(+b.dataset.ch, +b.dataset.to)));
   document.getElementById('left').addEventListener('click', () => shiftLeft(amount()));
   document.getElementById('right').addEventListener('click', () => shiftRight(amount()));
   document.getElementById('undo').addEventListener('click', () => { if (undo.length) { file = undo.pop(); half = false; last = ''; update(true); tourEvent('undo'); } });
