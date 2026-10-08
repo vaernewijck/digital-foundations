@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Counter - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #161615; --paper: #f8f8f8; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+    display: grid; place-items: center;
+  }
+  main { width: min(90vw, 40rem); display: grid; gap: 3rem; }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(2rem, 6vw, 4rem); line-height: 1.2; }
+  th { font-weight: 300; text-align: left; }
+  td { font-weight: 700; text-align: right; letter-spacing: .04em; white-space: nowrap; }
+  tr:first-child > * { border-bottom: 1px solid var(--ink); }
+  button {
+    justify-self: center;
+    font: inherit; font-size: 1rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .5rem 1.5rem; cursor: pointer;
+  }
+  button:hover { background: var(--ink); color: var(--paper); }
+  button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .reset { font-size: .75rem; font-weight: 300; letter-spacing: .06em; opacity: .4; border: 0; padding: 0; margin-top: -2rem; }
+  .reset:hover { opacity: 1; background: none; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <table>
+    <tr><th>Decimal</th><td id="dec">0</td></tr>
+    <tr><th>Binary</th><td id="bin">0</td></tr>
+  </table>
+  <button id="add">Add one</button>
+  <button class="reset" id="reset">reset</button>
+</main>
+<script>
+  let n = 0;
+  const dec = document.getElementById('dec'), bin = document.getElementById('bin');
+  const show = () => { dec.textContent = n; bin.textContent = n.toString(2); };
+  document.getElementById('add').addEventListener('click', () => { n++; show(); });
+  document.getElementById('reset').addEventListener('click', () => { n = 0; show(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); n++; show(); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); n = Math.max(0, n - 1); show(); }
+    else if (e.key === '0') { n = 0; show(); }
+  });
+</script>
+</body>
+</html>
