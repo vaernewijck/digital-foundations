@@ -46,11 +46,18 @@
 
   /* ---- stage ---- */
   .stage { flex: 1; display: grid; place-items: center; align-content: center; gap: 2.5rem; cursor: pointer; user-select: none; text-align: center; }
-  .type { font-size: .75rem; font-weight: 300; letter-spacing: .18em; text-transform: uppercase; opacity: .5; min-height: 1.4em; }
+  .type { font-size: min(2.4vw, 1.5rem); font-weight: 500; letter-spacing: .14em; text-transform: uppercase; opacity: .6; min-height: 1.4em; }
   .code { font-size: min(11vw, 28vh); font-weight: 500; line-height: 1; letter-spacing: .04em; white-space: nowrap; }
   .code.intro { font-size: min(5vw, 12vh); font-weight: 300; }
   .code span { display: inline-block; }
-  .hint { font-size: .75rem; font-weight: 300; opacity: .5; }
+  .hint { font-size: .75rem; font-weight: 300; opacity: .5; min-height: 1.4em; }
+
+  /* timer: a thin line that runs out, it only signals (the teacher still presses Next) */
+  .timer { width: min(60vw, 40rem); height: 3px; background: #e8e8e7; visibility: hidden; }
+  .timer.on { visibility: visible; }
+  .timer i { display: block; height: 100%; background: var(--ink); transform-origin: left; }
+  .timer.on i { animation: run var(--t, 30s) linear forwards; }
+  @keyframes run { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
   /* ---- called ---- */
   .called { display: none; flex: 1; align-content: start; grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr)); gap: var(--s2) var(--s3); padding-top: 3rem; }
@@ -90,6 +97,7 @@
   <main class="stage" id="stage" aria-live="polite">
     <div class="type" id="type"></div>
     <div class="code" id="code"></div>
+    <div class="timer" id="timer"><i></i></div>
     <p class="hint" id="hint"></p>
   </main>
 
@@ -102,10 +110,12 @@
 <script src="bingo.js"></script>
 <script>
 (() => {
-  // ?seed=devine must match the seed the cards were printed with
-  const seed = Bingo.seedFrom(new URLSearchParams(location.search));
-  const order = Bingo.calls(seed);
+  // ?seed=devine must match the seed the cards were printed with, ?t=20 sets the timer (0 = off)
+  const params = new URLSearchParams(location.search);
+  const seed = Bingo.seedFrom(params);
+  const seconds = params.has('t') ? Math.max(0, +params.get('t') || 0) : 30;
   let state = Bingo.load(seed);
+  let order = Bingo.calls(seed, state.round);
 
   const $ = id => document.getElementById(id);
   const app = $('app');
@@ -135,6 +145,7 @@
     // you hear the byte: a 1 is high, a 0 is low
     code: text => [...text].forEach((ch, i) => tone(ch === '1' ? 880 : ch === '0' ? 440 : 660, i * STEP)),
     back: () => tone(220, 0, .1),
+    time: () => { tone(330, 0, .15, 'triangle', .07); tone(247, .18, .3, 'triangle', .07); },
     bingo: () => {
       [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i * .1, .18, 'square', .05));
       [523, 659, 784, 1047].forEach(f => tone(f, .65, 1.2, 'triangle', .06));
@@ -150,24 +161,37 @@
     if (motion) gsap.from(el.children, { yPercent: -80, opacity: 0, duration: .3, stagger: STEP, ease: 'back.out(2.5)' });
   }
 
+  function startTimer() {
+    const el = $('timer');
+    el.classList.remove('on');
+    if (!seconds) return;
+    void el.offsetWidth;   // restart the CSS animation
+    el.style.setProperty('--t', seconds + 's');
+    el.classList.add('on');
+  }
+  $('timer').addEventListener('animationend', () => { sound.time(); $('hint').textContent = 'Time.'; });
+
   // change: 'code' (a new code appeared), 'back', or nothing (redraw only)
   // the answer is never shown: decoding it is the game
   function render(change) {
-    const { pos } = state;
+    const { pos, round } = state;
     const item = order[pos];
-    $('count').textContent = pos < 0 ? `Seed ${seed}` : `${pos + 1} / ${order.length}`;
+    const roundTag = round ? ` · Round ${round + 1}` : '';
+    $('count').textContent = (pos < 0 ? `Seed ${seed}` : `${pos + 1} / ${order.length}`) + roundTag;
     $('back').disabled = pos < 0;
     $('next').disabled = pos === order.length - 1;
     $('code').classList.toggle('intro', !item);
 
     if (!item) {
       $('type').textContent = '';
+      $('timer').classList.remove('on');
       $('code').textContent = 'Bingo';
       $('hint').textContent = 'Right arrow or click to start.';
     } else {
-      $('type').textContent = item.type;
+      $('type').textContent = Bingo.TASK[item.type];
       showCode(item.code, change === 'code');
       $('hint').textContent = pos === order.length - 1 ? 'That was the last one.' : '';
+      if (change) startTimer();
     }
     if (change === 'back') sound.back();
 
@@ -183,12 +207,12 @@
 
   function next() {
     if (state.pos >= order.length - 1) return;
-    state = { pos: state.pos + 1 };
+    state = { ...state, pos: state.pos + 1 };
     commit('code');
   }
   function back() {
     if (state.pos < 0) return;
-    state = { pos: state.pos - 1 };
+    state = { ...state, pos: state.pos - 1 };
     commit('back');
   }
   function toggleList() {
@@ -243,7 +267,12 @@
     else if (e.key === 'm' || e.key === 'M') toggleSound();
   });
   // keep a second window (e.g. a laptop copy of the projector) in step
-  addEventListener('storage', e => { if (e.key === Bingo.storageKey(seed)) { state = Bingo.load(seed); render(); } });
+  addEventListener('storage', e => {
+    if (e.key !== Bingo.storageKey(seed)) return;
+    state = Bingo.load(seed);
+    order = Bingo.calls(seed, state.round);
+    render();
+  });
 
   $('stage').addEventListener('click', next);
   $('next').addEventListener('click', next);
@@ -254,8 +283,10 @@
   $('sound').addEventListener('click', toggleSound);
   $('sound').textContent = soundOn ? 'Sound on' : 'Sound off';
   $('reset').addEventListener('click', () => {
-    if (state.pos >= 0 && !confirm('Start a new game? The called list is cleared.')) return;
-    state = { pos: -1 };
+    // a new round: same cards, a new order
+    if (state.pos >= 0 && !confirm(`Start round ${state.round + 2}? Same cards, new order.`)) return;
+    if (state.pos >= 0) state = { pos: -1, round: state.round + 1 };
+    order = Bingo.calls(seed, state.round);
     commit();
   });
   render();
