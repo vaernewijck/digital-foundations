@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lossy or Lossless - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #161615; --paper: #f8f8f8; --line: #d8d8d6; --accent: #2F6FED; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+    display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+  }
+  [hidden] { display: none !important; }
+
+  /* ---- header ---- */
+  header { display: flex; align-items: center; gap: .8rem 1rem; padding: .9rem 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--ink); }
+  h1 { font-size: .9rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-right: .5rem; }
+  .steps { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .right { margin-left: auto; display: flex; gap: .5rem; }
+  button, label.btn {
+    font: inherit; font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    background: transparent; color: var(--ink); border: 2px solid var(--ink);
+    padding: .4rem .9rem; cursor: pointer; white-space: nowrap;
+  }
+  button:hover, label.btn:hover, button.on { background: var(--ink); color: var(--paper); }
+  button:disabled { opacity: .3; pointer-events: none; }
+  button:focus-visible, label.btn:focus-within { outline: none; box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+  .steps button { border-color: transparent; padding: .4rem .6rem; }
+  .steps button.on { border-color: var(--ink); }
+  input[type=file] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  /* ---- two panes: original left, step right ---- */
+  main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; }
+  .pane { display: grid; grid-row: 1 / 4; grid-template-rows: subgrid; row-gap: 1rem; padding: 1.5rem; min-height: 0; overflow: hidden; }
+  .pane + .pane { border-left: 1px solid var(--ink); }
+  .bar { align-self: end; display: grid; gap: .6rem; }
+  .k { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+  h2 { font-size: clamp(1.1rem, 1.8vw, 1.5rem); font-weight: 500; line-height: 1.15; }
+  .ctrl { display: flex; align-items: center; gap: 1rem; min-height: 2.2rem; }
+  .ctrl input { flex: 1; max-width: 22rem; accent-color: var(--ink); }
+  .ctrl .val { font-size: .9rem; white-space: nowrap; }
+
+  .frame { position: relative; height: 100%; max-width: 100%; aspect-ratio: 1; min-height: 0; border: 1px solid var(--ink); background: #fff; }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .how #frameL { cursor: crosshair; touch-action: none; }
+  .zoom { position: absolute; inset: 0; background: #fff; display: grid; align-content: center; gap: 1.6rem; padding: 6%; overflow: auto; }
+  .zoom .k { margin-bottom: .5rem; opacity: .6; }
+  .zoom .runs { margin-bottom: 1.2rem; }
+  .code { display: flex; flex-wrap: wrap; gap: .35rem .9rem; font-size: .85rem; }
+  .code span { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+  .code i { width: .8rem; height: .8rem; border: 1px solid var(--ink); display: inline-block; }
+
+  .cap { display: flex; flex-direction: column; gap: .7rem; min-height: 0; }
+  .big { font-size: 2rem; font-weight: 300; line-height: 1; }
+  .small { font-weight: 300; font-size: .9rem; opacity: .7; }
+  .say { font-size: .95rem; font-weight: 500; }
+  .foot { margin-top: auto; display: flex; gap: .5rem; padding-top: .6rem; }
+
+  /* strip of 8 pixels, written as runs */
+  .strip { display: grid; grid-template-columns: repeat(8, 1fr); border: 1px solid var(--ink); }
+  .strip div { aspect-ratio: 1 / 1.4; display: grid; place-content: center; text-align: center; font-size: clamp(.55rem, .9vw, .8rem); line-height: 1.3; }
+  .runs { display: grid; grid-template-columns: repeat(8, 1fr); margin-top: -.6rem; }
+  .runs div { border: 2px solid var(--accent); border-top: 0; height: .45rem; position: relative; margin: 0 2px; }
+  .runs span { position: absolute; top: .5rem; left: 50%; transform: translateX(-50%); font-size: .75rem; font-weight: 700; color: var(--accent); }
+
+  /* end */
+  .sum { align-self: start; display: grid; gap: 1.2rem; max-width: 34rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+  th, td { text-align: left; padding: .5rem .8rem .5rem 0; border-bottom: 1px solid var(--line); }
+  th { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    main { grid-template-columns: 1fr; grid-template-rows: none; }
+    .pane { grid-row: auto; grid-template-rows: none; }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--ink); }
+    .frame { width: 100%; height: auto; }
+    header { padding: .9rem 1rem; } .pane { padding: 1.25rem 1rem; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <nav class="steps" id="steps"></nav>
+  <span class="right">
+    <button type="button" id="toEgg" hidden>The egg</button>
+    <label class="btn">Your photo<input type="file" id="file" accept="image/*"></label>
+  </span>
+</header>
+
+<main>
+  <section class="pane">
+    <div class="bar"><span class="k">Original</span></div>
+    <div class="frame" id="frameL"><canvas id="orig" width="584" height="584"></canvas><canvas id="markL" width="584" height="584"></canvas></div>
+    <div class="cap"><p class="big">1,023 KB</p><p class="small">about 1 MB · 584 × 584 pixels × 24 bits</p></div>
+  </section>
+  <section class="pane" id="right">
+    <div class="bar" id="bar"></div>
+    <div class="frame" id="frame"><canvas id="pic" width="584" height="584"></canvas><canvas id="mark" width="584" height="584"></canvas><div class="zoom" id="zoom" hidden></div></div>
+    <div class="cap"><div class="cap" id="out"></div>
+      <div class="foot"><button type="button" id="back">Back</button><button type="button" id="next">Next</button></div></div>
+  </section>
+</main>
+
+<script>
+  const N = 584;                         // the egg on Instagram: 584 × 584 pixels
+  const RAW = N * N * 3;                 // 24 bits per pixel
+  const $ = id => document.getElementById(id);
+  const fmt = n => n.toLocaleString('en');
+  const kb = n => n < 10000 ? `${(n / 1000).toFixed(1)} KB` : `${fmt(Math.round(n / 1000))} KB`;
+  const pct = n => { const p = n / (N * N) * 100; return p > 0 && p < 1 ? '< 1%' : `${Math.round(p)}%`; };
+
+  const TITLES = { 1: 'Colour depth: how finely you round', 2: 'Write it shorter, lose nothing', 3: 'JPEG throws away what your eye misses', 4: 'What is gone never comes back' };
+  const DEPTHS = [1, 2, 4, 8, 24];
+  const DEPTH_NAME = { 24: '16.7 million colours', 8: '256 greys', 4: '16 greys', 2: '4 greys', 1: 'black or white' };
+
+  const S = { step: 1, depth: 24, q: 90, how: false, resaved: false, strip: { x: 24, y: 292 } };   // strip starts on the white background
+  let R = null;                          // everything computed for the current photo
+
+  // ---- pixels -------------------------------------------------------------
+  function canvasOf(data) {
+    const c = document.createElement('canvas'); c.width = c.height = N;
+    c.getContext('2d').putImageData(new ImageData(data, N, N), 0, 0);
+    return c;
+  }
+  // One grey number per pixel, rounded to 2^bits steps.
+  function grey(px, bits) {
+    const out = new Uint8ClampedArray(px.length), n = (1 << bits) - 1;
+    for (let i = 0; i < px.length; i += 4) { out[i] = out[i + 1] = out[i + 2] = Math.round(Math.round((px[i] * .299 + px[i + 1] * .587 + px[i + 2] * .114) / 255 * n) * 255 / n); out[i + 3] = 255; }
+    return out;
+  }
+  // 1 bit: black or white. The grey is only dots (Floyd-Steinberg).
+  function oneBit(px) {
+    const g = new Float32Array(N * N), out = new Uint8ClampedArray(px.length);
+    for (let p = 0; p < N * N; p++) g[p] = px[p * 4] * .299 + px[p * 4 + 1] * .587 + px[p * 4 + 2] * .114;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const p = y * N + x, v = g[p] < 128 ? 0 : 255, e = g[p] - v;
+      if (x + 1 < N) g[p + 1] += e * 7 / 16;
+      if (y + 1 < N) { if (x > 0) g[p + N - 1] += e * 3 / 16; g[p + N] += e * 5 / 16; if (x + 1 < N) g[p + N + 1] += e / 16; }
+      out[p * 4] = out[p * 4 + 1] = out[p * 4 + 2] = v; out[p * 4 + 3] = 255;
+    }
+    return out;
+  }
+  // Compare with the original: how many pixels changed.
+  function compare(a, b) {
+    let changed = 0;
+    for (let i = 0; i < a.length; i += 4) if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]) changed++;
+    return { changed };
+  }
+  // Save with the browser's real encoder, then unpack it again.
+  function encode(canvas, type, q) {
+    return new Promise(res => canvas.toBlob(async blob => {
+      const c = document.createElement('canvas'); c.width = c.height = N;
+      const g = c.getContext('2d'); g.drawImage(await createImageBitmap(blob), 0, 0);
+      res({ size: blob.size, data: g.getImageData(0, 0, N, N).data });
+    }, type, q));
+  }
+
+  async function jpeg(c, q) {
+    const j = await encode(c, 'image/jpeg', q / 100);
+    return { size: j.size, canvas: canvasOf(j.data), ...compare(R ? R.orig : c.getContext('2d').getImageData(0, 0, N, N).data, j.data) };
+  }
+  // Quality slider: encode on demand, keep every result.
+  async function jpegAt(q) {
+    if (!R.jpg[q]) R.jpg[q] = await jpeg(R.canvas.orig, q);
+    if (S.step === 3 && S.q === q) { $('out').innerHTML = out(); draw(); }
+  }
+
+  async function load(img) {
+    const c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d'), k = Math.max(N / img.width, N / img.height);
+    g.fillStyle = '#fff'; g.fillRect(0, 0, N, N);
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(img, (N - img.width * k) / 2, (N - img.height * k) / 2, img.width * k, img.height * k);
+    const orig = g.getImageData(0, 0, N, N).data;
+    const r = { orig, canvas: { orig: c }, depth: {}, jpg: {} };
+
+    for (const [bits, data] of [[8, grey(orig, 8)], [4, grey(orig, 4)], [2, grey(orig, 2)], [1, oneBit(orig)]]) r.depth[bits] = { data, canvas: canvasOf(data), ...compare(orig, data) };
+    r.depth[24] = { canvas: c, ...compare(orig, orig) };
+
+    const png = await encode(c, 'image/png');
+    r.png = { size: png.size, ...compare(orig, png.data) };
+    for (const q of [90, 10]) r.jpg[q] = await jpeg(c, q);
+    const again = await encode(r.jpg[10].canvas, 'image/jpeg', .9);
+    r.resave = { size: again.size, canvas: canvasOf(again.data), ...compare(orig, again.data) };
+    R = r; render();
+  }
+
+  const TABS = ['Colour depth', 'Lossless', 'Lossy', 'Gone', 'Summary'];
+
+  // ---- render -------------------------------------------------------------
+  function current() {
+    if (S.step === 1) return R.depth[S.depth];
+    if (S.step === 2) return { canvas: R.canvas.orig, ...R.png };
+    if (S.step === 3) return R.jpg[S.q] || R.jpg[S.shownQ] || R.jpg[90];
+    return S.resaved ? R.resave : R.jpg[10];
+  }
+
+  function render() {
+    $('steps').innerHTML = TABS.map((t, i) => `<button type="button" data-step="${i + 1}" class="${i + 1 === S.step ? 'on' : ''}">${i < 4 ? `${i + 1} ` : ''}${t}</button>`).join('');
+    $('back').disabled = S.step === 1; $('next').disabled = S.step === 5;
+    $('right').className = `pane s${S.step}`;
+    document.body.classList.toggle('how', S.step === 2 && S.how);
+    if (!R) { $('bar').innerHTML = '<span class="k">Loading the egg…</span>'; return; }
+    $('orig').getContext('2d').drawImage(R.canvas.orig, 0, 0);
+    $('frame').hidden = S.step === 5;
+    if (S.step === 5) { $('bar').innerHTML = '<span class="k">Summary</span><h2>Digitising = measure and round</h2>'; $('out').innerHTML = summary(); drawMarks(); return; }
+    $('bar').innerHTML = `<span class="k">Step ${S.step} of 4</span><h2>${TITLES[S.step]}</h2>${control()}`;
+    $('out').innerHTML = out();
+    draw();
+  }
+
+  function control() {
+    if (S.step === 1) return `<div class="ctrl"><input type="range" id="depthR" min="0" max="4" value="${DEPTHS.indexOf(S.depth)}" aria-label="Colour depth"><span class="val" id="val">${depthLabel()}</span></div>`;
+    if (S.step === 2) return `<div class="ctrl"><span class="val">Saved as PNG, then unpacked</span><button type="button" id="how" class="${S.how ? 'on' : ''}">How?</button></div>`;
+    if (S.step === 3) return `<div class="ctrl"><input type="range" id="qR" min="1" max="100" value="${S.q}" aria-label="JPEG quality"><span class="val" id="val">Quality ${S.q}</span></div>`;
+    return `<p class="val">Your phone saved the egg at quality 10. Can saving it again at quality 90 bring the detail back?</p>
+      <div class="ctrl"><button type="button" id="resave" class="${S.resaved ? 'on' : ''}">Save it again at quality 90</button></div>`;
+  }
+  const smaller = size => { const p = (1 - size / RAW) * 100; return p <= 0 ? 'same size as the original' : `${p > 99 ? p.toFixed(1) : Math.round(p)}% smaller`; };
+  const changedLine = c => `${fmt(c)} pixel${c === 1 ? '' : 's'} changed`;
+  const depthLabel = () => `${S.depth} bit${S.depth > 1 ? 's' : ''} · ${DEPTH_NAME[S.depth]}`;
+
+  function outA() {
+    if (S.step === 1) return `<p class="big">${kb(N * N * S.depth / 8)}</p><p class="small">${smaller(N * N * S.depth / 8)} · ${changedLine(R.depth[S.depth].changed)}</p>`;
+    if (S.step === 2) return S.how
+      ? `<p class="small">Same colour next to each other? Write it once, with a count. Drag the blue strip across the original: start on the white, then move onto the egg.</p>`
+      : `<p class="big">${kb(R.png.size)}</p><p class="small">${smaller(R.png.size)} · ${changedLine(R.png.changed)}. Lossless.</p>`;
+    return '';
+  }
+
+  // Step 2: the 8 pixels under the strip, written as runs.
+  function zoom() {
+    const { cells, runs } = stripRuns(), bytes = runs.length * 4;
+    const ink = c => c[0] * .3 + c[1] * .59 + c[2] * .11 > 140 ? '#161615' : '#fff';
+    return `<div><p class="k">1 · The pixels: 8 × 3 numbers = 24 bytes</p>
+        <div class="strip">${cells.map(c => `<div style="background:rgb(${c});color:${ink(c)}">${c.join('<br>')}</div>`).join('')}</div>
+        <div class="runs">${runs.map(r => `<div style="grid-column:span ${r.n}"><span>${r.n}×</span></div>`).join('')}</div></div>
+      <div><p class="k">2 · Written as runs: how many + which colour = 4 bytes each</p>
+        <div class="code">${runs.map(r => `<span><i style="background:rgb(${r.c})"></i>${r.n} × ${r.c.join(' ')}</span>`).join('')}</div></div>
+      <div><p class="k">3 · Bytes</p>
+        <p class="say">${runs.length} run${runs.length > 1 ? 's' : ''} × 4 = ${bytes} bytes instead of 24. ${bytes < 24 ? 'Shorter.' : bytes === 24 ? 'No gain.' : 'Longer! Neighbours on the egg are almost the same, and almost is not the same.'}</p></div>`;
+  }
+
+
+  function out() {
+    if (S.step < 3) return outA();
+    if (S.step === 3) {
+      const j = R.jpg[S.q];
+      return `<p class="big">${j ? kb(j.size) : '…'}</p>
+        <p class="small">${j ? `${smaller(j.size)} · ${changedLine(j.changed)}. Lossy.` : ''}</p>`;
+    }
+    return `<p class="big">${S.resaved ? `${kb(R.jpg[10].size)} → ${kb(R.resave.size)}` : kb(R.jpg[10].size)}</p>
+      <p class="small">${S.resaved ? 'No. The file got bigger, but the blocks stay: quality 90 can only keep what is still there.' : smaller(R.jpg[10].size)}</p>`;
+  }
+
+  function summary() {
+    const j = R.jpg[S.q];
+    return `<div class="sum">
+      <p class="say">Round: you lose. Write it shorter: you lose nothing.</p>
+      <table>
+        <tr><th></th><th>What it does</th><th>Size</th><th>Changed</th></tr>
+        <tr><td>Original</td><td></td><td>${kb(RAW)}</td><td>0%</td></tr>
+        <tr><td>8 bits</td><td>round</td><td>${kb(N * N)}</td><td>${pct(R.depth[8].changed)}</td></tr>
+        <tr><td>PNG</td><td>write it shorter</td><td>${kb(R.png.size)}</td><td>${pct(R.png.changed)}</td></tr>
+        <tr><td>JPEG ${S.q}</td><td>round, then write it shorter</td><td>${kb(j.size)}</td><td>${pct(j.changed)}</td></tr>
+      </table>
+      <p class="small">GIF: round to 256 colours, then write it shorter. PNG can also store a 4th number per pixel, transparency. JPEG cannot.</p>
+    </div>`;
+  }
+
+  function stripRuns() {
+    const cells = [], runs = [];
+    for (let x = 0; x < 8; x++) {
+      const i = (S.strip.y * N + S.strip.x + x) * 4, c = [R.orig[i], R.orig[i + 1], R.orig[i + 2]], last = runs[runs.length - 1];
+      cells.push(c);
+      if (last && last.c.join() === c.join()) last.n++; else runs.push({ n: 1, c });
+    }
+    return { cells, runs };
+  }
+
+  function draw() {
+    const cur = current();
+    if (S.step === 3 && R.jpg[S.q]) S.shownQ = S.q;
+    $('pic').getContext('2d').drawImage(cur.canvas, 0, 0);
+    const how = S.step === 2 && S.how;
+    $('zoom').hidden = !how;
+    if (how) $('zoom').innerHTML = zoom();
+    drawMarks();
+  }
+  // The strip is drawn on both pictures, so you can see where it is on the original too.
+  function drawMarks() {
+    for (const id of ['mark', 'markL']) {
+      const m = $(id).getContext('2d');
+      m.clearRect(0, 0, N, N);
+      if (S.step === 2 && S.how) { m.strokeStyle = '#2F6FED'; m.lineWidth = 3; m.strokeRect(S.strip.x - 2, S.strip.y - 4, 12, 9); }
+    }
+  }
+
+  // ---- interaction --------------------------------------------------------
+  function go(n) { S.step = Math.min(5, Math.max(1, n)); render(); }
+  $('back').addEventListener('click', () => go(S.step - 1));
+  $('next').addEventListener('click', () => go(S.step + 1));
+
+  document.addEventListener('input', e => {
+    if (e.target.id === 'depthR') { S.depth = DEPTHS[+e.target.value]; $('val').textContent = depthLabel(); }
+    else if (e.target.id === 'qR') { S.q = +e.target.value; $('val').textContent = `Quality ${S.q}`; jpegAt(S.q); }
+    else return;
+    $('out').innerHTML = out(); draw();
+  });
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.step) go(+t.dataset.step);
+    else if (t.id === 'resave') { S.resaved = !S.resaved; t.classList.toggle('on', S.resaved); $('out').innerHTML = out(); draw(); }
+    else if (t.id === 'how') { S.how = !S.how; document.body.classList.toggle('how', S.how); t.classList.toggle('on', S.how); $('out').innerHTML = out(); draw(); }
+  });
+
+  // Step 2: tap or drag on either picture to move the strip.
+  function pick(e, frame) {
+    const r = frame.getBoundingClientRect();
+    const x = Math.floor((e.clientX - r.left) / r.width * N), y = Math.floor((e.clientY - r.top) / r.height * N);
+    S.strip = { x: Math.min(N - 8, Math.max(0, x - 4)), y: Math.min(N - 1, Math.max(0, y)) };
+    $('zoom').innerHTML = zoom(); drawMarks();
+  }
+  let frameDown = null;
+  document.addEventListener('pointerdown', e => { const f = e.target.closest('#frameL'); if (S.step === 2 && S.how && R && f) { frameDown = f; pick(e, f); } });
+  document.addEventListener('pointermove', e => { if (frameDown) pick(e, frameDown); });
+  document.addEventListener('pointerup', () => { frameDown = null; });
+
+  function openImage(src, custom) {
+    const im = new Image();
+    im.onload = () => { R = null; render(); load(im); };
+    im.src = src;
+    $('toEgg').hidden = !custom;
+  }
+  $('file').addEventListener('change', e => { const f = e.target.files[0]; if (f && f.type.startsWith('image/')) openImage(URL.createObjectURL(f), true); });
+  $('toEgg').addEventListener('click', () => openImage('egg.jpg', false));
+
+  render();
+  openImage('egg.jpg', false);
+</script>
+</body>
+</html>
