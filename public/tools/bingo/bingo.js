@@ -1,4 +1,4 @@
-// Binary Bingo: shared by the projector (tools/binary-bingo/) and the card maker (teach/binary-bingo/).
+// Bingo: shared by the projector (tools/bingo/) and the card maker (teach/bingo/).
 // Same seed = same cards and same call order, so the two pages always agree.
 (() => {
   const bin8 = n => n.toString(2).padStart(8, '0');
@@ -54,7 +54,7 @@
 
   // projector progress, read back by the card checker (same browser only)
   const DEFAULT_SEED = 'devine';
-  const KEY = seed => 'binary-bingo:' + seed;
+  const KEY = seed => 'bingo:' + seed;
   function load(seed) {
     try { return { pos: -1, ...JSON.parse(localStorage.getItem(KEY(seed)) || '{}') }; }
     catch { return { pos: -1 }; }

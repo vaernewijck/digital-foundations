@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Binary Bingo - Digital Foundations</title>
+<title>Bingo - Digital Foundations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -113,7 +113,7 @@
   const motion = !!window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---- sound: synthesised, no files ---- */
-  const SOUND_KEY = 'binary-bingo:sound';
+  const SOUND_KEY = 'bingo:sound';
   let soundOn = true;
   try { soundOn = localStorage.getItem(SOUND_KEY) !== 'off'; } catch {}
   let ctx = null;
@@ -162,7 +162,7 @@
 
     if (!item) {
       $('type').textContent = '';
-      $('code').textContent = 'Binary Bingo';
+      $('code').textContent = 'Bingo';
       $('hint').textContent = 'Right arrow or click to start.';
     } else {
       $('type').textContent = item.type;

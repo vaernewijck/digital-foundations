@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Binary Bingo Cards - Digital Foundations</title>
+<title>Bingo Cards - Digital Foundations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -124,12 +124,12 @@
 <body>
 <div class="app">
   <header class="top">
-    <span class="title">Binary Bingo</span>
+    <span class="title">Bingo</span>
     <nav class="nav" id="tabs">
       <button type="button" data-view="cards">Cards</button>
       <button type="button" data-view="table">Table</button>
       <button type="button" data-view="check">Check</button>
-      <a class="link" id="projector" href="../../tools/binary-bingo/" target="_blank">Projector</a>
+      <a class="link" id="projector" href="../../tools/bingo/" target="_blank">Projector</a>
     </nav>
   </header>
 
@@ -148,7 +148,7 @@
   </main>
 </div>
 
-<script src="../../tools/binary-bingo/bingo.js"></script>
+<script src="../../tools/bingo/bingo.js"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -167,7 +167,7 @@
 
   function cardHTML(n, called) {
     const cells = Bingo.card(S.seed, n).map(c => `<div class="cell${called && called.has(c.id) ? ' hit' : ''}">${c.answer}</div>`).join('');
-    return `<article class="card"><div class="card-head"><span>Binary Bingo</span>${called ? '' : '<span class="name"></span>'}<span>Card ${pad(n)} · ${esc(S.seed)}</span></div><div class="grid">${cells}</div></article>`;
+    return `<article class="card"><div class="card-head"><span>Bingo</span>${called ? '' : '<span class="name"></span>'}<span>Card ${pad(n)} · ${esc(S.seed)}</span></div><div class="grid">${cells}</div></article>`;
   }
 
   function renderCards() {
@@ -193,7 +193,7 @@
       `<tr><td>${Bingo.cp(ch)}</td><td class="ch">${ch}</td><td class="name">${name}</td></tr>`).join('')}</table>`).join('');
 
     $('sheet').innerHTML = `
-      <h1>Binary Bingo <span>Decoding table</span></h1>
+      <h1>Bingo <span>Decoding table</span></h1>
       <section><h2>Bit values</h2><p>Write the 8 bits under their values. Add up the values that have a 1.</p>${bits}</section>
       <section><h2>ASCII letters</h2><p>One byte per letter. Decode the bits to a number, then find the letter. A = 65, every next letter is one higher, lowercase is uppercase + 32.</p><div class="cols four">${ascii}</div></section>
       <section><h2>Unicode</h2><p>Every character in every language has a number: its code point, written in hex after U+.</p><div class="cols two">${unicode}</div></section>`;
@@ -221,7 +221,7 @@
     $('tabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
     document.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(S.view); });
     $('seed').value = S.seed; $('n').value = S.n; $('card').value = S.card;
-    $('projector').href = '../../tools/binary-bingo/?' + new URLSearchParams({ seed: S.seed });
+    $('projector').href = '../../tools/bingo/?' + new URLSearchParams({ seed: S.seed });
     ({ cards: renderCards, table: renderTable, check: renderCheck })[S.view]();
     const q = new URLSearchParams({ view: S.view, seed: S.seed, n: S.n, card: S.card });
     history.replaceState(null, '', '?' + q);
