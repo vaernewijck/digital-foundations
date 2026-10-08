@@ -210,7 +210,8 @@
   // Turn a picture into a real BMP file: 54 header bytes, then blue, green, red for every pixel, row after row.
   function toBMP(img) {
     const k = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
-    const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+    // Width a multiple of 4: then rows need no padding bytes, and a shift of 3 bytes is always exactly one pixel.
+    const w = Math.max(4, Math.round(img.width * k / 4) * 4), h = Math.max(1, Math.round(img.height * k));
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const g = c.getContext('2d');
@@ -469,7 +470,7 @@
   document.getElementById('reset').addEventListener('click', () => {
     if (tStep >= 0) endTour();
     document.body.classList.remove('loaded'); document.getElementById('file').value = '';
-    file = null; info = null; draw();
+    file = null; info = null; half = false; brokenEl.classList.remove('on'); draw();
     readout.innerHTML = 'Start with a photo of yourself.';
   });
   document.getElementById('save').addEventListener('click', () => {
@@ -545,11 +546,11 @@
     if (tStep < 0) return;
     if (name === 'shift') tTotal += n;
     if (tWait || TOUR[tStep].wait !== name) return;
-    tWait = true;
-    setTimeout(() => { tWait = false; if (tStep < 0) return; tStep++; showStep(); }, 500);   // let them see what happened first
+    tWait = setTimeout(() => { tWait = false; tStep++; showStep(); }, 500);   // let them see what happened first
   }
-  function startTour() { if (!file) return; tStep = 0; tour.classList.add('on'); showStep(); }
+  function startTour() { if (!file) return; clearTimeout(tWait); tWait = false; tStep = 0; tour.classList.add('on'); showStep(); }
   function endTour() {
+    clearTimeout(tWait); tWait = false;
     tStep = -1; tour.classList.remove('on'); last = ''; update(false);
     try { localStorage.setItem('glitch-me-tour', '1'); } catch (e) {}
   }
@@ -561,7 +562,7 @@
 
   function load(img) {
     document.body.classList.add('loaded');
-    file = toBMP(img); undo = []; last = '';
+    file = toBMP(img); undo = []; last = ''; half = false;
     info = readHeader(file);
     sel = info.off; hexEl.scrollTop = 0;
     last = 'Your photo is now <b>' + file.length.toLocaleString('en') + ' bytes</b>' +
@@ -573,14 +574,15 @@
   }
 
   function openFile(f) {
-    if (!f || !f.type.startsWith('image/')) return;
+    if (!f) return;
+    if (f.type && !f.type.startsWith('image/')) { readout.innerHTML = '<b>That is not a picture.</b> Use a JPG or PNG.'; return; }
     const img = new Image();
     img.onload = () => {
       name = f.name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9-_]+/gi, '-') || 'photo';
       srcSize = f.size;
       load(img); URL.revokeObjectURL(img.src);
     };
-    img.onerror = () => { readout.innerHTML = '<b>That did not open.</b> Use a JPG or PNG.'; };
+    img.onerror = () => { readout.innerHTML = '<b>That did not open.</b> Your browser cannot open this kind of picture. Use a JPG or PNG.'; };
     img.src = URL.createObjectURL(f);
   }
   document.getElementById('file').addEventListener('change', e => openFile(e.target.files[0]));
