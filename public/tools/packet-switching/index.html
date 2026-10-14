@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Packet Switching - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #161615;
+    --paper: #f8f8f8;
+    --grey1: #dcdcda;   /* laptop body */
+    --grey2: #ececea;   /* desktop background */
+    --s3: 1.41rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: .875rem;
+    line-height: 1.4;
+    letter-spacing: .02rem;
+    font-feature-settings: "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- shell ---- */
+  .app { height: 100vh; padding: var(--s3); }
+
+  /* ---- stage ---- */
+  .stage { height: 100%; }
+  svg { display: block; width: 100%; height: 100%; }
+  svg text { font-family: 'Space Grotesk', sans-serif; user-select: none; pointer-events: none; fill: var(--ink); white-space: pre; }
+  .t.status { font-size: 18px; font-weight: 500; letter-spacing: .03em; }
+
+  .ln { stroke: var(--ink); stroke-width: 2; fill: none; }
+  .ln.thin { stroke-width: 1; }
+  .ln.dotted { stroke-dasharray: 3 3; }
+  .fillp { fill: var(--paper); }
+  .filli { fill: var(--ink); }
+  .fillg1 { fill: var(--grey1); }
+  .fillg2 { fill: var(--grey2); }
+  .t { font-size: 13px; font-weight: 300; letter-spacing: .04em; }
+  .t.mid { text-anchor: middle; }
+  .t.b { font-weight: 700; }
+  .t.up { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; font-weight: 600; }
+  .t.small { font-size: 11px; }
+  .t.right { text-anchor: end; }
+  .t.data { font-size: 12px; font-weight: 500; letter-spacing: .08em; }
+  .t.msg { font-size: 15px; font-weight: 500; letter-spacing: .1em; }
+  .t.paper { fill: var(--paper); font-weight: 700; }
+  .dim { opacity: .4; }
+
+  .click { cursor: pointer; }
+
+  /* network */
+  .link { stroke: var(--ink); stroke-width: 2; }
+  .router rect { fill: var(--paper); stroke: var(--ink); stroke-width: 2; cursor: pointer; }
+  .router text { font-size: 12px; font-weight: 500; text-anchor: middle; dominant-baseline: central; letter-spacing: .04em; }
+  .router:hover rect { stroke-width: 4; }
+  .router.broken rect { stroke-dasharray: 6 6; opacity: .35; }
+  .router.broken text { opacity: .35; }
+  .link.broken { stroke-dasharray: 6 6; opacity: .25; }
+
+  .fly rect { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+  .fly text { font-size: 11px; font-weight: 700; fill: var(--paper); text-anchor: middle; dominant-baseline: central; }
+  .fly.dying { animation: blink .15s steps(2, start) 4; }
+  @keyframes blink { to { opacity: 0; } }
+
+  .btn rect { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+  .btn text { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-anchor: middle; }
+  .btn:hover rect { fill: var(--ink); }
+  .btn:hover text { fill: var(--paper); }
+  .field {
+    width: 100%; height: 100%; border: 0; outline: 0; padding: 0; margin: 0;
+    background: transparent; color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: .08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ink);
+  }
+  .field::placeholder { color: var(--ink); opacity: .4; }
+  .mobile { display: none; padding: var(--s3); font-weight: 300; line-height: 1.5; }
+  .mobile b { font-weight: 600; }
+
+  @media (max-width: 800px) {
+    html, body { overflow: auto; }
+    .app { height: auto; min-height: 100vh; }
+    .stage { display: none; }
+    .mobile { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) { .fly.dying { animation: none; opacity: .3; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <p class="mobile"><b>Packet switching</b><br>This demo needs a laptop or desktop screen and a keyboard. Open it on a bigger screen.</p>
+  <div class="stage"><svg id="svg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" aria-label="Two laptops, with a network of routers in between"></svg></div>
+</div>
+
+<script>
+(() => {
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('svg');
+
+  /* ---------- settings ---------- */
+  const CHARS_PER_PACKET = 4;
+  const MSG_MAX = 20;          // 5 packets at most, so everything fits on the screens
+  const SPEED = 140;           // px per second on a cable
+  const RESEND_MS = 1400;      // no confirmation after this long: your laptop sends the packet again
+  const START = 'HELLO FROM DEVINE';
+
+  /* ---------- geometry ---------- */
+  const LAP_A = { x: 20, y: 52, w: 260, h: 190 };
+  const LAP_B = { x: 720, y: 52, w: 260, h: 190 };
+  const scr = (L) => ({ x: L.x + 12, y: L.y + 12, w: L.w - 24, h: L.h - 24 });
+  const SA = scr(LAP_A), SB = scr(LAP_B);
+  const BAR = 22;
+  const MID = 147;
+  const CHIP = { w: 40, h: 36, gap: 4 };
+
+  /* ---------- helpers ---------- */
+  const layer = () => { const g = document.createElementNS(NS, 'g'); svg.appendChild(g); return g; };
+  const gStatic = layer(), gLinks = layer(), gNodes = layer(), gA = layer(), gB = layer(), gFly = layer();
+  const el = (tag, attrs = {}, parent = gStatic) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    return e;
+  };
+  const txt = (x, y, s, cls = 't', parent = gStatic) => { const t = el('text', { x, y, class: cls }, parent); t.textContent = s; return t; };
+  const line = (x1, y1, x2, y2, cls = '', parent = gStatic) => el('line', { x1, y1, x2, y2, class: 'ln ' + cls }, parent);
+  // one packet: its number on top, its piece of the message below
+  const chip = (parent, x, y, seq, data, style) => {
+    const g = el('g', { transform: `translate(${x} ${y})` }, parent);
+    const filled = style === 'full', empty = style === 'empty';
+    el('rect', { x: 0, y: 0, width: CHIP.w, height: CHIP.h, class: (filled ? 'filli ' : 'fillp ') + 'ln' + (empty ? ' dotted' : '') }, g);
+    const cls = (filled ? ' paper' : '') + (empty ? ' dim' : '');
+    txt(5, 13, '#' + seq, 't small b' + cls, g);
+    txt(5, 29, data, 't data' + cls, g);
+  };
+
+  /* ---------- the two laptops ---------- */
+  let statusText, field;
+  function laptop(L, S, name, title, other) {
+    el('rect', { x: L.x, y: L.y, width: L.w, height: L.h, class: 'ln fillg1' });
+    el('rect', { x: S.x, y: S.y, width: S.w, height: S.h, class: 'ln fillg2' });
+    el('rect', { x: L.x - 15, y: L.y + L.h + 2, width: L.w + 30, height: 22, class: 'ln fillg1' });
+    el('rect', { x: L.x + L.w / 2 - 34, y: L.y + L.h + 9, width: 68, height: 8, class: 'ln thin fillg2' });
+    line(L.x - 15, L.y + L.h + 24, L.x + L.w + 15, L.y + L.h + 24);
+    txt(L.x + L.w / 2, L.y + L.h + 48, name, 't up mid');
+    el('rect', { x: S.x, y: S.y, width: S.w, height: BAR, class: 'fillp' });
+    line(S.x, S.y + BAR, S.x + S.w, S.y + BAR);
+    txt(S.x + 10, S.y + 15, title, 't small b');
+    txt(S.x + S.w - 10, S.y + 15, other, 't small right');
+  }
+  function drawStatic() {
+    laptop(LAP_A, SA, 'your laptop', 'Chat', 'to: friend');
+    laptop(LAP_B, SB, 'friend’s laptop', 'Chat', 'from: you');
+    txt(500, 22, 'the internet', 't up mid');
+    txt(500, 38, 'click a router to break it', 't small mid dim');
+    statusText = txt(500, 382, '', 't status mid');
+
+    // your laptop: type a message and send it
+    const fo = el('foreignObject', { x: SA.x + 10, y: SA.y + 32, width: SA.w - 86, height: 26 });
+    field = document.createElementNS('http://www.w3.org/1999/xhtml', 'input');
+    field.className = 'field'; field.maxLength = MSG_MAX; field.placeholder = 'type a message…';
+    field.value = START; field.spellcheck = false; field.autocomplete = 'off';
+    field.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+    fo.appendChild(field);
+    const b = el('g', { class: 'click btn', transform: `translate(${SA.x + SA.w - 66} ${SA.y + 34})` });
+    el('rect', { x: 0, y: 0, width: 56, height: 22 }, b);
+    txt(28, 15, 'send', '', b);
+    b.addEventListener('click', send);
+  }
+
+  /* ---------- network ----------
+     one router next to each laptop, three ways through the middle:
+     A → R1 → (R2 or R3 or R4) → (R5 or R6 or R7) → R8 → B
+     the three ways are equally short, so every router just picks one */
+  const nodes = {}, links = [];
+  const addNode = (id, x, y) => nodes[id] = { id, x, y, ok: true };
+  addNode('A', LAP_A.x + LAP_A.w, MID);
+  addNode('B', LAP_B.x, MID);
+  addNode('R1', 360, MID);
+  addNode('R2', 450, 72);  addNode('R3', 450, MID); addNode('R4', 450, 222);
+  addNode('R5', 550, 72);  addNode('R6', 550, MID); addNode('R7', 550, 222);
+  addNode('R8', 640, MID);
+  [['A', 'R1'], ['R1', 'R2'], ['R1', 'R3'], ['R1', 'R4'],
+   ['R2', 'R5'], ['R3', 'R6'], ['R4', 'R7'], ['R2', 'R3'], ['R3', 'R4'], ['R5', 'R6'], ['R6', 'R7'],
+   ['R5', 'R8'], ['R6', 'R8'], ['R7', 'R8'], ['R8', 'B']].forEach(([a, b]) => links.push({ a, b }));
+
+  const neighbours = id => links
+    .filter(l => l.a === id || l.b === id)
+    .map(l => l.a === id ? l.b : l.a)
+    .filter(n => nodes[n].ok);
+
+  // how many hops each router is from your friend, counting only routers that work
+  function distances() {
+    const d = { B: 0 }, q = ['B'];
+    while (q.length) {
+      const cur = q.shift();
+      for (const n of neighbours(cur)) if (!(n in d)) { d[n] = d[cur] + 1; q.push(n); }
+    }
+    return d;
+  }
+  // a router sends the packet to any neighbour that is closer to your friend
+  function nextHop(from) {
+    const d = distances();
+    if (!(from in d)) return null;
+    const closer = neighbours(from).filter(n => d[n] === d[from] - 1);
+    return closer[Math.floor(Math.random() * closer.length)];
+  }
+
+  function drawNetwork() {
+    links.forEach(l => {
+      const A = nodes[l.a], B = nodes[l.b];
+      l.el = el('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y, class: 'link' }, gLinks);
+    });
+    Object.values(nodes).filter(n => n.id[0] === 'R').forEach(n => {
+      const g = el('g', { class: 'router', transform: `translate(${n.x} ${n.y})` }, gNodes);
+      const r = el('rect', { x: -18, y: -18, width: 36, height: 36 }, g);
+      el('text', {}, g).textContent = n.id;
+      r.addEventListener('click', () => {
+        n.ok = !n.ok;
+        g.classList.toggle('broken', !n.ok);
+        links.forEach(l => l.el.classList.toggle('broken', !nodes[l.a].ok || !nodes[l.b].ok));
+        say(n.ok ? `router ${n.id} works again` : `router ${n.id} is broken: packets go around it`);
+        if (!n.ok) flying.filter(f => f.at === n.id || f.next === n.id).forEach(lose);
+      });
+    });
+  }
+
+  /* ---------- state ---------- */
+  let packets = [];    // {seq, data, sent, arrived}
+  let order = [];      // packet numbers in the order they arrived
+  let flying = [];
+  let timers = [];
+  const say = (s) => { statusText.textContent = s; };
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+
+  function render() {
+    gA.innerHTML = gB.innerHTML = '';
+    txt(SA.x + 10, SA.y + 88, 'packets', 't small b', gA);
+    txt(SB.x + 10, SB.y + 40, 'packets', 't small b', gB);
+    packets.forEach((p, i) => {
+      chip(gA, SA.x + 10 + i * (CHIP.w + CHIP.gap), SA.y + 96, p.seq, p.data, p.sent ? 'out' : 'full');
+      chip(gB, SB.x + 10 + i * (CHIP.w + CHIP.gap), SB.y + 48, p.seq, p.arrived ? p.data : '', p.arrived ? 'out' : 'empty');
+    });
+    if (packets.length) {
+      txt(SB.x + 10, SB.y + 112, 'message', 't small b', gB);
+      txt(SB.x + 10, SB.y + 136, packets.map(p => p.arrived ? p.data : '·'.repeat(p.data.length)).join(''), 't msg', gB);
+    }
+  }
+
+  /* ---------- sending ---------- */
+  function send() {
+    const text = field.value.toUpperCase().trim();
+    if (!text) { say('type a message first'); field.focus(); return; }
+    timers.forEach(clearTimeout); timers = [];
+    flying = []; gFly.innerHTML = '';
+    packets = []; order = [];
+    for (let i = 0; i < text.length; i += CHARS_PER_PACKET) packets.push({ seq: packets.length + 1, data: text.slice(i, i + CHARS_PER_PACKET), sent: false, arrived: false });
+    render();
+    say(`your message is cut into ${packets.length} numbered packets`);
+    packets.forEach((p, i) => later(() => launch(p), 1200 + 300 * i));
+  }
+
+  function launch(p) {
+    const g = el('g', { class: 'fly' }, gFly);
+    el('rect', { x: -11, y: -11, width: 22, height: 22 }, g);
+    el('text', {}, g).textContent = p.seq;
+    const f = { p, g, at: 'A', next: null, t: 0, wait: 0 };
+    place(f);
+    flying.push(f);
+    p.sent = true;
+    render();
+    if (!raf) schedule();
+  }
+
+  // a packet on a broken router is gone: no confirmation comes back, so your laptop sends it again
+  function lose(f) {
+    flying = flying.filter(x => x !== f);
+    f.g.classList.add('dying');
+    later(() => f.g.remove(), 700);
+    say(`#${f.p.seq} got lost, your laptop sends it again`);
+    later(() => launch(f.p), RESEND_MS);
+  }
+
+  function arrive(f) {
+    f.at = f.next; f.next = null;
+    if (f.at !== 'B') { f.wait = REDUCED ? 0 : 100 + Math.random() * 500; return; }   // a router may be busy for a moment
+    flying = flying.filter(x => x !== f);
+    f.g.remove();
+    f.p.arrived = true;
+    order.push(f.p.seq);
+    render();
+    if (order.length < packets.length) { say(`#${f.p.seq} arrived`); return; }
+    const inOrder = order.every((s, i) => s === i + 1);
+    say(inOrder ? 'all packets arrived, this time in the right order'
+                : `arrived as ${order.join(' ')}: the numbers put them back in order`);
+  }
+
+  /* ---------- motion ---------- */
+  const place = (f) => {
+    const A = nodes[f.at], B = f.next ? nodes[f.next] : A;
+    f.g.setAttribute('transform', `translate(${A.x + (B.x - A.x) * f.t} ${A.y + (B.y - A.y) * f.t})`);
+  };
+  // rAF for smooth motion; a timer fallback keeps packets moving when the browser pauses rAF (hidden or covered window)
+  let raf = null, fallback = null, last = performance.now();
+  function schedule() {
+    raf = requestAnimationFrame(now => { clearTimeout(fallback); step(now); });
+    fallback = setTimeout(() => { cancelAnimationFrame(raf); step(performance.now()); }, 100);
+  }
+  function step(now) {
+    raf = fallback = null;
+    const dt = Math.min(0.25, (now - last) / 1000); last = now;
+    for (const f of [...flying]) {
+      if (!f.next) {
+        f.wait -= dt * 1000;
+        if (f.wait > 0) continue;
+        const n = nextHop(f.at);
+        if (!n) { if (!f.stuck) say(`#${f.p.seq} waits at ${f.at === 'A' ? 'your laptop' : f.at}: no way through`); f.stuck = true; f.wait = 500; continue; }
+        f.stuck = false; f.next = n; f.t = 0;
+      }
+      const A = nodes[f.at], B = nodes[f.next];
+      f.t += REDUCED ? 1 : dt * SPEED / Math.hypot(B.x - A.x, B.y - A.y);
+      if (f.t >= 1) { f.t = 0; arrive(f); }
+      if (flying.includes(f)) place(f);
+    }
+    if (flying.length) schedule();
+  }
+
+  drawStatic();
+  drawNetwork();
+  render();
+  say('type a message and press send');
+})();
+</script>
+</body>
+</html>
