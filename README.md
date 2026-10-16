@@ -1,4 +1,4 @@
-# Digital Foundations — tools
+# Digital Foundations: tools
 
 Small browser tools for the Digital Foundations course at Devine.
 
