@@ -1,0 +1,36 @@
+{
+  "crate_id": "CR-017",
+  "artwork": {
+    "artwork_id": "ART-004",
+    "title": "Mona Lisa",
+    "artist": "Leonardo da Vinci",
+    "year": 1503
+  },
+  "original_destination": "D-01",
+  "current_destination": "D-03",
+  "status": "departed",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-13",
+      "time": "20:10:02",
+      "status": "scheduled",
+      "destination": "D-01",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-13",
+      "time": "20:35:12",
+      "status": "updated",
+      "destination": "D-03",
+      "workstation": "WS-02"
+    },
+    {
+      "date": "2026-11-13",
+      "time": "20:52:10",
+      "status": "departed",
+      "destination": "D-03",
+      "workstation": null
+    }
+  ]
+}

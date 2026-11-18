@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collections API - Musee du Louvre (fictional)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { font: 400 1rem/1.6 'IBM Plex Sans', system-ui, sans-serif; background: #eeece7; color: #1f1d1a; margin: 0; padding: 2rem 1rem 4rem; }
+  main { max-width: 46rem; margin: 0 auto; background: #fff; border: 1px solid #d9d4c8; border-radius: 4px; padding: 2rem 2.4rem 2.2rem; }
+  h1 { font-size: 1.5rem; margin: 0 0 .6rem; } h1 small { font: 400 .8rem 'IBM Plex Mono', monospace; color: #6b645a; }
+  h2 { font-size: 1.05rem; margin: 2.2rem 0 .6rem; border-top: 1px solid #d9d4c8; padding-top: 1.2rem; }
+  p { margin: 0 0 .8rem; } a { color: #8a2a1d; }
+  code { font: 400 .9em 'IBM Plex Mono', ui-monospace, Menlo, monospace; background: #eeece7; padding: .1rem .32rem; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; font-size: .94rem; } td, th { text-align: left; padding: .45rem .8rem .45rem 0; border-bottom: 1px solid #d9d4c8; vertical-align: top; }
+  th { font: 400 .78rem 'IBM Plex Mono', monospace; color: #6b645a; }
+  .get { font: 500 .78rem 'IBM Plex Mono', monospace; background: #1f1d1a; color: #fff; padding: .2rem .45rem; border-radius: 3px; margin-right: .3rem; }
+  footer { margin-top: 2.5rem; font-size: .82rem; color: #6b645a; }
+</style>
+</head>
+<body>
+<main>
+<h1>Collections API <small>v1</small></h1>
+<p>Shipment records of the museum's transport crates. Read-only. Every address returns JSON.</p>
+
+<h2>One shipment</h2>
+<p><span class="get">GET</span> <code>shipments/{crate_id}.json</code></p>
+<p>Replace <code>{crate_id}</code> with the ID of a transport crate, for example <a href="shipments/CR-012.json"><code>shipments/CR-012.json</code></a>. An ID that does not exist returns <code>404 Not Found</code>.</p>
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td><code>crate_id</code></td><td>ID of the crate</td></tr>
+  <tr><td><code>artwork</code></td><td>Object: the artwork inside the crate</td></tr>
+  <tr><td><code>original_destination</code></td><td>Destination ID when the shipment was first scheduled</td></tr>
+  <tr><td><code>current_destination</code></td><td>Destination ID now</td></tr>
+  <tr><td><code>status</code></td><td><code>scheduled</code>, <code>in_transit</code>, <code>delivered</code> or <code>departed</code></td></tr>
+  <tr><td><code>carrier</code></td><td>Object: the external transport company and its booking number. <code>null</code> when no carrier is registered</td></tr>
+  <tr><td><code>events</code></td><td>List: everything that happened to this shipment, oldest first. <code>workstation</code> is <code>null</code> when a scanner logged the event, not a person</td></tr>
+</table>
+
+<h2>All shipments</h2>
+<p><span class="get">GET</span> <a href="shipments.json"><code>shipments.json</code></a></p>
+<p>List of all crate IDs with their status.</p>
+
+<h2>Destinations</h2>
+<p><span class="get">GET</span> <a href="destinations.json"><code>destinations.json</code></a></p>
+<p>What each destination ID stands for.</p>
+
+<footer>Fictional API with made-up data, part of The Art Heist, Digital Foundations (Devine, Howest). Not affiliated with the Musee du Louvre.</footer>
+</main>
+</body>
+</html>

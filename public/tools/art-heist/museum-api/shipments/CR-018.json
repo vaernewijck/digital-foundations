@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-018",
+  "artwork": {
+    "artwork_id": "ART-020",
+    "title": "Portrait of Madame Recamier",
+    "artist": "Jacques-Louis David",
+    "year": 1800
+  },
+  "original_destination": "D-04",
+  "current_destination": "D-04",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-11",
+      "time": "09:56:53",
+      "status": "scheduled",
+      "destination": "D-04",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-11",
+      "time": "11:23:44",
+      "status": "delivered",
+      "destination": "D-04",
+      "workstation": "WS-04"
+    }
+  ]
+}

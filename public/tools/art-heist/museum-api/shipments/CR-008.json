@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-008",
+  "artwork": {
+    "artwork_id": "ART-010",
+    "title": "Portrait of Baldassare Castiglione",
+    "artist": "Raphael",
+    "year": 1515
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-12",
+      "time": "15:08:25",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-12",
+      "time": "17:45:57",
+      "status": "delivered",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    }
+  ]
+}

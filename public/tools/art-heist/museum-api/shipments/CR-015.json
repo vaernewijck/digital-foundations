@@ -1,0 +1,22 @@
+{
+  "crate_id": "CR-015",
+  "artwork": {
+    "artwork_id": "ART-017",
+    "title": "The Valpincon Bather",
+    "artist": "Jean-Auguste-Dominique Ingres",
+    "year": 1808
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "scheduled",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-12",
+      "time": "15:53:16",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-12"
+    }
+  ]
+}

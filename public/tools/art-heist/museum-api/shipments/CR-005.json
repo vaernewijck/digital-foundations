@@ -1,0 +1,32 @@
+{
+  "crate_id": "CR-005",
+  "artwork": {
+    "artwork_id": "ART-007",
+    "title": "The Ship of Fools",
+    "artist": "Hieronymus Bosch",
+    "year": 1500
+  },
+  "original_destination": "D-03",
+  "current_destination": "D-03",
+  "status": "departed",
+  "carrier": {
+    "name": "Seine Fine Art Logistics",
+    "booking": "SFA-22871"
+  },
+  "events": [
+    {
+      "date": "2026-11-11",
+      "time": "11:51:02",
+      "status": "scheduled",
+      "destination": "D-03",
+      "workstation": "WS-12"
+    },
+    {
+      "date": "2026-11-11",
+      "time": "13:03:29",
+      "status": "departed",
+      "destination": "D-03",
+      "workstation": null
+    }
+  ]
+}

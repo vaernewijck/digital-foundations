@@ -1,0 +1,105 @@
+{
+  "count": 20,
+  "shipments": [
+    {
+      "crate_id": "CR-001",
+      "status": "delivered",
+      "url": "shipments/CR-001.json"
+    },
+    {
+      "crate_id": "CR-002",
+      "status": "delivered",
+      "url": "shipments/CR-002.json"
+    },
+    {
+      "crate_id": "CR-003",
+      "status": "scheduled",
+      "url": "shipments/CR-003.json"
+    },
+    {
+      "crate_id": "CR-004",
+      "status": "delivered",
+      "url": "shipments/CR-004.json"
+    },
+    {
+      "crate_id": "CR-005",
+      "status": "departed",
+      "url": "shipments/CR-005.json"
+    },
+    {
+      "crate_id": "CR-006",
+      "status": "delivered",
+      "url": "shipments/CR-006.json"
+    },
+    {
+      "crate_id": "CR-007",
+      "status": "delivered",
+      "url": "shipments/CR-007.json"
+    },
+    {
+      "crate_id": "CR-008",
+      "status": "delivered",
+      "url": "shipments/CR-008.json"
+    },
+    {
+      "crate_id": "CR-009",
+      "status": "departed",
+      "url": "shipments/CR-009.json"
+    },
+    {
+      "crate_id": "CR-010",
+      "status": "delivered",
+      "url": "shipments/CR-010.json"
+    },
+    {
+      "crate_id": "CR-011",
+      "status": "scheduled",
+      "url": "shipments/CR-011.json"
+    },
+    {
+      "crate_id": "CR-012",
+      "status": "delivered",
+      "url": "shipments/CR-012.json"
+    },
+    {
+      "crate_id": "CR-013",
+      "status": "delivered",
+      "url": "shipments/CR-013.json"
+    },
+    {
+      "crate_id": "CR-014",
+      "status": "departed",
+      "url": "shipments/CR-014.json"
+    },
+    {
+      "crate_id": "CR-015",
+      "status": "scheduled",
+      "url": "shipments/CR-015.json"
+    },
+    {
+      "crate_id": "CR-016",
+      "status": "delivered",
+      "url": "shipments/CR-016.json"
+    },
+    {
+      "crate_id": "CR-017",
+      "status": "departed",
+      "url": "shipments/CR-017.json"
+    },
+    {
+      "crate_id": "CR-018",
+      "status": "delivered",
+      "url": "shipments/CR-018.json"
+    },
+    {
+      "crate_id": "CR-019",
+      "status": "delivered",
+      "url": "shipments/CR-019.json"
+    },
+    {
+      "crate_id": "CR-020",
+      "status": "scheduled",
+      "url": "shipments/CR-020.json"
+    }
+  ]
+}

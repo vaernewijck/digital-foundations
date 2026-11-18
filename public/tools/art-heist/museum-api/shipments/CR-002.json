@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-002",
+  "artwork": {
+    "artwork_id": "ART-003",
+    "title": "The Ray",
+    "artist": "Jean Simeon Chardin",
+    "year": 1728
+  },
+  "original_destination": "D-01",
+  "current_destination": "D-01",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-09",
+      "time": "14:18:34",
+      "status": "scheduled",
+      "destination": "D-01",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-09",
+      "time": "16:02:03",
+      "status": "delivered",
+      "destination": "D-01",
+      "workstation": "WS-04"
+    }
+  ]
+}

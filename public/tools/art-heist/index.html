@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Art Heist - Digital Foundations</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23161412'/%3E%3Cpath d='M5 9h9l2 2h11v15H5z' fill='%23e6cf9a'/%3E%3Crect x='9' y='15' width='14' height='6' fill='none' stroke='%23a3271c' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  /* A case file on a desk: manila folders and paper on a dark desk, typewriter headings, red rubber stamps,
+     evidence handed out as numbered exhibits (PDU/01, the way police number exhibits), and police tape under the top bar.
+     Three typefaces, three voices: Special Elite is the case file, Plex Sans gives instructions, Plex Mono is data. */
+  :root {
+    --desk: #2b2825; --bar: #161412; --paper: #fbf8f1; --paper-2: #f2ede1; --manila: #e6cf9a; --manila-dk: #b99b5c;
+    --ink: #1f1c18; --muted: #6a6257; --line: #e1d9c8; --edge: #b6aa92;
+    --red: #a3271c; --red-hi: #c2362a; --red-soft: #f7e4df; --ok: #2f6b3a; --ok-soft: #e3eedf; --tape: #f2c230;
+    --type: 'Special Elite', 'Courier New', Courier, monospace;
+    --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    --head: 4rem;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-padding-top: calc(var(--head) + 1rem); }
+  body {
+    color: var(--ink); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+    background: radial-gradient(ellipse 90% 60% at 40% 0%, #3a3631, transparent 70%), var(--desk);
+    background-attachment: fixed; min-height: 100vh;
+  }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--tape); outline-offset: 2px; }
+
+  /* ---- top bar with a strip of police tape ---- */
+  .top {
+    position: sticky; top: 0; z-index: 10; background: var(--bar); color: #fff;
+    display: flex; align-items: center; gap: .6rem 1.4rem; flex-wrap: wrap; padding: .65rem 1.25rem calc(.65rem + 9px);
+  }
+  .top::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 9px;
+    background: repeating-linear-gradient(-45deg, var(--tape) 0 12px, var(--bar) 12px 24px);
+  }
+  .brand { display: flex; align-items: center; gap: .7rem; background: none; border: 0; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+  .brand b { font: 400 1.3rem/1.1 var(--type); display: block; letter-spacing: .02em; }
+  .brand small { font: 400 .72rem/1.2 var(--mono); opacity: .65; display: block; text-transform: uppercase; letter-spacing: .06em; }
+  .steps { display: flex; gap: .3rem; align-items: center; overflow-x: auto; padding: 3px; margin: -3px; }
+  .steps button {
+    font: 500 .82rem/1 var(--sans); color: #fff; background: transparent; cursor: pointer; white-space: nowrap;
+    height: 2rem; min-width: 2rem; padding: 0 .6rem; border: 1px solid rgba(255, 255, 255, .28); border-radius: 3px;
+  }
+  .steps button:hover { border-color: #fff; }
+  .steps button.done { background: rgba(255, 255, 255, .12); border-color: transparent; }
+  .steps button.done::after { content: " \2713"; color: var(--tape); }
+  .steps button.on { background: var(--manila); border-color: var(--manila); color: var(--ink); font-weight: 600; }
+  .steps button:disabled { opacity: .35; cursor: default; border-style: dashed; }
+  .steps button:disabled:hover { border-color: rgba(255, 255, 255, .28); }
+  .right { margin-left: auto; display: flex; gap: .5rem; align-items: center; }
+  .ghost {
+    font: 500 .88rem/1 var(--sans); color: #fff; background: transparent; cursor: pointer;
+    height: 2.1rem; padding: 0 .85rem; border: 1px solid rgba(255, 255, 255, .4); border-radius: 3px;
+  }
+  .ghost:hover { border-color: #fff; background: rgba(255, 255, 255, .08); }
+  .ghost.on { background: var(--manila); color: var(--ink); border-color: var(--manila); }
+
+  /* ---- page: folders on the desk ---- */
+  .shell { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
+  main { width: 100%; max-width: 48rem; margin: 0 auto; padding: 3.2rem 1.25rem 5rem; }
+  .sheet {
+    position: relative; background: var(--paper); border-top: 10px solid var(--manila); border-radius: 0 6px 4px 4px;
+    padding: 2rem 2.5rem 2.4rem; box-shadow: 0 22px 34px -22px rgba(0, 0, 0, .75), 0 2px 0 var(--manila-dk);
+  }
+  .sheet + .sheet, .sheet + .card { margin-top: 3.2rem; }
+  .tab {
+    position: absolute; left: 0; bottom: calc(100% + 10px); background: var(--manila); color: var(--ink);
+    font: 400 .92rem/1 var(--type); text-transform: uppercase; letter-spacing: .06em;
+    padding: .62rem 1.2rem .5rem; border-radius: 6px 6px 0 0;
+  }
+  .kicker { font: 400 .78rem/1.4 var(--mono); color: var(--muted); margin-bottom: .45rem; text-transform: uppercase; letter-spacing: .06em; }
+  h2 { font: 400 clamp(1.7rem, 4.6vw, 2.3rem)/1.12 var(--type); margin-bottom: 1.1rem; padding-right: 9.5rem; }
+  h3 { font: 600 1.05rem/1.3 var(--sans); margin: 2rem 0 .7rem; }
+  main p, main ul, main ol { margin-bottom: .9rem; }
+  main ul, main ol { padding-left: 1.3rem; }
+  main li { margin-bottom: .35rem; }
+  main a, #panel a { color: var(--red); text-underline-offset: .16em; }
+  hr { border: none; border-top: 1px dashed var(--edge); margin: 1.8rem 0; }
+  code { font: 400 .9em var(--mono); background: var(--paper-2); padding: .1rem .32rem; border-radius: 2px; overflow-wrap: anywhere; }
+  .lede { font-size: 1.12rem; line-height: 1.55; }
+  .small { font-size: .86rem; color: var(--muted); }
+
+  /* ---- rubber stamps ---- */
+  .stamp {
+    display: inline-block; font: 400 1.05rem/1 var(--type); color: var(--red); text-transform: uppercase; letter-spacing: .12em;
+    border: 3px double var(--red); border-radius: 3px; padding: .45rem .7rem .35rem; transform: rotate(-7deg); opacity: .88;
+    mix-blend-mode: multiply;
+  }
+  .sheet > .stamp { position: absolute; right: 2rem; top: 1.6rem; }
+  .stamp.ok { color: var(--ok); border-color: var(--ok); }
+
+  /* ---- buttons ---- */
+  .btn {
+    font: 600 .95rem/1 var(--sans); cursor: pointer; white-space: nowrap; display: inline-block; text-decoration: none;
+    padding: .8rem 1.25rem; border-radius: 3px; border: 1px solid var(--edge); background: var(--paper); color: var(--ink);
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn.primary:hover { background: var(--red); border-color: var(--red); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:disabled:hover { border-color: var(--edge); }
+  .how, .textbtn { font: inherit; font-weight: 500; color: var(--red); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: .16em; text-align: left; }
+  .how:hover, .textbtn:hover { color: var(--ink); }
+
+  /* ---- briefing: the cover of the case file ---- */
+  .cover { display: grid; grid-template-columns: 12.5rem 1fr; gap: 1.8rem; align-items: start; margin-bottom: .6rem; }
+  .polaroid { background: #fff; padding: .6rem .6rem 0; box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .5); transform: rotate(-2.2deg); position: relative; }
+  .polaroid::before {  /* paper clip */
+    content: ""; position: absolute; top: -.9rem; left: 1.4rem; width: .9rem; height: 2.6rem; border: 2px solid #8d8a84; border-radius: 1rem; background: transparent;
+  }
+  .polaroid img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; }
+  .polaroid figcaption { font: 400 .74rem/1.35 var(--sans); color: var(--muted); padding: .55rem .1rem .6rem; }
+  .polaroid figcaption b { display: block; font: 400 .9rem/1.3 var(--type); color: var(--ink); }
+  .polaroid .stamp { position: absolute; left: 50%; top: 38%; translate: -50% 0; background: rgba(255, 255, 255, .9); font-size: 1.15rem; opacity: 1; }
+  .rules { list-style: none; padding: 0 !important; counter-reset: r; }
+  .rules li { counter-increment: r; display: grid; grid-template-columns: 1.9rem 1fr; margin-bottom: .6rem; }
+  .rules li::before { content: counter(r); font: 400 1rem/1.6 var(--type); color: var(--red); }
+  /* a photo print on the case file: the crime scene on the briefing, the recovered crate on the summary */
+  .scene { background: #fff; padding: .55rem .55rem 0; margin: 1.8rem 0 .6rem; box-shadow: 0 10px 18px -10px rgba(0, 0, 0, .5); transform: rotate(.5deg); }
+  .scene img { display: block; width: 100%; height: auto; }
+  .scene figcaption { font: 400 .8rem/1.4 var(--sans); color: var(--muted); padding: .55rem .1rem .65rem; }
+  .scene figcaption b { display: block; font: 400 .95rem/1.3 var(--type); color: var(--ink); }
+  .start { display: flex; gap: .7rem; align-items: flex-end; flex-wrap: wrap; }
+  .start .field { margin: 0; flex: 1 1 16rem; }
+
+  /* ---- evidence: numbered exhibit labels ---- */
+  a.dl {
+    display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ex get" "fn get" "fd get"; column-gap: 1rem; align-items: center;
+    margin: 1.2rem 0; padding: .7rem 1rem .75rem 1.1rem; border: 1px solid var(--edge); border-left: 7px solid var(--red);
+    border-radius: 2px; background: #fffdf8; color: var(--ink) !important; text-decoration: none; position: relative;
+  }
+  a.dl:hover { border-color: var(--ink); border-left-color: var(--red-hi); background: #fff; }
+  .dl .ex { grid-area: ex; font: 400 .78rem/1.2 var(--type); color: var(--red); text-transform: uppercase; letter-spacing: .1em; }
+  .dl .fn { grid-area: fn; font: 500 1rem/1.35 var(--mono); overflow-wrap: anywhere; }
+  .dl .fd { grid-area: fd; font-size: .85rem; line-height: 1.35; color: var(--muted); }
+  .dl .get { grid-area: get; font-weight: 600; font-size: .9rem; color: var(--red); }
+  .dl .get::before { content: "\2193\00a0"; }
+
+  /* ---- example data ---- */
+  .scroll { overflow-x: auto; margin-bottom: .9rem; }
+  table.example { font: 400 .82rem var(--mono); background: #fffdf8; border: 1px solid var(--line); margin: 0; }
+  table.example th, table.example td { padding: .35rem .7rem; white-space: nowrap; }
+  pre.example { font: 400 .8rem/1.5 var(--mono); background: #fffdf8; border: 1px solid var(--line); padding: .8rem 1rem; overflow-x: auto; margin-bottom: .9rem; }
+
+  /* ---- questions ---- */
+  form.ask { margin-top: 2rem; padding-top: 1.6rem; border-top: 2px solid var(--ink); }
+  form.ask > h3 { margin-top: 0; font: 400 1.25rem var(--type); }
+  .field { margin-bottom: 1.3rem; }
+  .field > label, legend { display: block; font-weight: 500; margin-bottom: .45rem; }
+  .ask .field.q { display: grid; grid-template-columns: 1.9rem 1fr; }
+  .ask .field.q::before { content: attr(data-q); font: 400 1rem/1.6 var(--type); color: var(--red); }
+  .fhelp { font-size: .88rem; color: var(--muted); margin: -.2rem 0 .5rem !important; }
+  .inrow { display: flex; gap: .4rem .8rem; align-items: center; flex-wrap: wrap; }
+  input[type=text], textarea, select {
+    font: inherit; width: 100%; padding: .6rem .75rem; background: #fff; color: var(--ink);
+    border: 1px solid var(--edge); border-radius: 2px;
+  }
+  input[type=text]:hover, textarea:hover, select:hover { border-color: var(--ink); }
+  input::placeholder, textarea::placeholder { color: #9b927f; }
+  input:disabled, textarea:disabled, select:disabled { background: var(--paper-2); color: var(--ink); opacity: 1; border-color: var(--line); }
+  input[type=text].mono { font-family: var(--mono); max-width: 20rem; }
+  input[type=text].mono.list { max-width: 32rem; }
+  textarea { min-height: 6.5rem; resize: vertical; display: block; }
+  fieldset { border: none; }
+  .field.ok input { border-color: var(--ok); background: var(--ok-soft); }
+  .field.no input, .field.no select { border-color: var(--red); background: var(--red-soft); }
+  .mark { font-size: .88rem; font-weight: 600; }
+  .mark:empty { display: none; }
+  .field.ok .mark { color: var(--ok); }
+  .field.no .mark { color: var(--red); }
+  .msg { margin: 1rem 0; padding: .75rem 1rem; border-radius: 2px; background: var(--red-soft); color: var(--red); font-weight: 500; }
+
+  /* ---- hints ---- */
+  .hints { margin-top: 2.2rem; padding-top: 1.4rem; border-top: 1px dashed var(--edge); }
+  .hints h3 { margin-top: 0; }
+  .hints .row { display: flex; gap: .5rem 1rem; flex-wrap: wrap; align-items: center; }
+  .hint { padding: .8rem 1rem; background: #fff7d6; border-left: 4px solid var(--tape); margin-bottom: .6rem; }
+  .hint b { font: 400 .78rem var(--type); color: var(--muted); display: block; margin-bottom: .15rem; text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ---- solved: an index card with a stamp ---- */
+  .card {
+    position: relative; background: #fffdf6; padding: 1.6rem 2.5rem 1.4rem; border-radius: 2px;
+    box-shadow: 0 22px 34px -22px rgba(0, 0, 0, .75);
+  }
+  .card .congrats { font: 400 1.05rem/1.4 var(--type); margin: .2rem -2.5rem 1.3rem; padding: 0 11rem .9rem 2.5rem; border-bottom: 2px solid var(--ok); }
+  .card .stamp { position: absolute; right: 1.6rem; top: 1.1rem; }
+  .card h3 { font: 400 1.45rem/1.2 var(--type); margin: 0 0 .7rem; }
+  .card p:last-child { margin-bottom: .2rem; }
+  .card .explain { background: var(--paper-2); border-left: 4px solid var(--ok); padding: .8rem 1rem .7rem; margin-top: 1.1rem; }
+  .card .explain p { margin-bottom: .4rem; }
+  .card .explain code { background: #fffdf6; }
+  .card .elabel { font: 400 .78rem/1.4 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+  .next { margin-top: 1.4rem; }
+
+  /* ---- tables ---- */
+  table { border-collapse: collapse; width: 100%; margin-bottom: 1.2rem; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .8rem .45rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font: 400 .74rem var(--mono); color: var(--muted); border-bottom-color: var(--edge); text-transform: uppercase; letter-spacing: .04em; }
+  table.tl td:first-child { font-family: var(--mono); white-space: nowrap; }
+  table.tl td:last-child { font: 400 .8rem var(--mono); }
+  .reveal h2 { font-size: 1.6rem; margin: 2.2rem 0 .9rem; padding: 0; }
+  .reveal h2:first-child { margin-top: 0; }
+
+  /* ---- How to and Notes ---- */
+  #panel { background: var(--paper-2); overflow-y: auto; overscroll-behavior: contain; }
+  .ptabs { position: sticky; top: 0; z-index: 1; background: var(--paper-2); display: flex; align-items: center; gap: .2rem; padding: .7rem 1rem 0; border-bottom: 1px solid var(--edge); }
+  .ptabs [role=tab] { font: 400 .95rem var(--type); text-transform: uppercase; letter-spacing: .05em; background: none; border: 0; border-bottom: 3px solid transparent; padding: .5rem .6rem .55rem; cursor: pointer; color: var(--muted); }
+  .ptabs [role=tab][aria-selected=true] { color: var(--ink); border-bottom-color: var(--red); }
+  .ptabs .textbtn { margin-left: auto; font-size: .88rem; padding: .5rem .2rem; }
+  .pbody { padding: 1.1rem 1.25rem 2rem; font-size: .95rem; }
+  .pbody > p { margin-bottom: .8rem; }
+  details { border-bottom: 1px solid var(--edge); }
+  summary { cursor: pointer; padding: .8rem 0; font-weight: 600; }
+  details[open] summary { color: var(--red); }
+  details > div { padding: 0 0 1rem; }
+  details p, details ul, details ol { margin-bottom: .7rem; }
+  details ul, details ol { padding-left: 1.2rem; }
+  details li { margin-bottom: .35rem; }
+  #notes { min-height: 16rem; font: 400 .9rem/1.55 var(--mono); background: #fffdf6; }
+  .pbody label { display: block; font-weight: 600; margin-bottom: .4rem; }
+  .pbody h3 { margin: 1.6rem 0 .5rem; font-size: .95rem; }
+  #files { list-style: none; }
+  #files li { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem 0; border-bottom: 1px solid var(--edge); }
+  #files span { font: 400 .78rem var(--mono); color: var(--muted); white-space: nowrap; }
+  @media (min-width: 1100px) {
+    .shell { grid-template-columns: minmax(0, 1fr) 25rem; }
+    #panel { position: sticky; top: var(--head); height: calc(100vh - var(--head)); border-left: 1px solid #000; }
+    .right, #panelClose { display: none; }
+  }
+  @media (max-width: 1099px) {
+    #panel { display: none; position: fixed; inset: 0 0 0 auto; width: min(25rem, 100vw); z-index: 20; box-shadow: -14px 0 34px rgba(0, 0, 0, .45); }
+    body.panel #panel { display: block; }
+  }
+
+  /* ---- case summary: a police form, printed to PDF ---- */
+  #report { background: #fff; border: 1px solid var(--edge); padding: 2rem 2.3rem; margin: 3.2rem 0 1.25rem; box-shadow: 0 22px 34px -22px rgba(0, 0, 0, .75); }
+  #report h3 { margin: 1.3rem 0 .4rem; font: 400 .95rem var(--type); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--ink); padding-bottom: .2rem; }
+  #report .rhead { display: flex; justify-content: space-between; gap: 1rem; border: 2px solid var(--ink); padding: .7rem .9rem; margin-bottom: 1rem; font-size: .85rem; }
+  #report .rhead b { font: 400 1.6rem/1.1 var(--type); display: block; text-transform: uppercase; letter-spacing: .04em; }
+  #report .code { font: 400 .85rem/1.5 var(--mono); text-align: right; }
+  #report p { margin-bottom: .5rem; }
+  #report table { font-size: .84rem; margin-bottom: .6rem; }
+  #report table.who th { width: 9rem; }
+
+  @media (max-width: 700px) {
+    .top { padding: .55rem .8rem calc(.55rem + 9px); }
+    .steps { order: 3; flex-basis: 100%; }
+    main { padding: 2.6rem 1rem 4rem; }
+    .sheet, #report { padding: 1.5rem 1.2rem 1.6rem; }
+    .card { padding: 1.4rem 1.2rem 1.2rem; }
+    .card .congrats { margin: 3rem -1.2rem 1.2rem; padding: 0 1.2rem .8rem; }
+    h2 { padding-right: 0; }
+    .sheet > .stamp { top: auto; bottom: 100%; right: .8rem; transform: translateY(-1rem) rotate(-7deg); font-size: .9rem; }
+    .cover { grid-template-columns: 1fr; }
+    .polaroid { width: 11rem; margin: 0 auto .6rem; }
+    a.dl { grid-template-columns: 1fr; grid-template-areas: "ex" "fn" "fd" "get"; row-gap: .1rem; }
+    .dl .get { margin-top: .4rem; }
+  }
+
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background: #fff; }
+    .top, .noprint, #panel { display: none !important; }
+    .shell { display: block; }
+    main { max-width: none; padding: 0; }
+    #report { border: none; box-shadow: none; padding: 0; margin: 0; font-size: 9.5pt; line-height: 1.35; }
+    #report table { font-size: 8.5pt; margin-bottom: .3rem; break-inside: avoid; }
+    #report th, #report td { padding: .14rem .6rem .14rem 0; }
+    #report h3 { margin: .7rem 0 .25rem; }
+    #report p { margin-bottom: .3rem; }
+    #report .rhead { padding: .4rem .6rem; margin-bottom: .6rem; }
+    #report .rhead b { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <button class="brand" type="button" data-go="0" aria-label="The Art Heist, back to the briefing">
+    <span><b>The Art Heist</b><small>Police Data Unit &middot; Case 2047</small></span>
+  </button>
+  <nav class="steps" id="steps" aria-label="Stages"></nav>
+  <div class="right">
+    <button class="ghost" id="notesBtn" type="button" aria-expanded="false" aria-controls="panel">Notes</button>
+    <button class="ghost" id="howBtn" type="button" aria-expanded="false" aria-controls="panel">How to</button>
+  </div>
+</header>
+
+<div class="shell">
+<main id="main"><noscript><p>This page needs JavaScript.</p></noscript></main>
+
+<aside id="panel" data-tab="notes" aria-label="Notes and how to">
+  <div class="ptabs" role="tablist">
+    <button type="button" role="tab" id="tab-notes" data-tab="notes" aria-selected="true" aria-controls="pane-notes">Notes</button>
+    <button type="button" role="tab" id="tab-how" data-tab="how" aria-selected="false" aria-controls="pane-how">How to</button>
+    <button type="button" class="textbtn" id="panelClose">Close</button>
+  </div>
+
+  <div class="pbody" id="pane-how" role="tabpanel" aria-labelledby="tab-how" hidden>
+    <p>The steps for the tools on your laptop. This does not tell you what to look for.</p>
+
+    <details data-topic="vscode"><summary>Open a file in VS Code</summary><div>
+      <ul>
+        <li>Unzip the download first: double-click the .zip file.</li>
+        <li>Drag the file onto the VS Code window, or File &gt; Open.</li>
+        <li>Line numbers are on the left.</li>
+        <li><strong>Search:</strong> cmd+F (Windows: ctrl+F). Type a word or an ID. The arrows jump to the next match.</li>
+        <li>VS Code opens text files: CSV, TXT, XML, JSON. A picture (PNG, JPG) opens in your image viewer.</li>
+      </ul>
+    </div></details>
+
+    <details data-topic="csv"><summary>Import a CSV in Google Sheets</summary><div>
+      <ol>
+        <li>Go to <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a>. That opens a new, empty sheet. You need a Google account, which is free.</li>
+        <li>File &gt; Import &gt; Upload, and pick the CSV file.</li>
+        <li>Choose "Replace current sheet" and click Import data. Google Sheets finds the commas by itself.</li>
+      </ol>
+      <p><a href="https://www.youtube.com/watch?v=C3ic0jqAWJY" target="_blank" rel="noopener">Video: How to Import a CSV in Google Sheets</a></p>
+      <p>Prefer Excel or Numbers? That works too. If Excel puts every row in one single column: select column A, then Data &gt; Text to Columns &gt; Delimited &gt; tick Comma &gt; Finish.</p>
+    </div></details>
+
+    <details data-topic="filter"><summary>Filter in Google Sheets</summary><div>
+      <ol>
+        <li>Click a cell in the table, then Data &gt; Create a filter. Every column name gets a filter icon.</li>
+        <li>Click the icon in a column name &gt; Filter by condition &gt; for example "Text contains", and type what you are looking for. Click OK.</li>
+        <li>Or untick values under Filter by values, to keep only the ones you want.</li>
+        <li>You can put a filter on several columns at once. Only rows that pass every filter stay visible.</li>
+      </ol>
+      <p><a href="https://www.youtube.com/watch?v=SYSevA4znlc" target="_blank" rel="noopener">Video: How to Filter Spreadsheet Data in Google Sheets</a></p>
+      <p>To sort: the same icon, Sort A to Z. On a time column that puts the rows in order of time.</p>
+    </div></details>
+
+    <details data-topic="json"><summary>Read JSON</summary><div>
+      <ul>
+        <li><code>{ }</code> is an object: a set of <code>"key": value</code> pairs.</li>
+        <li><code>[ ]</code> is a list. A list can hold objects, and an object can hold another object.</li>
+        <li><code>null</code> means: no value.</li>
+        <li>Open it in VS Code and search with cmd+F (Windows: ctrl+F). In the browser works too: Chrome has a "Pretty-print" box at the top, Firefox shows a tree.</li>
+      </ul>
+    </div></details>
+
+    <details data-topic="xml"><summary>Read XML</summary><div>
+      <p>XML uses tags, like HTML. <code>&lt;status&gt;active&lt;/status&gt;</code> is a value with a label around it. A tag can also carry values in its opening part: <code>&lt;camera id="CAM-01"&gt;</code>. Open it in VS Code.</p>
+    </div></details>
+
+    <details data-topic="exif"><summary>Photo metadata</summary><div>
+      <p>A photo file carries data about itself: when, with which device, sometimes where. Always use the downloaded file, never a screenshot of it.</p>
+      <ul>
+        <li><strong>Mac, Preview:</strong> open the photo, then Tools &gt; Show Inspector (cmd+I). Click the tab with the (i). You get tabs such as General, Exif and GPS.</li>
+        <li><strong>Windows:</strong> right-click the file &gt; Properties &gt; Details.</li>
+        <li><strong>Any computer:</strong> search for "online EXIF viewer" and upload the file.</li>
+      </ul>
+    </div></details>
+
+    <details data-topic="api"><summary>How an API address is built</summary><div>
+      <p><code>https://api.irail.be/liveboard/?station=Kortrijk&amp;format=json</code></p>
+      <ul>
+        <li><code>https://api.irail.be</code> is the server.</li>
+        <li><code>/liveboard/</code> is the path: which kind of data you want.</li>
+        <li>After the <code>?</code> come parameters, <code>name=value</code>, with <code>&amp;</code> between them.</li>
+      </ul>
+      <p>Some APIs put the choice in the path instead: <code>.../shipments/CR-012.json</code>. Either way: change one part of the address and you get other data. Ask for something that does not exist and you get a 404.</p>
+      <p>You type the address in the address bar of your browser, like any web address.</p>
+    </div></details>
+
+    <details data-topic="map"><summary>Find a position on a map</summary><div>
+      <ol>
+        <li>Copy the position from the photo's metadata, latitude and longitude, for example <code>50&deg; 49' 30" N 3&deg; 15' 52" E</code>.</li>
+        <li>Paste it in the search box of <a href="https://maps.google.com" target="_blank" rel="noopener">Google Maps</a> and press Enter. Degrees, minutes, seconds work, and so do decimals: <code>50.825, 3.2644</code>.</li>
+        <li>A pin marks the spot. Click it, or the address below the search box, to see the address and its postcode.</li>
+      </ol>
+    </div></details>
+  </div>
+
+  <div class="pbody" id="pane-notes" role="tabpanel" aria-labelledby="tab-notes">
+    <label for="notes">Your notes</label>
+    <textarea id="notes" spellcheck="false" placeholder="Record IDs, times, names, and what they show."></textarea>
+    <p class="small">Saved in this browser while you type. Only you see them, they are not part of your summary.</p>
+    <h3>Exhibits you have received</h3>
+    <ul id="files"></ul>
+  </div>
+</aside>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const SALT = 'imma-case-2047';          // same as gate.py
+  const STORE = 'art-heist:v1';
+  const LAST = 8;                          // last stage
+  const REPORT = LAST + 1;                 // view after the last stage: the case summary, saved as PDF
+  const HINT3_AFTER = 5 * 60 * 1000;       // level 3 hint opens after 5 minutes on a stage, or 3 wrong tries
+  const $ = id => document.getElementById(id);
+  const main = $('main');
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---- hashing and answer normalisation: mirrors gate.py ---- */
+  const enc = new TextEncoder();
+  async function sha(s) {
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(s));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  const normText = v => v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const NORM = {
+    text: normText,
+    list: v => [...new Set(v.split(/[,;\s]+/).map(normText).filter(p => p && p !== 'AND' && p !== 'EN'))].sort().join(','),
+    int: v => { const d = v.replace(/\D/g, ''); return d ? String(parseInt(d, 10)) : ''; },
+    time: v => v.replace(/\D/g, ''),       // 20:40:08, 20.40.08 and 20u40m08 are the same answer
+    place: v => {                          // a position (rounded to 2 decimals) or a postcode
+      let s = v.trim();
+      if (!s.includes('.')) s = s.replace(/,/g, '.');                   // decimal comma
+      let nums = (s.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+      const digits = v.replace(/\D/g, '');
+      if (nums.length === 1 && /^\d{5}$/.test(digits)) return 'P' + digits;
+      if (nums.length === 6) nums = [nums[0] + nums[1] / 60 + nums[2] / 3600, nums[3] + nums[4] / 60 + nums[5] / 3600];
+      else if (nums.length === 4) nums = [nums[0] + nums[1] / 60, nums[2] + nums[3] / 60];
+      return nums.length === 2 ? `C${nums[0].toFixed(2)},${nums[1].toFixed(2)}` : '';
+    },
+  };
+  const ANY = 'ANY';                       // a question with several right answers puts this in the key (gate.py)
+  const stageKey = (n, norms) => sha(`${SALT}|${n}|${norms.join('|')}`);
+  const folder = key => key.slice(0, 16);
+
+  /* ---- state ---- */
+  let S = { name: '', started: null, done: null, keys: {}, stages: {}, draft: {}, notes: '', view: 0 };
+  let canStore = true;
+  try { const raw = localStorage.getItem(STORE); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch { canStore = false; }
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch { canStore = false; } };
+  const stage = n => (S.stages[n] ||= { opened: null, solved: null, wrong: 0, hints: 0, answers: [] });
+  const unlocked = n => n === 0 || (n === 1 && !!S.started) || !!S.keys[n - 1];
+
+  /* ---- stage content: lives in a folder named after the previous stage's answer ---- */
+  const cache = {};
+  async function getStage(n) {
+    if (cache[n]) return cache[n];
+    const dir = `packs/${folder(S.keys[n - 1])}`;
+    const res = await fetch(`${dir}/stage.json`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`stage ${n}: ${res.status}`);
+    const doc = await res.json();
+    doc.dir = dir;
+    return (cache[n] = doc);
+  }
+  const fill = (html, doc) => html.replaceAll('[[pack]]', doc.dir).replaceAll('[[api]]', new URL('museum-api/', location.href).href);
+
+  /* ---- header ---- */
+  function drawSteps() {
+    const labels = ['Briefing', ...Array.from({ length: LAST }, (_, i) => String(i + 1)), 'Summary'];
+    $('steps').innerHTML = labels.map((l, n) => {
+      const open = n === REPORT ? !!S.keys[LAST] : unlocked(n);
+      const done = n >= 1 && n <= LAST && stage(n).solved;
+      const name = n === 0 || n === REPORT ? l : 'Stage ' + l + (cache[n] ? ': ' + cache[n].title : '');
+      return `<button type="button" data-go="${n}" class="${n === S.view ? 'on' : ''} ${done ? 'done' : ''}" ${open ? '' : 'disabled'}
+        ${n === S.view ? 'aria-current="step"' : ''} title="${esc(open ? name : name + ' (locked)')}" aria-label="${esc(name)}${done ? ', solved' : ''}">${l}</button>`;
+    }).join('');
+  }
+  const clock = ms => {
+    const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0');
+  };
+  // only the countdown text changes each second, so a selection in an open hint survives
+  function tick() {
+    const wait = document.querySelector('[data-wait]');
+    if (!wait) return;
+    const st = stage(+wait.dataset.wait), left = HINT3_AFTER - (Date.now() - st.opened);
+    if (left > 0) wait.querySelector('time').textContent = clock(left);
+    else drawHints(+wait.dataset.wait);
+  }
+  setInterval(tick, 1000);
+
+  async function go(n) {
+    S.view = n; save(); drawSteps();
+    try {
+      if (n === 0) briefing();
+      else if (n === REPORT) await report();
+      else await showStage(n);
+    } catch (err) {
+      main.innerHTML = `<div class="sheet"><h2>Something went wrong</h2><p>The case file could not be loaded. Check your connection and reload the page. Your progress is saved.</p><p class="small">${esc(err.message)}</p></div>`;
+    }
+    drawSteps();
+    if ($('panel').dataset.tab === 'notes') drawFiles();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---- briefing ---- */
+  function briefing() {
+    main.innerHTML = `
+      <div class="sheet">
+        <div class="tab">Case file 2047</div>
+        <span class="stamp">Open case</span>
+        <p class="kicker">Police Data Unit &middot; Briefing</p>
+        <h2>Briefing: the theft of the Mona Lisa</h2>
+        <div class="cover">
+          <figure class="polaroid">
+            <img src="img/mona-lisa.jpg" width="480" height="716" alt="The Mona Lisa by Leonardo da Vinci: a woman with folded hands in front of a misty landscape.">
+            <span class="stamp">Stolen</span>
+            <figcaption><b>Mona Lisa</b>Leonardo da Vinci, c. 1503&ndash;1519. Oil on poplar panel.</figcaption>
+          </figure>
+          <div>
+            <p class="lede">Friday 13 November 2026, Paris. During a private evening event at the Louvre, the Mona Lisa disappeared from the Salle des Etats. That afternoon it had been taken out of its glass case for its yearly inspection. No alarm went off. At 21:15 a guard found the easel empty.</p>
+          </div>
+        </div>
+        <figure class="scene">
+          <img src="img/crime-scene.jpg" width="762" height="338" alt="Police photo of the Salle des Etats: an empty easel between rope barriers, small yellow evidence markers on the parquet floor, a police officer at the edge of the picture." onerror="this.parentNode.hidden = true">
+          <figcaption><b>Crime scene, Salle des Etats</b>Police photo, taken that night. The easel is empty. The crate and the trolley are gone.</figcaption>
+        </figure>
+        <h3>How it works</h3>
+        <ol class="rules">
+          <li><span>Every answer is in the files.</span></li>
+          <li><span>You use the tools on your own laptop: Google Sheets, VS Code and your browser. <button class="how" type="button" data-howto="">How to</button> gives the steps for each tool.</span></li>
+          <li><span>There are eight stages. A correct answer opens the next one. Every stage has three hints.</span></li>
+          <li><span><button class="how" type="button" data-notes>Notes</button> can help you keep track of what you find.</span></li>
+          <li><span>You may talk with your neighbour, but you work on your own laptop. At the end you save a summary as PDF and upload it on Leho as Challenge 7.</span></li>
+        </ol>
+        <p class="small">Your progress is saved in this browser. You can stop and continue later on the same laptop.</p>
+        ${canStore ? '' : '<p class="msg">This browser does not save your progress (private window?). Finish in one go, or use a normal window.</p>'}
+        <hr>
+        ${S.started ? `<p><button class="btn primary" type="button" data-go="${resume()}">Continue the case</button></p>
+          <p><button class="textbtn small" type="button" id="reset">Start over and erase my progress</button></p>` : `
+        <form id="start" class="start">
+          <div class="field"><label for="name">Your first and last name, as on Leho</label>
+            <input type="text" id="name" autocomplete="name" required minlength="3" value="${esc(S.name)}"></div>
+          <button class="btn primary" type="submit">Open the case</button>
+        </form>`}
+      </div>`;
+    const form = $('start');
+    if (form) form.addEventListener('submit', async e => {
+      e.preventDefault();
+      S.name = $('name').value.trim();
+      S.started = Date.now();
+      S.keys[0] = await stageKey(0, ['START']);
+      go(1);
+    });
+    const reset = $('reset');
+    if (reset) reset.addEventListener('click', () => {
+      if (!confirm('Erase all progress and start again?')) return;
+      try { localStorage.removeItem(STORE); } catch {}
+      location.reload();
+    });
+  }
+  const resume = () => { for (let n = 1; n <= LAST; n++) if (!stage(n).solved) return n; return REPORT; };
+
+  /* ---- a stage ---- */
+  async function showStage(n) {
+    const doc = await getStage(n);
+    const st = stage(n);
+    if (!st.opened) { st.opened = Date.now(); save(); }
+    const solved = !!st.solved;
+    let card = null;
+    if (solved) card = (await getStage(n + 1)).prev_card;   // after the last stage: the summary's folder
+    const val = i => esc((solved ? st.answers[i] : (S.draft[n] || [])[i]) || '');
+
+    const fields = doc.fields.map((f, i) => `
+      <div class="field q" data-field="${i}" data-q="${i + 1}"><div>
+        <label for="f${i}">${esc(f.label)}</label>
+        ${f.help ? `<p class="fhelp">${fill(f.help, doc)}</p>` : ''}
+        <div class="inrow"><input class="mono ${f.kind}" type="text" id="f${i}" placeholder="${esc(f.placeholder)}" value="${val(i)}" autocomplete="off" spellcheck="false" ${solved ? 'disabled' : ''}>
+        <span class="mark" aria-live="polite"></span></div>
+      </div></div>`).join('') ;
+
+    main.innerHTML = `
+      <div class="sheet">
+        <div class="tab">Stage ${n} of ${LAST}</div>
+        ${solved ? '<span class="stamp ok solved">Solved</span>' : ''}
+        <h2>${esc(doc.title)}</h2>
+        <div class="story">${fill(doc.html, doc)}</div>
+        <form id="answer" class="ask" novalidate>
+          <h3>${solved ? 'Your answers' : 'Questions'}</h3>
+          ${fields}
+          <div id="msg"></div>
+          ${solved ? '' : '<button class="btn primary" type="submit">Check my answers</button>'}
+        </form>
+        ${solved ? '' : '<section class="hints" id="hints"></section>'}
+      </div>
+      ${card ? `<section class="card" id="card"><span class="stamp ok">Stage ${n} solved</span><p class="congrats">Correct. Well done, investigator.</p><h3>${esc(card.title)}</h3>${fill(card.html, doc)}</section>` : ''}
+      ${solved ? `<p class="next"><button class="btn primary" type="button" data-go="${n + 1}">${n === LAST ? 'To your case summary' : 'Go to stage ' + (n + 1)}</button></p>` : ''}`;
+
+    if (solved) return;
+    drawHints(n);
+    const form = $('answer');
+    form.addEventListener('input', () => {
+      S.draft[n] = doc.fields.map((_, i) => $('f' + i).value);
+      save();
+    });
+    form.addEventListener('submit', e => { e.preventDefault(); check(n, doc); });
+  }
+
+  async function check(n, doc) {
+    const st = stage(n);
+    const raw = doc.fields.map((_, i) => $('f' + i).value);
+    const norms = raw.map((v, i) => NORM[doc.fields[i].kind](v));
+    let allOk = true, wrongOne = false;
+    for (let i = 0; i < doc.fields.length; i++) {
+      const f = doc.fields[i], h = norms[i] !== '' && await sha(`${SALT}|f|${n}|${i}|${norms[i]}`);
+      const ok = !!h && (f.checks ? f.checks.includes(h) : h === f.check);
+      const box = document.querySelector(`[data-field="${i}"]`);
+      box.className = 'field q ' + (ok ? 'ok' : 'no');
+      box.querySelector('.mark').textContent = ok ? 'Correct' : (raw[i].trim() ? 'Not correct yet' : 'Still empty');
+      if (!ok && allOk) $('f' + i).focus();
+      if (!ok && raw[i].trim()) wrongOne = true;
+      allOk &&= ok;
+    }
+    $('msg').innerHTML = '';
+    // only a filled-in answer that is wrong counts as a wrong try, an empty field does not
+    if (!allOk) { if (wrongOne) { st.wrong++; save(); drawHints(n); } return; }
+    const key = await stageKey(n, norms.map((v, i) => doc.fields[i].checks ? ANY : v));
+    if (await sha('c|' + key) !== doc.gate) {
+      $('msg').innerHTML = '<p class="msg" role="alert">Your answers are correct, but the next stage could not be opened. Reload the page and try again.</p>';
+      return;
+    }
+    solve(n, key, raw);
+  }
+
+  function solve(n, key, answers) {
+    const st = stage(n);
+    st.solved = Date.now(); st.answers = answers; S.keys[n] = key; delete S.draft[n];
+    if (n === LAST) S.done = st.solved;
+    save();
+    go(n).then(() => { const c = $('card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  }
+
+  /* ---- hints ---- */
+  function drawHints(n) {
+    const box = $('hints'), doc = cache[n];
+    if (!box || !doc) return;
+    const st = stage(n);
+    const left = HINT3_AFTER - (Date.now() - st.opened);
+    const locked3 = left > 0 && st.wrong < 3;
+    const next = st.hints + 1;
+    box.innerHTML = `
+      <h3>Stuck?</h3>
+      ${doc.hints.slice(0, st.hints).map((h, i) => `<div class="hint"><b>Hint ${i + 1} of 3</b>${fill(h, doc)}</div>`).join('')}
+      <div class="row">
+        ${next <= 3 ? `<button class="btn" type="button" id="hintBtn" ${next === 3 && locked3 ? 'disabled' : ''}>Show hint ${next} of 3</button>` : ''}
+        ${next === 3 && locked3 ? `<span class="small" data-wait="${n}">The last hint gives the answer. It opens in <time>${clock(left)}</time>, or after three wrong tries.</span>` : ''}
+        ${next === 1 ? '<span class="small">The first hint is a small tip, the second gives the method, the third the answer.</span>' : ''}
+      </div>`;
+    const btn = $('hintBtn');
+    if (btn) btn.addEventListener('click', () => { st.hints = next; save(); drawHints(n); });
+  }
+
+  /* ---- the case summary: what students save as PDF and upload on Leho ---- */
+  async function report() {
+    const doc = await getStage(REPORT);
+    const fmt = ms => new Date(ms).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+    let total = 0, hints = 0, wrong = 0;
+    const rows = [];
+    for (let n = 1; n <= LAST; n++) {
+      const st = stage(n), took = st.solved - st.opened;
+      total += took; hints += st.hints; wrong += st.wrong;
+      rows.push(`<tr><td>${n}. ${esc((await getStage(n)).title)}</td><td>${clock(took)}</td><td>${st.wrong}</td><td>${st.hints}</td></tr>`);
+    }
+    // report_code.py recomputes this from the name and the total, so a changed PDF shows
+    const code = (await sha(`${S.keys[LAST]}|${S.name.trim().toLowerCase()}|${Math.floor(total / 1000)}`)).slice(0, 8).toUpperCase();
+    main.innerHTML = `
+      <div class="sheet noprint">
+        <div class="tab">Case file 2047</div>
+        <span class="stamp ok">Case closed</span>
+        <h2>Case closed: the Mona Lisa</h2>
+        <div class="cover">
+          <figure class="polaroid">
+            <img src="img/mona-lisa.jpg" width="480" height="716" alt="The Mona Lisa by Leonardo da Vinci.">
+            <span class="stamp ok">Recovered</span>
+            <figcaption><b>Mona Lisa</b>Back in the Louvre.</figcaption>
+          </figure>
+          <div>
+            <p class="lede">You solved the case. Save your case summary as a PDF and upload it on Leho under Challenge 7.</p>
+            <p><button class="btn primary" type="button" id="print">Save as PDF</button></p>
+            <p class="small">A print window opens. Choose "Save as PDF" as the printer (Mac: the PDF button at the bottom).</p>
+          </div>
+        </div>
+        <figure class="scene">
+          <img src="img/recovered.jpg" width="762" height="338" alt="Night at the port of Le Havre: police officers beside crate CR-017, opened in front of a shipping container, the Mona Lisa inside in grey foam." onerror="this.parentNode.hidden = true">
+          <figcaption><b>Port of Le Havre, 00:35</b>The police open crate CR-017. The Mona Lisa is inside.</figcaption>
+        </figure>
+      </div>
+      <section id="report">
+        <div class="rhead">
+          <div><b>Case summary</b>The Art Heist &middot; Police Data Unit &middot; Case 2047</div>
+          <div class="code">${esc(code)}</div>
+        </div>
+        <table class="who"><tbody>
+          <tr><th>Investigator</th><td>${esc(S.name)}</td></tr>
+          <tr><th>Started</th><td>${esc(fmt(S.started))}</td></tr>
+          <tr><th>Finished</th><td>${esc(fmt(S.done || stage(LAST).solved))}</td></tr>
+        </tbody></table>
+        <h3>How the investigation went</h3>
+        <table><thead><tr><th>Stage</th><th>Time</th><th>Wrong tries</th><th>Hints</th></tr></thead><tbody>
+          ${rows.join('')}
+          <tr><td><strong>Total</strong></td><td><strong>${clock(total)}</strong></td><td><strong>${wrong}</strong></td><td><strong>${hints}</strong></td></tr>
+        </tbody></table>
+      </section>
+      <div class="sheet noprint"><div class="tab">The solution</div><div class="reveal">${doc.html}</div>
+        <p><button class="btn" type="button" id="print2">Save as PDF</button></p>
+      </div>`;
+    for (const id of ['print', 'print2']) $(id).addEventListener('click', () => window.print());
+  }
+
+  /* ---- side panel: How to and Notes ---- */
+  const panel = $('panel');
+  function openPanel(tab, topic) {
+    panel.dataset.tab = tab;
+    document.body.classList.add('panel');
+    for (const t of ['how', 'notes']) {
+      $('pane-' + t).hidden = t !== tab;
+      $('tab-' + t).setAttribute('aria-selected', t === tab);
+      $(t + 'Btn').classList.toggle('on', t === tab);
+      $(t + 'Btn').setAttribute('aria-expanded', t === tab);
+    }
+    if (tab === 'notes') drawFiles();
+    const d = topic && panel.querySelector(`details[data-topic="${topic}"]`);
+    if (d) { d.open = true; d.scrollIntoView({ block: 'start' }); d.querySelector('summary').focus({ preventScroll: true }); }
+  }
+  function closePanel() {   // only does something in a narrow window, where the panel lies over the page
+    document.body.classList.remove('panel');
+    for (const t of ['how', 'notes']) { $(t + 'Btn').classList.remove('on'); $(t + 'Btn').setAttribute('aria-expanded', 'false'); }
+  }
+  const togglePanel = tab => (document.body.classList.contains('panel') && panel.dataset.tab === tab ? closePanel() : openPanel(tab));
+
+  $('notes').value = S.notes || '';
+  $('notes').addEventListener('input', e => { S.notes = e.target.value; save(); });
+
+  // every file handed out so far, so nobody has to go back through the stages to find one
+  async function drawFiles() {
+    const rows = [];
+    for (let n = 1; n <= LAST && unlocked(n); n++) {
+      let doc;
+      try { doc = await getStage(n); } catch { break; }
+      const box = document.createElement('div');
+      box.innerHTML = fill(doc.html, doc);
+      for (const a of box.querySelectorAll('a.dl')) {
+        rows.push(`<li><a href="${esc(a.getAttribute('href'))}" download>${esc(a.querySelector('.fn').textContent)}</a><span>stage ${n}</span></li>`);
+      }
+    }
+    $('files').innerHTML = rows.join('') || '<li><span>None yet. Open the case first.</span></li>';
+  }
+
+  /* ---- wiring ---- */
+  document.addEventListener('click', e => {
+    const goBtn = e.target.closest('[data-go]');
+    if (goBtn && !goBtn.disabled) go(+goBtn.dataset.go);
+    const how = e.target.closest('[data-howto]');
+    if (how) openPanel('how', how.dataset.howto);
+    if (e.target.closest('[data-notes]')) openPanel('notes');
+    const tab = e.target.closest('[data-tab]');
+    if (tab) openPanel(tab.dataset.tab);
+    if (e.target.id === 'howBtn') togglePanel('how');
+    if (e.target.id === 'notesBtn') togglePanel('notes');
+    if (e.target.id === 'panelClose') closePanel();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+  // the panel sticks below the top bar, whose height changes when it wraps
+  new ResizeObserver(() => document.documentElement.style.setProperty('--head', $('top').offsetHeight + 'px')).observe($('top'));
+
+  if (!window.crypto || !crypto.subtle) {
+    main.innerHTML = '<div class="sheet"><h2>Open this page over https</h2><p>The case file needs a secure connection to check your answers.</p></div>';
+  } else {
+    const view = S.view === REPORT ? (S.keys[LAST] ? REPORT : resume()) : (unlocked(S.view) ? S.view : 0);
+    go(S.started ? view : 0);
+  }
+})();
+</script>
+</body>
+</html>

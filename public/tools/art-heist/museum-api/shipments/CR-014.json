@@ -1,0 +1,32 @@
+{
+  "crate_id": "CR-014",
+  "artwork": {
+    "artwork_id": "ART-016",
+    "title": "The Cheat with the Ace of Diamonds",
+    "artist": "Georges de La Tour",
+    "year": 1636
+  },
+  "original_destination": "D-03",
+  "current_destination": "D-03",
+  "status": "departed",
+  "carrier": {
+    "name": "Seine Fine Art Logistics",
+    "booking": "SFA-22902"
+  },
+  "events": [
+    {
+      "date": "2026-11-10",
+      "time": "09:20:16",
+      "status": "scheduled",
+      "destination": "D-03",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-10",
+      "time": "11:27:55",
+      "status": "departed",
+      "destination": "D-03",
+      "workstation": null
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+ "n": 7,
+ "title": "Shipment record",
+ "html": "<p>At 20:35:12, during the speeches, workstation WS-02 changed the shipment record of crate CR-017. You saw it in the system log: <code>modify_manifest</code>. What did it change?</p>\n<p>That record is not in your files. It lives in the museum's collection system, behind an <strong>API</strong>: an address that returns data instead of a page.</p>\n<p>Documentation: <a href=\"[[api]]\" target=\"_blank\" rel=\"noopener\">[[api]]</a></p>\n<p>Example, the shipment of the other crate in the corridor:</p>\n<p><a href=\"[[api]]shipments/CR-012.json\" target=\"_blank\" rel=\"noopener\"><code>[[api]]shipments/CR-012.json</code></a></p>\n<p>Change the address to ask for the crate under the cloth.</p>",
+ "prev_card": {
+  "title": "You caught the wrong clock",
+  "html": "<p>Corrected by 7 minutes, the covered crate passed at 20:47:08, ten seconds after Julien Moreau's badge opened the corridor door (20:46:58). Not Thomas Lefebvre. And CAM-04 recorded nothing from 20:41:08 to 20:58:40: WS-02 had switched it off.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: Data quality</p><p><strong>Data quality</strong> is how far you can trust data. The stills were real, but their times were 7 minutes off, and that pointed at the wrong person. The correction was one sentence in an unstructured report. Before you combine two sources, check that they use the same clock.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "Where was the crate supposed to go? Give the original destination ID.",
+   "kind": "text",
+   "placeholder": "D-00",
+   "check": "5180dbc6219734410c5863ef70fad54bb45beb2e64cf6215fab59f53c69599f4",
+   "help": "<button type=\"button\" class=\"how\" data-howto=\"api\">How to: how an API address is built</button>"
+  },
+  {
+   "label": "Where did WS-02 send it instead? Give the destination ID.",
+   "kind": "text",
+   "placeholder": "D-00",
+   "check": "b40dc974cb63bbd824aee2b899b71b8404d732dbf88a1e1158cd74772e73396e"
+  },
+  {
+   "label": "At what time did the crate leave the building?",
+   "kind": "time",
+   "placeholder": "hh:mm:ss",
+   "check": "aaa70cd9c4c42ac7ec7cd938b6534316fb4a14abf23efda0917e52b6c06ab31e"
+  }
+ ],
+ "gate": "c54276c57a28386c3e0254ad11fd7d6750d373e59c18f09edfdfbb7728f07b15",
+ "hints": [
+  "In the address bar, replace CR-012 with the crate ID from the trolley in stage 4.",
+  "In the record, original_destination is where the crate was supposed to go and current_destination where it goes now. The events list shows every change, oldest first: look for the status departed. The documentation page says what each D-code means.",
+  "D-01, conservation storage. D-03, the external loading dock. It left at 20:52:10."
+ ]
+}

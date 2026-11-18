@@ -1,0 +1,23 @@
+{
+ "n": 2,
+ "title": "Badge access",
+ "html": "<p>Whoever took the painting needed a badge for the <strong>Salle des Etats (G4)</strong> and for the <strong>service corridor (SC)</strong>, and was at work during the speeches, from 20:30 to 21:00.</p>\n<p>Import <code>staff.csv</code> in Google Sheets and let a filter find these people. <button type=\"button\" class=\"how\" data-howto=\"csv\">How to: import a CSV in Google Sheets</button> &middot; <button type=\"button\" class=\"how\" data-howto=\"filter\">How to: filter in Google Sheets</button></p>\n<p>The columns <code>public_access</code> and <code>staff_access</code> use the room codes from <code>floorplan.png</code>.</p>",
+ "prev_card": {
+  "title": "You found the way out",
+  "html": "<p>The guard thinks the painting left through the service corridor, SC. Camera CAM-02 watches it.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: Structured, semi-structured, unstructured</p><p><strong>Structured</strong> data is a table: one record per line, the same fields every time (<code>staff.csv</code>). <strong>Semi-structured</strong> data puts a label on every value, with tags or keys (<code>cameras.xml</code>). <strong>Unstructured</strong> data is written for people (<code>incident_report.txt</code>): a computer can't sort or filter it, so you have to read it.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "Which employees had a badge for both G4 and SC, and were at work from 20:30 to 21:00? Give their employee IDs.",
+   "kind": "list",
+   "placeholder": "EMP-000, EMP-000, ...",
+   "check": "b82ae2fcf9bcedd5ed0f1d62f47495cc631b75aa48ec53036adc81e8a7b6ddff"
+  }
+ ],
+ "gate": "f0e8370c20ee92db00b6e44b9353fe1057ebc3145ea3003b9cbbd43aedde26fc",
+ "hints": [
+  "Put one filter on each column: G4 is a public room, SC is staff only. You can filter several columns at once.",
+  "Data > Create a filter. In public_access choose Filter by condition > Text contains > G4. In staff_access choose Text contains > SC. Seven people remain. Of those, keep the ones whose shift_start is 20:30 or earlier and whose shift_end is 21:00 or later.",
+  "Four people: EMP-007, EMP-015, EMP-022, EMP-031."
+ ]
+}

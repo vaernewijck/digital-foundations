@@ -1,0 +1,29 @@
+{
+ "n": 5,
+ "title": "System log",
+ "html": "<p>The guard desk had no picture from camera CAM-04 in the Salle des Etats for part of the evening. Find out who switched it off.</p>\n<p>The security system logs every action on every workstation, on the museum's central clock.</p>\n<a class=\"dl\" href=\"[[pack]]/system_log.json\" download><span class=\"ex\">Exhibit PDU/04</span><span class=\"fn\">system_log.json</span><span class=\"fd\">every action on the museum workstations</span><span class=\"get\">Download</span></a>\n<p>One event from the log:</p>\n<pre class=\"example\">{\n  &quot;event_id&quot;: &quot;EVT-0001&quot;,\n  &quot;date&quot;: &quot;2026-11-13&quot;,\n  &quot;time&quot;: &quot;18:01:24&quot;,\n  &quot;workstation&quot;: &quot;WS-06&quot;,\n  &quot;action&quot;: &quot;lookup_booking&quot;,\n  &quot;target&quot;: &quot;BK-4699&quot;,\n  &quot;result&quot;: &quot;success&quot;\n}</pre>\n<p>Curly brackets hold one event: pairs of a key and a value, such as <code>\"action\": \"lookup_booking\"</code>. The whole file is a list of events, in square brackets. A login has <code>\"target\": null</code>: no value.</p>\n<p><button type=\"button\" class=\"how\" data-howto=\"vscode\">How to: open a file in VS Code</button> &middot; <button type=\"button\" class=\"how\" data-howto=\"json\">How to: read JSON</button></p>",
+ "prev_card": {
+  "title": "You spotted the crate",
+  "html": "<p>The covered crate is CR-017. Going by the time on the still, 20:40:08, the person pushing it is Thomas Lefebvre: his badge opened the corridor door three seconds earlier.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: Matching on time</p><p>The still and the door log share no ID, only a time. A match on time only works if both use the same clock, and the camera and the badge readers each have their own.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "Which workstation switched off CAM-04?",
+   "kind": "text",
+   "placeholder": "WS-00",
+   "check": "2c1388c58e299868c4f56d8ce3c0039137892e786aaeb74955ffabcd2a9912a6"
+  },
+  {
+   "label": "Whose workstation is that? Give the employee ID.",
+   "kind": "text",
+   "placeholder": "EMP-000",
+   "check": "47249968b71fe050f3e00fcb0786b485442ceeb233d15b8230f865bced7752fc"
+  }
+ ],
+ "gate": "cd5fa36e1ad7969a13790fe2bb8ebebbaee44d39a917e1b3d0aed262df9aa279",
+ "hints": [
+  "Open system_log.json in VS Code and search for CAM-04 (cmd+F, on Windows ctrl+F). More than one event mentions it: read the action of each.",
+  "The event with the action disable_camera and the target CAM-04 names the workstation. staff.csv has a column workstation_id.",
+  "EVT-0047: WS-02 switched off CAM-04 at 20:41:08. WS-02 is the desk of Julien Moreau, EMP-015."
+ ]
+}

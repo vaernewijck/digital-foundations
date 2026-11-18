@@ -1,0 +1,26 @@
+[
+  {
+    "destination_id": "D-01",
+    "name": "Conservation storage",
+    "zone": "CS",
+    "external": false
+  },
+  {
+    "destination_id": "D-02",
+    "name": "Exhibition preparation",
+    "zone": "EP",
+    "external": false
+  },
+  {
+    "destination_id": "D-03",
+    "name": "External loading dock",
+    "zone": "LD",
+    "external": true
+  },
+  {
+    "destination_id": "D-04",
+    "name": "Gallery installation",
+    "zone": "G1",
+    "external": false
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-010",
+  "artwork": {
+    "artwork_id": "ART-012",
+    "title": "The Astronomer",
+    "artist": "Johannes Vermeer",
+    "year": 1668
+  },
+  "original_destination": "D-01",
+  "current_destination": "D-01",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-09",
+      "time": "10:35:24",
+      "status": "scheduled",
+      "destination": "D-01",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-09",
+      "time": "12:33:14",
+      "status": "delivered",
+      "destination": "D-01",
+      "workstation": "WS-04"
+    }
+  ]
+}

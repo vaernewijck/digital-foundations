@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-019",
+  "artwork": {
+    "artwork_id": "ART-021",
+    "title": "The Virgin of Chancellor Rolin",
+    "artist": "Jan van Eyck",
+    "year": 1435
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-12",
+      "time": "10:41:35",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-12",
+      "time": "12:29:57",
+      "status": "delivered",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    }
+  ]
+}

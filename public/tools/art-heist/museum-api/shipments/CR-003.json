@@ -1,0 +1,22 @@
+{
+  "crate_id": "CR-003",
+  "artwork": {
+    "artwork_id": "ART-005",
+    "title": "Self-Portrait with a Thistle",
+    "artist": "Albrecht Durer",
+    "year": 1493
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "scheduled",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-10",
+      "time": "09:54:31",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-12"
+    }
+  ]
+}

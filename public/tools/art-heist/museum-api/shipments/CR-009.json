@@ -1,0 +1,32 @@
+{
+  "crate_id": "CR-009",
+  "artwork": {
+    "artwork_id": "ART-011",
+    "title": "The Bridge at Mantes",
+    "artist": "Camille Corot",
+    "year": 1870
+  },
+  "original_destination": "D-03",
+  "current_destination": "D-03",
+  "status": "departed",
+  "carrier": {
+    "name": "Transports d'Art Delorme",
+    "booking": "TAD-9034"
+  },
+  "events": [
+    {
+      "date": "2026-11-09",
+      "time": "14:17:44",
+      "status": "scheduled",
+      "destination": "D-03",
+      "workstation": "WS-12"
+    },
+    {
+      "date": "2026-11-09",
+      "time": "16:16:41",
+      "status": "departed",
+      "destination": "D-03",
+      "workstation": null
+    }
+  ]
+}

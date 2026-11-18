@@ -1,0 +1,34 @@
+{
+ "n": 1,
+ "title": "Four evidence files",
+ "html": "<p>The museum sent four files.</p>\n<a class=\"dl\" href=\"[[pack]]/evidence-01.zip\" download><span class=\"ex\">Exhibit PDU/01</span><span class=\"fn\">evidence-01.zip</span><span class=\"fd\">staff.csv, incident_report.txt, cameras.xml, floorplan.png</span><span class=\"get\">Download</span></a>\n<p>Start with <code>incident_report.txt</code>. The guard who found the empty easel wrote down what he saw. It is the only description of the evening you get.</p>\n<p>Then use the other files to answer the questions.</p>",
+ "prev_card": null,
+ "fields": [
+  {
+   "label": "How many employees are listed in staff.csv?",
+   "kind": "int",
+   "placeholder": "a number",
+   "check": "fb759ba746a612317c6d828348238fcc01ae6adca2002ac9460ba8849a755cfc",
+   "help": "Open staff.csv with the tool you prefer, or with VS Code. <button type=\"button\" class=\"how\" data-howto=\"vscode\">How to: open a file in VS Code</button>"
+  },
+  {
+   "label": "Through which room does the guard think the painting left? Give its code on floorplan.png. For example, the code of the Salle des Etats is G4.",
+   "kind": "text",
+   "placeholder": "two letters",
+   "check": "d2601cc117b23db46f22a558c3f81f4c3a458f778406577ecc8316fe359d6d18"
+  },
+  {
+   "label": "According to cameras.xml, which camera hangs in that room? Give its ID.",
+   "kind": "text",
+   "placeholder": "CAM-00",
+   "check": "66886d072dd70fdbdeda8b4df5389033250e01ad5227961982ba6a5add36a860",
+   "help": "<button type=\"button\" class=\"how\" data-howto=\"xml\">How to: read XML</button>"
+  }
+ ],
+ "gate": "1180a6200ba13ec71094d98f5ed15bb2eec2d6b3367e7d949c1ae2b7f848398d",
+ "hints": [
+  "In staff.csv every line is one employee, except one line. For the room: the guard writes his guess under the heading WHAT I NOTICED in incident_report.txt. Then find that room on floorplan.png.",
+  "The first line of staff.csv holds the names of the columns, so count the lines and take one off: VS Code shows line numbers. The guard names the service corridor. On floorplan.png its code is the two letters in that room. In cameras.xml, look for the camera with that zone.",
+  "40 employees. The service corridor has the code SC. The camera there is CAM-02."
+ ]
+}

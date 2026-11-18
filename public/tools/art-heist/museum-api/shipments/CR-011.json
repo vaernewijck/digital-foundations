@@ -1,0 +1,22 @@
+{
+  "crate_id": "CR-011",
+  "artwork": {
+    "artwork_id": "ART-013",
+    "title": "Portrait of Erasmus",
+    "artist": "Hans Holbein the Younger",
+    "year": 1523
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "scheduled",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-09",
+      "time": "12:33:16",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    }
+  ]
+}

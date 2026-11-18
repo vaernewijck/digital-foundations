@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-006",
+  "artwork": {
+    "artwork_id": "ART-008",
+    "title": "The Beggars",
+    "artist": "Pieter Bruegel the Elder",
+    "year": 1568
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-09",
+      "time": "12:30:23",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-12"
+    },
+    {
+      "date": "2026-11-09",
+      "time": "14:22:46",
+      "status": "delivered",
+      "destination": "D-02",
+      "workstation": "WS-12"
+    }
+  ]
+}

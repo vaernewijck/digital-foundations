@@ -1,0 +1,35 @@
+{
+ "n": 6,
+ "title": "Two clocks",
+ "html": "<p>This is the last picture camera CAM-04 stored before it went dark.</p>\n<a class=\"dl\" href=\"[[pack]]/cam04_204055.jpg\" download><span class=\"ex\">Exhibit PDU/05</span><span class=\"fn\">cam04_204055.jpg</span><span class=\"fd\">the last picture CAM-04 stored before it went dark</span><span class=\"get\">Download</span></a>\n<div class=\"scroll\"><table>\n  <thead><tr><th>Camera</th><th>Room</th><th>Time on the picture</th><th>What it shows</th></tr></thead>\n  <tbody>\n    <tr><td>CAM-04</td><td>Salle des Etats</td><td><strong>20:40:55</strong></td><td>The Mona Lisa on its easel, crate CR-017 open beside it</td></tr>\n    <tr><td>CAM-02</td><td>Service corridor</td><td><strong>20:40:08</strong></td><td>Crate CR-017 covered, on a trolley</td></tr>\n  </tbody>\n</table></div>\n<p>The crate cannot be covered in the corridor before it stands open in the gallery. So one of the two camera clocks is wrong.</p>\n<p>The museum knew that one camera clock was off. Somebody wrote it down, in a file you got in stage 1.</p>\n<p>Every camera has its own clock. The door log and the system log both use the museum's central clock, and that one is right.</p>",
+ "prev_card": {
+  "title": "You traced the dark camera",
+  "html": "<p>WS-02 switched off CAM-04 at 20:41:08. WS-02 is the desk of Julien Moreau. But a desk is not a person: anyone at WS-02 could have done it.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: JSON and null</p><p><strong>JSON</strong> stores data as pairs of a key and a value, between curly brackets. Like XML it is semi-structured: every value says what it is. <code>null</code> means no value: a login has no target.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "Which camera's clock is wrong? Give its ID.",
+   "kind": "text",
+   "placeholder": "CAM-00",
+   "check": "04a9e52546322985a5fa25a25b433eccb5c9f4d34310fe202237b1f04760b5b0"
+  },
+  {
+   "label": "What was the real time, on the central clock, when the covered crate passed the corridor camera?",
+   "kind": "time",
+   "placeholder": "hh:mm:ss",
+   "check": "6be93edd6611bc758ab4e43ecf42218d5fed606093ac34ea1d5a80060d6262bc"
+  },
+  {
+   "label": "Going by that real time: whose badge opened the door to the service corridor closest to it? Give the employee ID.",
+   "kind": "text",
+   "placeholder": "EMP-000",
+   "check": "214031f58a12731a758f067953881fe68d0241d94086f178663d610b4992e441"
+  }
+ ],
+ "gate": "47f7c586f3e6b4a3ae66cd04c2b53e9bf7aef8e136b4a39619fe685dc751f6e2",
+ "hints": [
+  "Read incident_report.txt again, to the end.",
+  "Read the last section of incident_report.txt, OPEN MAINTENANCE NOTES. It names the camera and how many minutes it is behind. Add that to the time on the corridor still. Then, in door_log.csv, find the corridor swipe closest to that new time, as in stage 4.",
+  "CAM-02, the service corridor camera, runs 7 minutes behind (incident report). 20:40:08 + 7 minutes = 20:47:08. The closest corridor swipe is badge B-208 at 20:46:58: Julien Moreau, EMP-015. CAM-04's clock is right: its last picture says 20:40:55, and the system log switched it off at 20:41:08."
+ ]
+}

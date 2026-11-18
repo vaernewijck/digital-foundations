@@ -1,0 +1,35 @@
+{
+ "n": 4,
+ "title": "Camera stills",
+ "html": "<p>Camera CAM-02 hangs in the service corridor. It stored these two pictures during the speeches. The camera writes its ID and its time into every picture.</p>\n<a class=\"dl\" href=\"[[pack]]/evidence-04.zip\" download><span class=\"ex\">Exhibit PDU/03</span><span class=\"fn\">evidence-04.zip</span><span class=\"fd\">cam02_203305.jpg and cam02_204008.jpg</span><span class=\"get\">Download</span></a>",
+ "prev_card": {
+  "title": "Down to two suspects",
+  "html": "<p>Two badges opened the corridor door during the speeches: the badge of <strong>Thomas Lefebvre</strong> (logistics coordinator) and the badge of <strong>Julien Moreau</strong> (security supervisor).</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: Foreign key and join</p><p><code>badge_id</code> in the door log points to a row in <code>staff.csv</code>: that makes it a <strong>foreign key</strong>. Looking up that row is a <strong>join</strong>: it turns a badge into a person. An empty <code>badge_id</code> is <strong>null</strong>: unknown, not nobody.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "One still shows a trolley with a covered crate. Which crate ID is on the label?",
+   "kind": "text",
+   "placeholder": "CR-000",
+   "check": "bf9c5e5c7db4ea8f21cfa01df5b92307a11a176cacd03991e361d3dd4c0f53f9"
+  },
+  {
+   "label": "What time is written on that still?",
+   "kind": "time",
+   "placeholder": "hh:mm:ss",
+   "check": "ac8a340ad63d7e0ae87fa909ee9359b80ceb2038e89471bc93dbdd21f822e21c"
+  },
+  {
+   "label": "Going by the time written on that still: whose badge opened the door to the service corridor closest to it? Give the employee ID.",
+   "kind": "text",
+   "placeholder": "EMP-000",
+   "check": "72209365d80a3bcbf688fc716a4d0ce0d4d431226a0a100d821ef451ee441d76"
+  }
+ ],
+ "gate": "f884a330fc8c06ef0bb1cc7ff74c0a5d74cb3548e50041a3317ef4286900c080",
+ "hints": [
+  "The label sits on the corner of the crate that the cloth does not cover. For the last question you need your answer to stage 3.",
+  "In door_log.csv, keep zone = SC, direction = in, result = granted. Which swipe is closest to the time on the still? Look up its badge in staff.csv.",
+  "CR-017, 20:40:08. The closest swipe is badge B-422 at 20:40:05: Thomas Lefebvre, EMP-031."
+ ]
+}

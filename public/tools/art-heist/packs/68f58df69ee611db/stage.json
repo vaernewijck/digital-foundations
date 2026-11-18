@@ -1,0 +1,38 @@
+{
+ "n": 8,
+ "title": "The intercepted photo",
+ "html": "<p>At 23:41 the police intercepted a photo, sent from an unknown phone to an art dealer they have been watching. It shows a crate in a dark shipping container.</p>\n<a class=\"dl\" href=\"[[pack]]/intercepted.jpg\" download><span class=\"ex\">Exhibit PDU/06</span><span class=\"fn\">intercepted.jpg</span><span class=\"fd\">the photo the police intercepted</span><span class=\"get\">Download</span></a>\n<p>The picture shows little. The file says more: read its <strong>metadata</strong>.</p>",
+ "prev_card": {
+  "title": "The crate left the building",
+  "html": "<p>CR-017, with the Mona Lisa, was going to D-01, conservation storage. WS-02 sent it to D-03, the external loading dock. It left at 20:52:10 without a carrier: no transport company was booked.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: API</p><p>An <strong>API</strong> is an address that returns data instead of a page. Change one part of the address, here the crate ID, and you get another record. Apps use APIs all the time: a weather app asks a weather API, a train app asks the railway's API.</p></div>"
+ },
+ "fields": [
+  {
+   "label": "Which phone took the photo? Give the model.",
+   "kind": "text",
+   "placeholder": "model",
+   "checks": [
+    "0d2d3b353eb325eec47b1af5f587a14c16b828f068d5b91c79008944e793fd07",
+    "0dfe00c0cbf29cbba2b626bb835c0e71439b84cf4eba697992e1c24aec930de2"
+   ],
+   "help": "<button type=\"button\" class=\"how\" data-howto=\"exif\">How to: read photo metadata</button>"
+  },
+  {
+   "label": "Where was the photo taken? Give the coordinates or the postcode.",
+   "kind": "place",
+   "placeholder": "coordinates or postcode",
+   "checks": [
+    "df4e87aac616fd561d6ba389c5591fca48af4945205b1af1c4d0ab9d777b377b",
+    "4ef7ed94820852768e92b06c0d367993e94c33ceb75f41fc1b5504b47f2e309d",
+    "0193eb0e344a28b204cdffa4af2096dcc9f1e90ed4e8e917e07c8f7e5fa5fe6a"
+   ],
+   "help": "<button type=\"button\" class=\"how\" data-howto=\"map\">How to: find a position on a map</button>"
+  }
+ ],
+ "gate": "8109fc9ee8d592d00510ad33e883919b306e50facdb7f0caf352d4b0250b728f",
+ "hints": [
+  "On a Mac: open the photo in Preview, then Tools > Show Inspector and the tab with the (i). The Exif tab names the camera, the GPS tab gives the position. Use the downloaded file, not a screenshot.",
+  "Copy the position from the GPS tab, for example 49° 28' 3\" N and the longitude after it, and paste it in the search box of Google Maps. The pin shows the place. Click it for the address with its postcode.",
+  "A Google Pixel 7. Position: 49° 28' 3\" N, 0° 9' 45\" E, in decimals 49.4675, 0.1625: the Terminal de Normandie in the port of Le Havre, postcode 76610."
+ ]
+}

@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-016",
+  "artwork": {
+    "artwork_id": "ART-018",
+    "title": "Pierrot",
+    "artist": "Antoine Watteau",
+    "year": 1719
+  },
+  "original_destination": "D-04",
+  "current_destination": "D-04",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-10",
+      "time": "10:03:06",
+      "status": "scheduled",
+      "destination": "D-04",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-10",
+      "time": "12:20:15",
+      "status": "delivered",
+      "destination": "D-04",
+      "workstation": "WS-04"
+    }
+  ]
+}

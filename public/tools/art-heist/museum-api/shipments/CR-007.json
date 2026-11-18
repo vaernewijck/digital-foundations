@@ -1,0 +1,29 @@
+{
+  "crate_id": "CR-007",
+  "artwork": {
+    "artwork_id": "ART-009",
+    "title": "The Fortune Teller",
+    "artist": "Caravaggio",
+    "year": 1595
+  },
+  "original_destination": "D-02",
+  "current_destination": "D-02",
+  "status": "delivered",
+  "carrier": null,
+  "events": [
+    {
+      "date": "2026-11-11",
+      "time": "10:18:38",
+      "status": "scheduled",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    },
+    {
+      "date": "2026-11-11",
+      "time": "12:08:32",
+      "status": "delivered",
+      "destination": "D-02",
+      "workstation": "WS-04"
+    }
+  ]
+}
