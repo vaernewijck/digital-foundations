@@ -30,7 +30,6 @@
  "gate": "c54276c57a28386c3e0254ad11fd7d6750d373e59c18f09edfdfbb7728f07b15",
  "hints": [
   "Open the example address, then change only its last part: CR-012 becomes the ID on the sticker of the covered crate in stage 4.",
-  "In the record, read original_destination and current_destination. For the time: in the events list, the step with the status departed is the moment the crate went out through the door.",
-  "D-01, conservation storage. D-03, the external loading dock. The crate left at 20:52:10."
+  "In the record, read original_destination and current_destination. For the time: in the events list, the step with the status departed is the moment the crate went out through the door."
  ]
 }

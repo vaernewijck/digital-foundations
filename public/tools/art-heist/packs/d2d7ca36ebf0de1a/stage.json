@@ -28,7 +28,6 @@
  "gate": "1180a6200ba13ec71094d98f5ed15bb2eec2d6b3367e7d949c1ae2b7f848398d",
  "hints": [
   "In staff.csv every line is one employee, except one line. For the room: the guard writes his guess under the heading WHAT I NOTICED in incident_report.txt. Then find that room on floorplan.png.",
-  "The first line of staff.csv holds the names of the columns, so count the lines and take one off: VS Code shows line numbers. The guard names the service corridor. On floorplan.png its code is the two letters in that room. In cameras.xml, look for the camera with that zone.",
-  "40 employees. The service corridor has the code SC. The camera there is CAM-02."
+  "The first line of staff.csv holds the names of the columns, so count the lines and take one off: VS Code shows line numbers. The guard names the service corridor. On floorplan.png its code is the two letters in that room. In cameras.xml, look for the camera with that zone."
  ]
 }

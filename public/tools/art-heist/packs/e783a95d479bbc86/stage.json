@@ -17,7 +17,6 @@
  "gate": "f0e8370c20ee92db00b6e44b9353fe1057ebc3145ea3003b9cbbd43aedde26fc",
  "hints": [
   "Put one filter on each column: G4 is a public room, SC is staff only. You can filter several columns at once.",
-  "Data > Create a filter. In public_access choose Filter by condition > Text contains > G4. In staff_access choose Text contains > SC. Seven people remain. Of those, keep the ones whose shift_start is 20:30 or earlier and whose shift_end is 21:00 or later.",
-  "Four people: EMP-007, EMP-015, EMP-022, EMP-031."
+  "Data > Create a filter. In public_access choose Filter by condition > Text contains > G4. In staff_access choose Text contains > SC. Seven people remain. Of those, keep the ones whose shift_start is 20:30 or earlier and whose shift_end is 21:00 or later."
  ]
 }

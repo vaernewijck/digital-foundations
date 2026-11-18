@@ -43,7 +43,6 @@
  "gate": "b85f1ee2138d70391e0579abb9fa52550079495d52035f94ba6f10e55fd7ecdb",
  "hints": [
   "On a Mac: open the photo in Preview, then Tools > Show Inspector and the tab with the (i). The Exif tab names the camera, the GPS tab gives the position. Use the downloaded file, not a screenshot.",
-  "Mac: the GPS tab gives the latitude and the longitude, for example 50° 49' 30\" N. Windows: Properties > Details, under GPS, writes the same as 50; 49; 30. Type them as you see them, or as decimals. For the city: type both in the search box of Google Maps, as 50°49'30\"N 3°15'52\"E.",
-  "A Google Pixel 7. Latitude 49° 28' 3\" N, in decimals 49.4675. Longitude 0° 9' 45\" E, in decimals 0.1625. That is the Terminal de Normandie in the port of Le Havre."
+  "Mac: the GPS tab gives the latitude and the longitude, for example 50° 49' 30\" N. Windows: Properties > Details, under GPS, writes the same as 50; 49; 30. Type them as you see them, or as decimals. For the city: type both in the search box of Google Maps, as 50°49'30\"N 3°15'52\"E."
  ]
 }

@@ -394,7 +394,6 @@
   const STORE = 'art-heist:v1';
   const LAST = 8;                          // last stage
   const REPORT = LAST + 1;                 // view after the last stage: the case summary, downloaded as JSON
-  const HINT3_AFTER = 5 * 60 * 1000;       // level 3 hint opens after 5 minutes on a stage, or 3 wrong tries
   const $ = id => document.getElementById(id);
   const main = $('main');
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -457,16 +456,6 @@
     const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
     return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0');
   };
-  // only the countdown text changes each second, so a selection in an open hint survives
-  function tick() {
-    const wait = document.querySelector('[data-wait]');
-    if (!wait) return;
-    const st = stage(+wait.dataset.wait), left = HINT3_AFTER - (Date.now() - st.opened);
-    if (left > 0) wait.querySelector('time').textContent = clock(left);
-    else drawHints(+wait.dataset.wait);
-  }
-  setInterval(tick, 1000);
-
   async function go(n) {
     S.view = n; save(); drawSteps();
     try {
@@ -507,7 +496,7 @@
         <ol class="rules">
           <li><span>Every answer is in the files.</span></li>
           <li><span>You use the tools on your own laptop: Google Sheets, VS Code and your browser. <button class="how" type="button" data-howto="">How to</button> gives the steps for each tool.</span></li>
-          <li><span>There are eight stages. A correct answer opens the next one. Every stage has three hints.</span></li>
+          <li><span>There are eight stages. A correct answer opens the next one. Every stage has two hints.</span></li>
           <li><span><button class="how" type="button" data-notes>Notes</button> can help you keep track of what you find.</span></li>
           <li><span>You may talk with your neighbour, but you work on your own laptop. At the end you download your case summary, a JSON file, and upload it on Leho as Challenge 7.</span></li>
         </ol>
@@ -652,16 +641,13 @@
     const box = $('hints'), doc = cache[n];
     if (!box || !doc) return;
     const st = stage(n);
-    const left = HINT3_AFTER - (Date.now() - st.opened);
-    const locked3 = left > 0 && st.wrong < 3;
     const next = st.hints + 1;
     box.innerHTML = `
       <h3>Stuck?</h3>
-      ${doc.hints.slice(0, st.hints).map((h, i) => `<div class="hint"><b>Hint ${i + 1} of 3</b>${fill(h, doc)}</div>`).join('')}
+      ${doc.hints.slice(0, st.hints).map((h, i) => `<div class="hint"><b>Hint ${i + 1} of 2</b>${fill(h, doc)}</div>`).join('')}
       <div class="row">
-        ${next <= 3 ? `<button class="btn" type="button" id="hintBtn" ${next === 3 && locked3 ? 'disabled' : ''}>Show hint ${next} of 3</button>` : ''}
-        ${next === 3 && locked3 ? `<span class="small" data-wait="${n}">The last hint gives the answer. It opens in <time>${clock(left)}</time>, or after three wrong tries.</span>` : ''}
-        ${next === 1 ? '<span class="small">The first hint is a small tip, the second gives the method, the third the answer.</span>' : ''}
+        ${next <= 2 ? `<button class="btn" type="button" id="hintBtn">Show hint ${next} of 2</button>` : ''}
+        ${next === 1 ? '<span class="small">The first hint is a small tip, the second gives the method.</span>' : ''}
       </div>`;
     const btn = $('hintBtn');
     if (btn) btn.addEventListener('click', () => { st.hints = next; save(); drawHints(n); });

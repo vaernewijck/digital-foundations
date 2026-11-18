@@ -3,6 +3,6 @@
  "reveal": true,
  "prev_card": {
   "title": "You found the Mona Lisa!",
-  "html": "<p>The photo was taken at the port of Le Havre. At 00:35 the police opened crate CR-017 there, next to the container. The Mona Lisa was inside, unharmed.</p>\n<p>The phone wrote its model, the time and the position into the file. That is <strong>metadata</strong>: data about the photo, stored inside the photo. The sender never typed it.</p>"
+  "html": "<p>The photo was taken at the port of Le Havre. At 00:35 the police opened crate CR-017 there, next to the container. The Mona Lisa was inside, unharmed.</p>\n<p>The thief was <strong>Julien Moreau</strong>, security supervisor (EMP-015). At 20:35:12 his workstation WS-02 sent the crate to the loading dock. At 20:41:08 it switched off CAM-04. At 20:46:58 his badge opened the corridor door, ten seconds before the covered crate passed. The wrong camera clock made it look like Thomas Lefebvre.</p>\n<p>The phone wrote its model, the time and the position into the file. That is <strong>metadata</strong>: data about the photo, stored inside the photo. The sender never typed it.</p>"
  }
 }

@@ -17,7 +17,6 @@
  "gate": "db3d80baaf2afbfc8eb9b3abf27d8dc2204f40edde8fc1d91474c17b4029ba3b",
  "hints": [
   "Import door_log.csv in Google Sheets and filter first, then read. The columns zone, direction and result each make the list shorter. Does every swipe open the door?",
-  "Filter zone = SC, direction = in, result = granted. The rows are already in order of time: read the ones between 20:30:00 and 21:00:00. You find two badge IDs. Look each one up in the badge_id column of staff.csv.",
-  "B-422 at 20:40:05 is EMP-031 and B-208 at 20:46:58 is EMP-015."
+  "Filter zone = SC, direction = in, result = granted. The rows are already in order of time: read the ones between 20:30:00 and 21:00:00. You find two badge IDs. Look each one up in the badge_id column of staff.csv."
  ]
 }

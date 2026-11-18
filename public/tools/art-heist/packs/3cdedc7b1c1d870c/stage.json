@@ -20,16 +20,18 @@
    "check": "ac8a340ad63d7e0ae87fa909ee9359b80ceb2038e89471bc93dbdd21f822e21c"
   },
   {
-   "label": "Going by the time written on that still: whose badge opened the door to the service corridor closest to it? Give the employee ID.",
+   "label": "Going by the time written on that still: whose badge opened the door to the service corridor closest to it? Give the name of that person.",
    "kind": "text",
-   "placeholder": "EMP-000",
-   "check": "72209365d80a3bcbf688fc716a4d0ce0d4d431226a0a100d821ef451ee441d76"
+   "placeholder": "first and last name",
+   "checks": [
+    "96d1323eed1c97ba8cb0d893ab705ab4c090d7a2452400075e0bfb7901ce3ad7",
+    "a6088ad3e02747e6764888427a47feb742a64b3deb6e4c1d11199044d2db498c"
+   ]
   }
  ],
- "gate": "f884a330fc8c06ef0bb1cc7ff74c0a5d74cb3548e50041a3317ef4286900c080",
+ "gate": "a303c5755ff17937d16a39ac6a368b59d685b12f40a6957cf202406f24bcf3c4",
  "hints": [
   "The label sits on the corner of the crate that the cloth does not cover. For the last question you need your answer to stage 3.",
-  "In door_log.csv, keep zone = SC, direction = in, result = granted. Which swipe is closest to the time on the still? Look up its badge in staff.csv.",
-  "CR-017, 20:40:08. The closest swipe is badge B-422 at 20:40:05: Thomas Lefebvre, EMP-031."
+  "In door_log.csv, keep zone = SC, direction = in, result = granted. Which swipe is closest to the time on the still? Look up its badge in staff.csv: the name is on the same row."
  ]
 }

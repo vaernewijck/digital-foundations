@@ -20,16 +20,18 @@
    "check": "6be93edd6611bc758ab4e43ecf42218d5fed606093ac34ea1d5a80060d6262bc"
   },
   {
-   "label": "Going by that real time: whose badge opened the door to the service corridor closest to it? Give the employee ID.",
+   "label": "Going by that real time: whose badge opened the door to the service corridor closest to it? Give the name of that person.",
    "kind": "text",
-   "placeholder": "EMP-000",
-   "check": "214031f58a12731a758f067953881fe68d0241d94086f178663d610b4992e441"
+   "placeholder": "first and last name",
+   "checks": [
+    "bcbc123fd7930f3f8e7f82ed973f64e85d5c0f67e50373957b013b2a0aaa190f",
+    "a85bbae61e302364112b834d2e60df0d74db9063d8742920078b78e196e771da"
+   ]
   }
  ],
- "gate": "47f7c586f3e6b4a3ae66cd04c2b53e9bf7aef8e136b4a39619fe685dc751f6e2",
+ "gate": "6c01f76664ce15343c799548109804336d3231a4c0717f62ac3e8c25249a8948",
  "hints": [
   "Read incident_report.txt again, to the end.",
-  "Read the last section of incident_report.txt, OPEN MAINTENANCE NOTES. It names the camera and how many minutes it is behind. Add that to the time on the corridor still. Then, in door_log.csv, find the corridor swipe closest to that new time, as in stage 4.",
-  "CAM-02, the service corridor camera, runs 7 minutes behind (incident report). 20:40:08 + 7 minutes = 20:47:08. The closest corridor swipe is badge B-208 at 20:46:58: Julien Moreau, EMP-015. CAM-04's clock is right: its last picture says 20:40:55, and the system log switched it off at 20:41:08."
+  "Read the last section of incident_report.txt, OPEN MAINTENANCE NOTES. It names the camera and how many minutes it is behind. Add that to the time on the corridor still. Then, in door_log.csv, find the corridor swipe closest to that new time, as in stage 4."
  ]
 }
