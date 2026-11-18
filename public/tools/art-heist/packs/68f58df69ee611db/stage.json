@@ -20,13 +20,13 @@
   {
    "label": "What is the latitude of the place where the photo was taken?",
    "kind": "coord",
-   "placeholder": "degrees or decimals",
+   "placeholder": "e.g. 50° 49' 30\" N or 50.825",
    "check": "b1541d9e1efc301e481e1ebe1e09a6a4f13c0b2816877d88ee816e356ffbb1ed"
   },
   {
    "label": "And the longitude?",
    "kind": "coord",
-   "placeholder": "degrees or decimals",
+   "placeholder": "e.g. 3° 15' 52\" E or 3.2644",
    "check": "576a60bcf4fb3ef2900d73857b0182d1bbd220972d0372a8af8b2b82098e97ca"
   },
   {
