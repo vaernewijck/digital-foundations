@@ -1,10 +1,10 @@
 {
  "n": 8,
  "title": "The intercepted photo",
- "html": "<p>At 23:41 the police intercepted a photo, sent from an unknown phone to an art dealer they have been watching. It shows a crate in a dark shipping container.</p>\n<a class=\"dl\" href=\"[[pack]]/intercepted.jpg\" download><span class=\"ex\">Exhibit PDU/06</span><span class=\"fn\">intercepted.jpg</span><span class=\"fd\">the photo the police intercepted</span><span class=\"get\">Download</span></a>\n<p>The picture shows little. The file says more: read its <strong>metadata</strong>.</p>",
+ "html": "<p>Crate CR-017 left the museum at 20:52:10, and no transport company was booked to pick it up. Somebody else took it away. Since you found that out, the police have been watching an art dealer who is known to buy stolen art. With a judge's permission, they can read the messages he receives.</p>\n<p>That night the police intercepted a picture sent to him from an unknown phone. It shows a wooden crate inside a shipping container: the big metal box that goes on a truck or a ship. The sticker on the crate says CR-017.</p>\n<a class=\"dl\" href=\"[[pack]]/intercepted.jpg\" download><span class=\"ex\">Exhibit PDU/06</span><span class=\"fn\">intercepted.jpg</span><span class=\"fd\">the photo the police intercepted</span><span class=\"get\">Download</span></a>\n<p>The picture itself does not show where it was taken. But a phone stores more in a photo file than the picture: which phone took it, when, and often where. That is called <strong>metadata</strong>.</p>\n<p>Read the metadata of the photo, then look up the position on a map.</p>",
  "prev_card": {
   "title": "The crate left the building",
-  "html": "<p>CR-017, with the Mona Lisa, was going to D-01, conservation storage. WS-02 sent it to D-03, the external loading dock. It left at 20:52:10 without a carrier: no transport company was booked.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: API</p><p>An <strong>API</strong> is an address that returns data instead of a page. Change one part of the address, here the crate ID, and you get another record. Apps use APIs all the time: a weather app asks a weather API, a train app asks the railway's API.</p></div>"
+  "html": "<p>The Mona Lisa was going back to conservation storage (D-01). At 20:35:12 WS-02 changed its destination to the external loading dock (D-03). At 20:52:10 the crate went out through that door, and its record has no carrier: no transport company was booked to pick it up.</p>\n<p>You changed the crate ID in the address and got another record. That is an <strong>API</strong>: an address that returns data instead of a page. A weather app or a train app gets its data the same way.</p>"
  },
  "fields": [
   {
@@ -18,21 +18,32 @@
    "help": "<button type=\"button\" class=\"how\" data-howto=\"exif\">How to: read photo metadata</button>"
   },
   {
-   "label": "Where was the photo taken? Give the coordinates or the postcode.",
-   "kind": "place",
-   "placeholder": "coordinates or postcode",
+   "label": "What is the latitude of the place where the photo was taken?",
+   "kind": "coord",
+   "placeholder": "degrees or decimals",
+   "check": "b1541d9e1efc301e481e1ebe1e09a6a4f13c0b2816877d88ee816e356ffbb1ed"
+  },
+  {
+   "label": "And the longitude?",
+   "kind": "coord",
+   "placeholder": "degrees or decimals",
+   "check": "576a60bcf4fb3ef2900d73857b0182d1bbd220972d0372a8af8b2b82098e97ca"
+  },
+  {
+   "label": "Look up the position in Google Maps. In which city was the photo taken?",
+   "kind": "text",
+   "placeholder": "city",
    "checks": [
-    "df4e87aac616fd561d6ba389c5591fca48af4945205b1af1c4d0ab9d777b377b",
-    "4ef7ed94820852768e92b06c0d367993e94c33ceb75f41fc1b5504b47f2e309d",
-    "0193eb0e344a28b204cdffa4af2096dcc9f1e90ed4e8e917e07c8f7e5fa5fe6a"
+    "5998616045999109c79773768443e87b54503a2e736a4cdd456d5a0cedd32ad8",
+    "2ae881f5c1e32e4fcab565d06551a9976b4684a4cafb63ef61ac40edaffa1f8d"
    ],
    "help": "<button type=\"button\" class=\"how\" data-howto=\"map\">How to: find a position on a map</button>"
   }
  ],
- "gate": "8109fc9ee8d592d00510ad33e883919b306e50facdb7f0caf352d4b0250b728f",
+ "gate": "b85f1ee2138d70391e0579abb9fa52550079495d52035f94ba6f10e55fd7ecdb",
  "hints": [
   "On a Mac: open the photo in Preview, then Tools > Show Inspector and the tab with the (i). The Exif tab names the camera, the GPS tab gives the position. Use the downloaded file, not a screenshot.",
-  "Copy the position from the GPS tab, for example 49° 28' 3\" N and the longitude after it, and paste it in the search box of Google Maps. The pin shows the place. Click it for the address with its postcode.",
-  "A Google Pixel 7. Position: 49° 28' 3\" N, 0° 9' 45\" E, in decimals 49.4675, 0.1625: the Terminal de Normandie in the port of Le Havre, postcode 76610."
+  "Mac: the GPS tab gives the latitude and the longitude, for example 50° 49' 30\" N. Windows: Properties > Details, under GPS, writes the same as 50; 49; 30. Type them as you see them, or as decimals. For the city: type both in the search box of Google Maps, as 50°49'30\"N 3°15'52\"E.",
+  "A Google Pixel 7. Latitude 49° 28' 3\" N, in decimals 49.4675. Longitude 0° 9' 45\" E, in decimals 0.1625. That is the Terminal de Normandie in the port of Le Havre."
  ]
 }

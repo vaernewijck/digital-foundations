@@ -1,14 +1,14 @@
 {
  "n": 7,
  "title": "Shipment record",
- "html": "<p>At 20:35:12, during the speeches, workstation WS-02 changed the shipment record of crate CR-017. You saw it in the system log: <code>modify_manifest</code>. What did it change?</p>\n<p>That record is not in your files. It lives in the museum's collection system, behind an <strong>API</strong>: an address that returns data instead of a page.</p>\n<p>Documentation: <a href=\"[[api]]\" target=\"_blank\" rel=\"noopener\">[[api]]</a></p>\n<p>Example, the shipment of the other crate in the corridor:</p>\n<p><a href=\"[[api]]shipments/CR-012.json\" target=\"_blank\" rel=\"noopener\"><code>[[api]]shipments/CR-012.json</code></a></p>\n<p>Change the address to ask for the crate under the cloth.</p>",
+ "html": "<p>Artworks in a museum move all the time: from storage to a gallery, to the workshop, or out of the building on loan to another museum. A painting never travels loose. It goes in a padded wooden transport crate, like the ones on the trolleys in stage 4.</p>\n<p>For every crate the museum keeps a <strong>shipment record</strong>: which artwork is inside, where the crate has to go, and every step on the way. Staff fill it in at their workstation. A scanner adds a step when the crate passes a door.</p>\n<p>A crate can be sent to four places. Each has an ID:</p>\n<div class=\"scroll\"><table>\n  <thead><tr><th>ID</th><th>Place</th><th>What it is</th></tr></thead>\n  <tbody>\n    <tr><td>D-01</td><td>Conservation storage</td><td>A closed room inside the museum, kept at the right temperature, where artworks stay when they are not on display.</td></tr>\n    <tr><td>D-02</td><td>Exhibition preparation</td><td>The workshop where artworks are checked and framed before they go on display.</td></tr>\n    <tr><td>D-03</td><td>External loading dock</td><td>The big door at the back where trucks load and unload: LD on the floor plan, next to the street. A crate sent here leaves the building. A transport company, the <em>carrier</em>, picks it up.</td></tr>\n    <tr><td>D-04</td><td>Gallery installation</td><td>A gallery, where the artwork goes on display.</td></tr>\n  </tbody>\n</table></div>\n<p>That afternoon a shipment record was made for crate CR-017: the Mona Lisa would travel in it after the event. At 20:35:12, during the speeches, workstation WS-02 changed that record. Find out what it changed.</p>\n<p>The shipment records are not in your files. They are in the museum's collection system, and you can ask for them through its <strong>API</strong>: a web address that returns data instead of a page. You open it in your browser like any other address.</p>\n<p>Try it with the other crate from the corridor, CR-012:</p>\n<p><a href=\"[[api]]shipments/CR-012.json\" target=\"_blank\" rel=\"noopener\"><code>[[api]]shipments/CR-012.json</code></a></p>\n<p>You get the record of CR-012 as JSON. <code>original_destination</code> is where the crate had to go when the record was made, <code>current_destination</code> is where it has to go now, and <code>events</code> lists every step, oldest first.</p>\n<p>Now change CR-012 at the end of the address into the ID of the crate under the cloth.</p>\n<p>The API has a documentation page that lists all the addresses you can use: <a href=\"[[api]]\" target=\"_blank\" rel=\"noopener\">documentation of the museum API</a>.</p>",
  "prev_card": {
   "title": "You caught the wrong clock",
-  "html": "<p>Corrected by 7 minutes, the covered crate passed at 20:47:08, ten seconds after Julien Moreau's badge opened the corridor door (20:46:58). Not Thomas Lefebvre. And CAM-04 recorded nothing from 20:41:08 to 20:58:40: WS-02 had switched it off.</p>\n<div class=\"explain\"><p class=\"elabel\">The data term: Data quality</p><p><strong>Data quality</strong> is how far you can trust data. The stills were real, but their times were 7 minutes off, and that pointed at the wrong person. The correction was one sentence in an unstructured report. Before you combine two sources, check that they use the same clock.</p></div>"
+  "html": "<p>Corrected by 7 minutes, the covered crate passed at 20:47:08, ten seconds after Julien Moreau's badge opened the corridor door (20:46:58). Not Thomas Lefebvre. And CAM-04 recorded nothing from 20:41:08 to 20:58:40: WS-02 had switched it off.</p>\n<p>This is <strong>data quality</strong>: the stills were real, but their time was 7 minutes off, and that pointed at the wrong person. The note that corrected it was one sentence in a text file.</p>"
  },
  "fields": [
   {
-   "label": "Where was the crate supposed to go? Give the original destination ID.",
+   "label": "Where did crate CR-017 have to go when its record was made? Give the destination ID.",
    "kind": "text",
    "placeholder": "D-00",
    "check": "5180dbc6219734410c5863ef70fad54bb45beb2e64cf6215fab59f53c69599f4",
@@ -29,8 +29,8 @@
  ],
  "gate": "c54276c57a28386c3e0254ad11fd7d6750d373e59c18f09edfdfbb7728f07b15",
  "hints": [
-  "In the address bar, replace CR-012 with the crate ID from the trolley in stage 4.",
-  "In the record, original_destination is where the crate was supposed to go and current_destination where it goes now. The events list shows every change, oldest first: look for the status departed. The documentation page says what each D-code means.",
-  "D-01, conservation storage. D-03, the external loading dock. It left at 20:52:10."
+  "Open the example address, then change only its last part: CR-012 becomes the ID on the sticker of the covered crate in stage 4.",
+  "In the record, read original_destination and current_destination. For the time: in the events list, the step with the status departed is the moment the crate went out through the door.",
+  "D-01, conservation storage. D-03, the external loading dock. The crate left at 20:52:10."
  ]
 }

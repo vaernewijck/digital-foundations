@@ -133,10 +133,10 @@
   /* ---- evidence: numbered exhibit labels ---- */
   a.dl {
     display: grid; grid-template-columns: 1fr auto; grid-template-areas: "ex get" "fn get" "fd get"; column-gap: 1rem; align-items: center;
-    margin: 1.2rem 0; padding: .7rem 1rem .75rem 1.1rem; border: 1px solid var(--edge); border-left: 7px solid var(--red);
+    margin: 1.2rem 0; padding: .7rem 1rem .75rem 1.1rem; border: 1px solid var(--edge);
     border-radius: 2px; background: #fffdf8; color: var(--ink) !important; text-decoration: none; position: relative;
   }
-  a.dl:hover { border-color: var(--ink); border-left-color: var(--red-hi); background: #fff; }
+  a.dl:hover { border-color: var(--ink); background: #fff; }
   .dl .ex { grid-area: ex; font: 400 .78rem/1.2 var(--type); color: var(--red); text-transform: uppercase; letter-spacing: .1em; }
   .dl .fn { grid-area: fn; font: 500 1rem/1.35 var(--mono); overflow-wrap: anywhere; }
   .dl .fd { grid-area: fd; font-size: .85rem; line-height: 1.35; color: var(--muted); }
@@ -193,20 +193,17 @@
   .card .stamp { position: absolute; right: 1.6rem; top: 1.1rem; }
   .card h3 { font: 400 1.45rem/1.2 var(--type); margin: 0 0 .7rem; }
   .card p:last-child { margin-bottom: .2rem; }
-  .card .explain { background: var(--paper-2); border-left: 4px solid var(--ok); padding: .8rem 1rem .7rem; margin-top: 1.1rem; }
-  .card .explain p { margin-bottom: .4rem; }
-  .card .explain code { background: #fffdf6; }
-  .card .elabel { font: 400 .78rem/1.4 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+  .card.finale .congrats { font-size: 1.5rem; }
+  .card.finale h3 { font-size: 1.9rem; }
+  .card .scene { margin: 0 0 1.2rem; }
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
   .next { margin-top: 1.4rem; }
 
   /* ---- tables ---- */
   table { border-collapse: collapse; width: 100%; margin-bottom: 1.2rem; font-size: .92rem; }
   th, td { text-align: left; padding: .45rem .8rem .45rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { font: 400 .74rem var(--mono); color: var(--muted); border-bottom-color: var(--edge); text-transform: uppercase; letter-spacing: .04em; }
-  table.tl td:first-child { font-family: var(--mono); white-space: nowrap; }
-  table.tl td:last-child { font: 400 .8rem var(--mono); }
-  .reveal h2 { font-size: 1.6rem; margin: 2.2rem 0 .9rem; padding: 0; }
-  .reveal h2:first-child { margin-top: 0; }
+  .story td:first-child { white-space: nowrap; }   /* IDs such as D-01 and CAM-04 stay on one line */
 
   /* ---- How to and Notes ---- */
   #panel { background: var(--paper-2); overflow-y: auto; overscroll-behavior: contain; }
@@ -239,14 +236,14 @@
     body.panel #panel { display: block; }
   }
 
-  /* ---- case summary: a police form, printed to PDF ---- */
+  /* ---- case summary: a police form, downloaded as JSON ---- */
   #report { background: #fff; border: 1px solid var(--edge); padding: 2rem 2.3rem; margin: 3.2rem 0 1.25rem; box-shadow: 0 22px 34px -22px rgba(0, 0, 0, .75); }
-  #report h3 { margin: 1.3rem 0 .4rem; font: 400 .95rem var(--type); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--ink); padding-bottom: .2rem; }
-  #report .rhead { display: flex; justify-content: space-between; gap: 1rem; border: 2px solid var(--ink); padding: .7rem .9rem; margin-bottom: 1rem; font-size: .85rem; }
-  #report .rhead b { font: 400 1.6rem/1.1 var(--type); display: block; text-transform: uppercase; letter-spacing: .04em; }
-  #report .code { font: 400 .85rem/1.5 var(--mono); text-align: right; }
+  #report h3 { margin: 1.6rem 0 .5rem; font: 400 1.15rem var(--type); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--ink); padding-bottom: .2rem; }
+  #report .rhead { display: flex; justify-content: space-between; gap: 1rem; border: 2px solid var(--ink); padding: 1rem 1.2rem; margin-bottom: 1.3rem; font-size: 1rem; }
+  #report .rhead b { font: 400 clamp(1.8rem, 5vw, 2.4rem)/1.1 var(--type); display: block; text-transform: uppercase; letter-spacing: .04em; }
+  #report .code { font: 400 1rem/1.5 var(--mono); text-align: right; }
   #report p { margin-bottom: .5rem; }
-  #report table { font-size: .84rem; margin-bottom: .6rem; }
+  #report table { font-size: 1rem; margin-bottom: .8rem; }
   #report table.who th { width: 9rem; }
 
   @media (max-width: 700px) {
@@ -354,7 +351,7 @@
       <p>A photo file carries data about itself: when, with which device, sometimes where. Always use the downloaded file, never a screenshot of it.</p>
       <ul>
         <li><strong>Mac, Preview:</strong> open the photo, then Tools &gt; Show Inspector (cmd+I). Click the tab with the (i). You get tabs such as General, Exif and GPS.</li>
-        <li><strong>Windows:</strong> right-click the file &gt; Properties &gt; Details.</li>
+        <li><strong>Windows:</strong> right-click the file &gt; Properties &gt; Details. Scroll down to GPS. Windows writes a position as <code>50; 49; 30</code>: degrees, minutes, seconds.</li>
         <li><strong>Any computer:</strong> search for "online EXIF viewer" and upload the file.</li>
       </ul>
     </div></details>
@@ -372,9 +369,10 @@
 
     <details data-topic="map"><summary>Find a position on a map</summary><div>
       <ol>
-        <li>Copy the position from the photo's metadata, latitude and longitude, for example <code>50&deg; 49' 30" N 3&deg; 15' 52" E</code>.</li>
-        <li>Paste it in the search box of <a href="https://maps.google.com" target="_blank" rel="noopener">Google Maps</a> and press Enter. Degrees, minutes, seconds work, and so do decimals: <code>50.825, 3.2644</code>.</li>
-        <li>A pin marks the spot. Click it, or the address below the search box, to see the address and its postcode.</li>
+        <li>Find the latitude and the longitude in the photo's metadata.</li>
+        <li>Type them in the search box of <a href="https://maps.google.com" target="_blank" rel="noopener">Google Maps</a>, latitude first, and press Enter. Google Maps understands degrees with the symbols, <code>50&deg;49'30"N 3&deg;15'52"E</code>, and decimals, <code>50.825, 3.2644</code>.</li>
+        <li>On Windows the position looks like <code>50; 49; 30</code>. Type it with the symbols: &deg; after the degrees, ' after the minutes, " after the seconds, then N for the latitude and E for the longitude.</li>
+        <li>A pin marks the spot. The name of the place and the city are below the search box.</li>
       </ol>
     </div></details>
   </div>
@@ -395,7 +393,7 @@
   const SALT = 'imma-case-2047';          // same as gate.py
   const STORE = 'art-heist:v1';
   const LAST = 8;                          // last stage
-  const REPORT = LAST + 1;                 // view after the last stage: the case summary, saved as PDF
+  const REPORT = LAST + 1;                 // view after the last stage: the case summary, downloaded as JSON
   const HINT3_AFTER = 5 * 60 * 1000;       // level 3 hint opens after 5 minutes on a stage, or 3 wrong tries
   const $ = id => document.getElementById(id);
   const main = $('main');
@@ -413,15 +411,10 @@
     list: v => [...new Set(v.split(/[,;\s]+/).map(normText).filter(p => p && p !== 'AND' && p !== 'EN'))].sort().join(','),
     int: v => { const d = v.replace(/\D/g, ''); return d ? String(parseInt(d, 10)) : ''; },
     time: v => v.replace(/\D/g, ''),       // 20:40:08, 20.40.08 and 20u40m08 are the same answer
-    place: v => {                          // a position (rounded to 2 decimals) or a postcode
-      let s = v.trim();
-      if (!s.includes('.')) s = s.replace(/,/g, '.');                   // decimal comma
-      let nums = (s.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
-      const digits = v.replace(/\D/g, '');
-      if (nums.length === 1 && /^\d{5}$/.test(digits)) return 'P' + digits;
-      if (nums.length === 6) nums = [nums[0] + nums[1] / 60 + nums[2] / 3600, nums[3] + nums[4] / 60 + nums[5] / 3600];
-      else if (nums.length === 4) nums = [nums[0] + nums[1] / 60, nums[2] + nums[3] / 60];
-      return nums.length === 2 ? `C${nums[0].toFixed(2)},${nums[1].toFixed(2)}` : '';
+    coord: v => {                          // one latitude or longitude, in degrees or decimals, rounded to 2 decimals
+      const n = (v.replace(/,/g, '.').match(/\d+(?:\.\d+)?/g) || []).map(Number);
+      const d = n.length === 3 ? n[0] + n[1] / 60 + n[2] / 3600 : n.length === 2 ? n[0] + n[1] / 60 : n.length === 1 ? n[0] : null;
+      return d === null ? '' : d.toFixed(2);
     },
   };
   const ANY = 'ANY';                       // a question with several right answers puts this in the key (gate.py)
@@ -516,7 +509,7 @@
           <li><span>You use the tools on your own laptop: Google Sheets, VS Code and your browser. <button class="how" type="button" data-howto="">How to</button> gives the steps for each tool.</span></li>
           <li><span>There are eight stages. A correct answer opens the next one. Every stage has three hints.</span></li>
           <li><span><button class="how" type="button" data-notes>Notes</button> can help you keep track of what you find.</span></li>
-          <li><span>You may talk with your neighbour, but you work on your own laptop. At the end you save a summary as PDF and upload it on Leho as Challenge 7.</span></li>
+          <li><span>You may talk with your neighbour, but you work on your own laptop. At the end you download your case summary, a JSON file, and upload it on Leho as Challenge 7.</span></li>
         </ol>
         <p class="small">Your progress is saved in this browser. You can stop and continue later on the same laptop.</p>
         ${canStore ? '' : '<p class="msg">This browser does not save your progress (private window?). Finish in one go, or use a normal window.</p>'}
@@ -578,7 +571,9 @@
         </form>
         ${solved ? '' : '<section class="hints" id="hints"></section>'}
       </div>
-      ${card ? `<section class="card" id="card"><span class="stamp ok">Stage ${n} solved</span><p class="congrats">Correct. Well done, investigator.</p><h3>${esc(card.title)}</h3>${fill(card.html, doc)}</section>` : ''}
+      ${card ? `<section class="card${n === LAST ? ' finale' : ''}" id="card"><span class="stamp ok">${n === LAST ? 'Case solved' : `Stage ${n} solved`}</span>
+        <p class="congrats">${n === LAST ? 'Case solved. Brilliant work, investigator!' : 'Correct. Well done, investigator.'}</p>
+        ${n === LAST ? RECOVERED : ''}<h3>${esc(card.title)}</h3>${fill(card.html, doc)}</section>` : ''}
       ${solved ? `<p class="next"><button class="btn primary" type="button" data-go="${n + 1}">${n === LAST ? 'To your case summary' : 'Go to stage ' + (n + 1)}</button></p>` : ''}`;
 
     if (solved) return;
@@ -622,7 +617,34 @@
     st.solved = Date.now(); st.answers = answers; S.keys[n] = key; delete S.draft[n];
     if (n === LAST) S.done = st.solved;
     save();
-    go(n).then(() => { const c = $('card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    go(n).then(() => { const c = $('card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (n === LAST) confetti(); });
+  }
+
+  /* ---- the last stage: the recovered painting, and confetti (not for people who asked for less motion) ---- */
+  const RECOVERED = `<figure class="scene">
+    <img src="img/recovered.jpg" width="762" height="338" alt="Night at the port of Le Havre: police officers beside crate CR-017, opened in front of a shipping container, the Mona Lisa inside in grey foam." onerror="this.parentNode.hidden = true">
+    <figcaption><b>Port of Le Havre, 00:35</b>The police open crate CR-017. The Mona Lisa is inside.</figcaption></figure>`;
+  function confetti() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cv = document.createElement('canvas'), g = cv.getContext('2d');
+    cv.className = 'confetti';
+    document.body.appendChild(cv);
+    const W = cv.width = innerWidth, H = cv.height = innerHeight;
+    const colors = ['#f2c230', '#a3271c', '#2f6b3a', '#e6cf9a', '#ffffff'];
+    const bits = Array.from({ length: 180 }, () => ({
+      x: Math.random() * W, y: -20 - Math.random() * H * .7, vx: (Math.random() - .5) * 2.6, vy: 2.2 + Math.random() * 3.6,
+      r: Math.random() * 6.3, vr: (Math.random() - .5) * .3, w: 6 + Math.random() * 7, h: 3 + Math.random() * 4,
+      c: colors[Math.floor(Math.random() * colors.length)],
+    }));
+    const end = performance.now() + 5000;
+    (function frame(t) {
+      g.clearRect(0, 0, W, H);
+      for (const b of bits) {
+        b.x += b.vx + Math.sin((t + b.r * 500) / 400) * .6; b.y += b.vy; b.r += b.vr;
+        g.save(); g.translate(b.x, b.y); g.rotate(b.r); g.fillStyle = b.c; g.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); g.restore();
+      }
+      if (t < end) requestAnimationFrame(frame); else cv.remove();
+    })(performance.now());
   }
 
   /* ---- hints ---- */
@@ -645,23 +667,27 @@
     if (btn) btn.addEventListener('click', () => { st.hints = next; save(); drawHints(n); });
   }
 
-  /* ---- the case summary: what students save as PDF and upload on Leho ---- */
+  /* ---- the case summary: a JSON file students download and upload on Leho ---- */
+  const stamp = ms => {   // 2026-11-18 13:32:05, local time
+    const d = new Date(ms), p = v => String(v).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  };
+  const fileName = () => 'art-heist-' + (S.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'summary') + '.json';
   async function report() {
-    const doc = await getStage(REPORT);
     const fmt = ms => new Date(ms).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
     let total = 0, hints = 0, wrong = 0;
-    const rows = [];
+    const rows = [], stats = [];
     for (let n = 1; n <= LAST; n++) {
-      const st = stage(n), took = st.solved - st.opened;
+      const st = stage(n), took = st.solved - st.opened, title = (await getStage(n)).title;
       total += took; hints += st.hints; wrong += st.wrong;
-      rows.push(`<tr><td>${n}. ${esc((await getStage(n)).title)}</td><td>${clock(took)}</td><td>${st.wrong}</td><td>${st.hints}</td></tr>`);
+      stats.push({ n, title, took, wrong: st.wrong, hints: st.hints });
+      rows.push(`<tr><td>${n}. ${esc(title)}</td><td>${clock(took)}</td><td>${st.wrong}</td><td>${st.hints}</td></tr>`);
     }
-    // report_code.py recomputes this from the name and the total, so a changed PDF shows
+    // report_code.py recomputes this from the name and the total, so an edited file shows
     const code = (await sha(`${S.keys[LAST]}|${S.name.trim().toLowerCase()}|${Math.floor(total / 1000)}`)).slice(0, 8).toUpperCase();
     main.innerHTML = `
       <div class="sheet noprint">
         <div class="tab">Case file 2047</div>
-        <span class="stamp ok">Case closed</span>
         <h2>Case closed: the Mona Lisa</h2>
         <div class="cover">
           <figure class="polaroid">
@@ -670,15 +696,9 @@
             <figcaption><b>Mona Lisa</b>Back in the Louvre.</figcaption>
           </figure>
           <div>
-            <p class="lede">You solved the case. Save your case summary as a PDF and upload it on Leho under Challenge 7.</p>
-            <p><button class="btn primary" type="button" id="print">Save as PDF</button></p>
-            <p class="small">A print window opens. Choose "Save as PDF" as the printer (Mac: the PDF button at the bottom).</p>
+            <p class="lede">You solved the case. Your case summary is below. Download it at the bottom and upload the file on Leho under Challenge 7.</p>
           </div>
         </div>
-        <figure class="scene">
-          <img src="img/recovered.jpg" width="762" height="338" alt="Night at the port of Le Havre: police officers beside crate CR-017, opened in front of a shipping container, the Mona Lisa inside in grey foam." onerror="this.parentNode.hidden = true">
-          <figcaption><b>Port of Le Havre, 00:35</b>The police open crate CR-017. The Mona Lisa is inside.</figcaption>
-        </figure>
       </div>
       <section id="report">
         <div class="rhead">
@@ -695,11 +715,24 @@
           ${rows.join('')}
           <tr><td><strong>Total</strong></td><td><strong>${clock(total)}</strong></td><td><strong>${wrong}</strong></td><td><strong>${hints}</strong></td></tr>
         </tbody></table>
-      </section>
-      <div class="sheet noprint"><div class="tab">The solution</div><div class="reveal">${doc.html}</div>
-        <p><button class="btn" type="button" id="print2">Save as PDF</button></p>
-      </div>`;
-    for (const id of ['print', 'print2']) $(id).addEventListener('click', () => window.print());
+        <p class="next"><button class="btn primary" type="button" id="download">Download your case summary</button></p>
+        <p class="small">You get a JSON file, <code>${esc(fileName())}</code>. Upload that file on Leho. Open it in VS Code to see what is inside.</p>
+      </section>`;
+    const summary = {
+      case: 'The Art Heist, case 2047',
+      investigator: S.name,
+      started: stamp(S.started),
+      finished: stamp(S.done || stage(LAST).solved),
+      stages: stats.map(s => ({ stage: s.n, title: s.title, time: clock(s.took), wrong_tries: s.wrong, hints: s.hints })),
+      total: { time: clock(total), wrong_tries: wrong, hints },
+      code,
+    };
+    $('download').addEventListener('click', () => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(summary, null, 2) + '\n'], { type: 'application/json' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: fileName() });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    });
   }
 
   /* ---- side panel: How to and Notes ---- */
