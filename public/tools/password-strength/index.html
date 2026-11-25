@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Strength - Digital Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #161615; --paper: #f8f8f8; --line: #d8d8d6; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: "zero", "tnum";
+    -webkit-font-smoothing: antialiased;
+    display: grid; place-items: center; padding: 1rem;
+  }
+  main { width: min(100%, 48rem); display: grid; gap: 2.5rem; }
+  input {
+    width: 100%; font: inherit; font-size: clamp(1.8rem, 6vw, 3.2rem); font-weight: 500;
+    background: transparent; color: var(--ink); border: 0; border-bottom: 2px solid var(--ink);
+    padding: .2rem 0; outline: none;
+  }
+  input::placeholder { color: var(--ink); opacity: .2; }
+  .k { font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+  .out { display: grid; gap: .6rem; }
+  #time { font-size: clamp(2.4rem, 8vw, 4.5rem); font-weight: 300; line-height: 1.05; min-height: 1.05em; }
+  .why { font-size: 1.1rem; font-weight: 300; opacity: .7; min-height: 1.4em; }
+
+  .found { display: grid; gap: .5rem; }
+  .found:empty { display: none; }
+  .found p { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; padding-top: .5rem; border-top: 1px solid var(--line); font-size: 1rem; font-weight: 300; }
+  .found b { font-weight: 700; overflow-wrap: anywhere; }
+  .found em { display: block; font-style: normal; font-weight: 500; margin-top: .15rem; }
+  .found .was { border-top: 0; padding-top: .2rem; opacity: .5; font-size: .9rem; }
+  @media (max-width: 520px) { .found p { grid-template-columns: 1fr; gap: .1rem; } }
+</style>
+</head>
+<body>
+<main>
+  <input id="pw" type="text" placeholder="type a password" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Password">
+  <div class="out">
+    <span class="k">Cracked in</span>
+    <p id="time"></p>
+    <p class="why" id="why"></p>
+  </div>
+  <div class="found" id="found"></div>
+</main>
+<script>
+  // 10 billion guesses per second. Method after zxcvbn (Dropbox): known patterns
+  // are guessed first, the characters in between count as random characters.
+  const SPEED = 10, YEAR = 365.25 * 86400;
+  const SETS = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9 ]/, / /];
+  const SIZES = [26, 26, 10, 32, 1];
+  const NAMES = [[18, 'quintillion'], [15, 'quadrillion'], [12, 'trillion'], [9, 'billion'], [6, 'million'], [3, 'thousand']];
+
+  // ---- known patterns ----
+  const COMMON = ['password', 'wachtwoord', 'paswoord', 'motdepasse', 'admin', 'welcome', 'welkom', 'letmein',
+    'iloveyou', 'trustno1', 'abc123', 'qwerty123', 'azerty123', 'password1', '1q2w3e4r', 'zaq12wsx',
+    'monkey', 'dragon', 'sunshine', 'princess', 'football', 'superman', 'batman', 'starwars', 'pokemon',
+    'minecraft', 'liverpool', 'whatever', 'freedom', 'master', 'shadow'];
+  const MONTHS = ['january', 'february', 'march', 'april', 'june', 'july', 'august', 'september', 'october',
+    'november', 'december', 'januari', 'februari', 'maart', 'juni', 'juli', 'augustus', 'oktober'];
+  const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+  const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'azertyuiop', 'qsdfghjklm', 'wxcvbn'];
+  const SWAPS = { '@': 'a', '4': 'a', '3': 'e', '1': 'i', '!': 'i', '0': 'o', '$': 's', '5': 's', '7': 't' };
+
+  // guesses: how many tries an attacker needs for this kind of pattern
+  const KINDS = {
+    common:   { guesses: 1e4,           why: 'On lists of leaked passwords. Attackers try those first.', fix: 'Leave it out, also with a number or symbol added.' },
+    date:     { guesses: 131 * 365 * 4, why: 'A date. Attackers try every date from 1900 to 2030.', fix: 'Leave dates out. Birthdays are easy to find online.' },
+    year:     { guesses: 131,           why: 'A year. Attackers try every year from 1900 to 2030.', fix: 'Leave years out, or add a word instead.' },
+    month:    { guesses: 12 * 3,        why: 'A month. There are only 12.', fix: 'Use a word that is not a month.' },
+    day:      { guesses: 7 * 3,         why: 'A day of the week. There are only 7.', fix: 'Use a word that is not a day.' },
+    keyboard: { guesses: 200,           why: 'Keys next to each other on the keyboard.', fix: 'Use a word instead.' },
+    sequence: { guesses: 100,           why: 'A sequence, one step at a time.', fix: 'Use a word instead.' },
+    repeat:   { guesses: 100,           why: 'One character repeated.', fix: 'Use a word instead.' },
+  };
+  const LEET = { why: 'Look-alikes (@ for a, 0 for o) are one of the first things attackers try.' };
+
+  const find = p => {
+    const low = p.toLowerCase();
+    const leet = [...low].map(c => SWAPS[c] || c).join('');
+    const hits = [];
+    const add = (i, j, kind, viaLeet = false) => hits.push({ i, j, kind, leet: viaLeet && leet.slice(i, j) !== low.slice(i, j) });
+    const words = (list, kind) => list.forEach(w => {
+      for (const s of [low, leet]) {
+        let i = s.indexOf(w);
+        while (i >= 0) { add(i, i + w.length, kind, s === leet); i = s.indexOf(w, i + 1); }
+      }
+    });
+    words(COMMON, 'common'); words(MONTHS, 'month'); words(DAYS, 'day');
+
+    // dates: 12051998, 12-05-1998, 1998-05-12, 120598
+    for (const m of low.matchAll(/\d{1,4}[-/.]\d{1,2}[-/.]\d{2,4}|\d{6,8}/g)) {
+      const d = m[0].split(/[-/.]/);
+      const ok = d.length === 3 ? d.some(x => x.length === 4 || x.length === 2) :
+        /^(0[1-9]|[12]\d|3[01])(0[1-9]|1[0-2])(19|20)?\d\d$/.test(m[0]) || /^(19|20)\d\d(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$/.test(m[0]);
+      if (ok) add(m.index, m.index + m[0].length, 'date');
+    }
+    for (const m of low.matchAll(/(?=((19\d\d|20[0-2]\d|2030)))/g)) add(m.index, m.index + 4, 'year');
+
+    // keyboard rows, 4 keys or more, both directions
+    ROWS.forEach(r => [r, [...r].reverse().join('')].forEach(row => {
+      for (let n = row.length; n >= 4; n--)
+        for (let a = 0; a + n <= row.length; a++) {
+          let i = low.indexOf(row.slice(a, a + n));
+          while (i >= 0) { add(i, i + n, 'keyboard'); i = low.indexOf(row.slice(a, a + n), i + 1); }
+        }
+    }));
+
+    // sequences (abc, 4321) and repeats (aaa), 3 characters or more
+    for (let i = 0; i < low.length - 2; i++) {
+      for (const step of [1, -1, 0]) {
+        let j = i + 1;
+        while (j < low.length && /[a-z0-9]/.test(low[j]) && low.charCodeAt(j) - low.charCodeAt(j - 1) === step) j++;
+        if (j - i >= 3) add(i, j, step ? 'sequence' : 'repeat');
+      }
+    }
+
+    // keep the longest matches that don't overlap
+    hits.sort((a, b) => (b.j - b.i) - (a.j - a.i));
+    const taken = [], used = new Array(p.length).fill(false);
+    for (const h of hits) {
+      if (used.slice(h.i, h.j).some(Boolean)) continue;
+      used.fill(true, h.i, h.j); taken.push(h);
+    }
+    return { hits: taken.sort((a, b) => a.i - b.i), used };
+  };
+
+  // ---- counting ----
+  const poolOf = chars => SETS.reduce((n, re, i) => n + (chars.some(c => re.test(c)) ? SIZES[i] : 0), 0);
+  const brute = chars => chars.length ? chars.length * Math.log10(poolOf(chars)) : 0;   // log10 of combinations
+
+  const measure = p => {
+    const chars = [...p], full = brute(chars);
+    const { hits, used } = find(p);
+    if (!hits.length) return { L: full, full, hits };
+    // pattern guesses, then random characters in the gaps
+    let L = hits.reduce((n, h) => n + Math.log10(KINDS[h.kind].guesses * (h.leet ? 4 : 1)), 0);
+    let gap = [];
+    chars.forEach((c, i) => {
+      if (!used[i]) gap.push(c);
+      if ((used[i] || i === chars.length - 1) && gap.length) { L += brute(gap); gap = []; }
+    });
+    return L < full ? { L, full, hits } : { L: full, full, hits: [] };
+  };
+
+  // ---- words ----
+  const plural = (v, unit) => { const n = Math.round(v); return `${n.toLocaleString('en')} ${unit}${n === 1 ? '' : 's'}`; };
+  const words = l => {
+    if (l < 3) return Math.round(10 ** l).toLocaleString('en');
+    if (l >= 21) return `a ${Math.floor(l) + 1}-digit number of`;
+    const [e, name] = NAMES.find(([e]) => l >= e);
+    const v = 10 ** (l - e);
+    return `${v < 10 ? v.toFixed(1).replace(/\.0$/, '') : Math.round(v)} ${name}`;
+  };
+  const time = L => {
+    const s = L - SPEED, y = s - Math.log10(YEAR);
+    if (s < 0) return 'under a second';
+    if (s < Math.log10(60)) return plural(10 ** s, 'second');
+    if (s < Math.log10(3600)) return plural(10 ** s / 60, 'minute');
+    if (s < Math.log10(86400)) return plural(10 ** s / 3600, 'hour');
+    if (y < 0) return plural(10 ** s / 86400, 'day');
+    return y < 3 ? plural(10 ** y, 'year') : `${words(y)} years`;
+  };
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const $ = id => document.getElementById(id);
+  $('pw').addEventListener('input', () => {
+    const p = $('pw').value;
+    if (!p) { $('time').textContent = $('why').textContent = $('found').innerHTML = ''; return; }
+    const m = measure(p);
+    $('time').textContent = time(m.L);
+    $('why').textContent = `${words(m.L)} combinations`;
+    $('found').innerHTML = m.hits.map(h =>
+      `<p><b>${esc(p.slice(h.i, h.j))}</b><span>${KINDS[h.kind].why}${h.leet ? ' ' + LEET.why : ''}<em>${KINDS[h.kind].fix}</em></span></p>`
+    ).join('') + (m.hits.length && time(m.full) !== time(m.L) ? `<p class="was"><span></span><span>Without these patterns: ${time(m.full)}</span></p>` : '');
+  });
+</script>
+</body>
+</html>
