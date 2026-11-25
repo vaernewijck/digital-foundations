@@ -155,7 +155,6 @@
   const plural = (v, unit) => { const n = Math.round(v); return `${n.toLocaleString('en')} ${unit}${n === 1 ? '' : 's'}`; };
   const words = l => {
     if (l < 3) return Math.round(10 ** l).toLocaleString('en');
-    if (l >= 21) return `a ${Math.floor(l) + 1}-digit number of`;
     const [e, name] = NAMES.find(([e]) => l >= e);
     const v = 10 ** (l - e);
     return `${v < 10 ? v.toFixed(1).replace(/\.0$/, '') : Math.round(v)} ${name}`;
@@ -179,7 +178,7 @@
     if (!p) { $('time').textContent = $('why').textContent = $('found').innerHTML = ''; return; }
     const m = measure(p);
     $('time').textContent = time(m.L);
-    $('why').textContent = `${words(m.L)} combinations`;
+    $('why').textContent = m.L >= 21 ? 'endlessly many combinations' : `${words(m.L)} combinations`;
     $('found').innerHTML = m.hits.map(h =>
       `<p><b>${esc(p.slice(h.i, h.j))}</b><span>${KINDS[h.kind].why}${h.leet ? ' ' + LEET.why : ''}<em>${KINDS[h.kind].fix}</em></span></p>`
     ).join('') + (m.hits.length && time(m.full) !== time(m.L) ? `<p class="was"><span></span><span>Without these patterns: ${time(m.full)}</span></p>` : '');
