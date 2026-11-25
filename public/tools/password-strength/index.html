@@ -56,7 +56,8 @@
   const SPEED = 10, YEAR = 365.25 * 86400;
   const SETS = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9 ]/, / /];
   const SIZES = [26, 26, 10, 32, 1];
-  const NAMES = [[18, 'quintillion'], [15, 'quadrillion'], [12, 'trillion'], [9, 'billion'], [6, 'million'], [3, 'thousand']];
+  const ENDLESS = 27;   // log10 of combinations: from here both lines say endlessly
+  const NAMES = [[24, 'septillion'], [21, 'sextillion'], [18, 'quintillion'], [15, 'quadrillion'], [12, 'trillion'], [9, 'billion'], [6, 'million'], [3, 'thousand']];
 
   // ---- known patterns ----
   const COMMON = ['password', 'wachtwoord', 'paswoord', 'motdepasse', 'admin', 'welcome', 'welkom', 'letmein',
@@ -160,13 +161,13 @@
     return `${v < 10 ? v.toFixed(1).replace(/\.0$/, '') : Math.round(v)} ${name}`;
   };
   const time = L => {
+    if (L >= ENDLESS) return 'endlessly long';
     const s = L - SPEED, y = s - Math.log10(YEAR);
     if (s < 0) return 'under a second';
     if (s < Math.log10(60)) return plural(10 ** s, 'second');
     if (s < Math.log10(3600)) return plural(10 ** s / 60, 'minute');
     if (s < Math.log10(86400)) return plural(10 ** s / 3600, 'hour');
     if (y < 0) return plural(10 ** s / 86400, 'day');
-    if (y >= 21) return 'endlessly long';
     return y < 3 ? plural(10 ** y, 'year') : `${words(y)} years`;
   };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -178,7 +179,7 @@
     if (!p) { $('time').textContent = $('why').textContent = $('found').innerHTML = ''; return; }
     const m = measure(p);
     $('time').textContent = time(m.L);
-    $('why').textContent = m.L >= 21 ? 'endlessly many combinations' : `${words(m.L)} combinations`;
+    $('why').textContent = m.L >= ENDLESS ? 'endlessly many combinations' : `${words(m.L)} combinations`;
     $('found').innerHTML = m.hits.map(h =>
       `<p><b>${esc(p.slice(h.i, h.j))}</b><span>${KINDS[h.kind].why}${h.leet ? ' ' + LEET.why : ''}<em>${KINDS[h.kind].fix}</em></span></p>`
     ).join('') + (m.hits.length && time(m.full) !== time(m.L) ? `<p class="was"><span></span><span>Without these patterns: ${time(m.full)}</span></p>` : '');
