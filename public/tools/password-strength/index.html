@@ -167,6 +167,7 @@
     if (s < Math.log10(3600)) return plural(10 ** s / 60, 'minute');
     if (s < Math.log10(86400)) return plural(10 ** s / 3600, 'hour');
     if (y < 0) return plural(10 ** s / 86400, 'day');
+    if (y >= 21) return 'endlessly long';
     return y < 3 ? plural(10 ** y, 'year') : `${words(y)} years`;
   };
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
